@@ -9,8 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import tn.federation.backend.entities.press.PressItem;
 import tn.federation.backend.entities.press.PressType;
-import tn.federation.backend.services.press.IPressService;
-
+import tn.federation.backend.services.press.Abstraction.IPressService;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
