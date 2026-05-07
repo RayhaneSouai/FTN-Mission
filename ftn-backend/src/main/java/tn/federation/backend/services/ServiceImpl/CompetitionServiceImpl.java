@@ -1,4 +1,4 @@
-package tn.federation.backend.services.Interfaces.ServiceImpl;
+package tn.federation.backend.services.ServiceImpl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
