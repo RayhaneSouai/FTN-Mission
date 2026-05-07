@@ -1,0 +1,104 @@
+<div style="padding: 2rem; max-width: 1200px; margin: 0 auto;">
+
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+      <h1 style="color: var(--ftn-blue); font-size: 1.8rem;">Gestion de la Presse</h1>
+      <p style="color: #718096;">Espace Administration</p>
+    </div>
+    <button class="btn-ftn btn-ftn-blue" (click)="goToAdd()">
+      ＋ Ajouter un Élément
+    </button>
+  </div>
+
+  <!-- TABLEAU DE BORD (STATS) -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+    <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-left: 4px solid var(--ftn-blue);">
+      <div style="font-size: 0.85rem; color: #718096; font-weight: 600;">TOTAL ITEMS</div>
+      <div style="font-size: 1.8rem; font-weight: 800; color: var(--ftn-blue);">{{ stats.total }}</div>
+    </div>
+    <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-left: 4px solid #48bb78;">
+      <div style="font-size: 0.85rem; color: #718096; font-weight: 600;">PUBLIÉS</div>
+      <div style="font-size: 1.8rem; font-weight: 800; color: #48bb78;">{{ stats.published }}</div>
+    </div>
+    <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-left: 4px solid #ed8936;">
+      <div style="font-size: 0.85rem; color: #718096; font-weight: 600;">BROUILLONS</div>
+      <div style="font-size: 1.8rem; font-weight: 800; color: #ed8936;">{{ stats.draft }}</div>
+    </div>
+    <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-left: 4px solid #9f7aea;">
+      <div style="font-size: 0.85rem; color: #718096; font-weight: 600;">VIDÉOS</div>
+      <div style="font-size: 1.8rem; font-weight: 800; color: #9f7aea;">{{ stats.video }}</div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+    <div style="position: relative; flex: 1;">
+      <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--ftn-blue); font-size: 1.2rem;">🔍</span>
+      <input type="text" placeholder="Rechercher une actualité par titre ou contenu..." 
+             style="width: 100%; padding: 1rem 1rem 1rem 3.5rem; border-radius: 12px; border: 2px solid #e2e8f0; outline: none; transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.05);"
+             onfocus="this.style.borderColor='var(--ftn-blue)'; this.style.boxShadow='0 0 0 3px rgba(0,75,141,0.1)'"
+             onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'"
+             (input)="onSearch($any($event.target).value)">
+    </div>
+  </div>
+
+  <div class="filter-bar" style="margin-bottom: 2.5rem; display: flex; gap: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
+    <button class="btn-ftn" [style.color]="filterType === 'ALL' ? '#004b8d' : '#718096'" [style.border-bottom]="filterType === 'ALL' ? '2px solid #004b8d' : ''" (click)="onFilterChange('ALL')">TOUS</button>
+    <button *ngFor="let t of types" class="btn-ftn" [style.color]="filterType === t ? '#004b8d' : '#718096'" [style.border-bottom]="filterType === t ? '2px solid #004b8d' : ''" (click)="onFilterChange(t)">
+      {{ t }}
+    </button>
+  </div>
+
+  <div *ngIf="loading" style="text-align: center; padding: 2rem;">Chargement...</div>
+
+  <!-- BOUCLE SUR LES TYPES POUR LE REGROUPEMENT -->
+  <ng-container *ngFor="let type of types">
+    <div *ngIf="(filterType === 'ALL' || filterType === type) && getItemsByType(type).length > 0">
+      
+      <h2 style="color: var(--ftn-blue); margin: 2rem 0 1rem; border-left: 5px solid var(--ftn-blue); padding-left: 15px; font-size: 1.2rem;">
+        {{ type }}S
+      </h2>
+
+      <div class="news-grid">
+        <div *ngFor="let item of getItemsByType(type)" class="news-card" style="cursor: pointer;" (click)="pressService.openLink(item.linkUrl || item.mediaUrl || '')">
+          <div class="card-media">
+            <iframe *ngIf="item.type === 'VIDEO' && item.mediaUrl?.includes('yout')" [src]="pressService.getEmbedUrl(item.mediaUrl || '') | safe" frameborder="0" allowfullscreen></iframe>
+            <video *ngIf="item.type === 'VIDEO' && !item.mediaUrl?.includes('yout') && item.mediaUrl" controls><source [src]="item.mediaUrl" type="video/mp4"></video>
+            <img *ngIf="item.type !== 'VIDEO' && item.mediaUrl" [src]="item.mediaUrl">
+            <div *ngIf="!item.mediaUrl" style="display:flex; align-items:center; justify-content:center; height:100%; font-size:2rem; background:#edf2f7;">📰</div>
+          </div>
+
+          <div class="card-body">
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:0.5rem;">
+              <span style="font-weight:700; color:var(--ftn-blue);">{{ item.discipline }}</span>
+              <span class="badge" [ngClass]="getStatusClass(item.status)">{{ item.status }}</span>
+            </div>
+            <h3 class="card-title" (click)="pressService.openLink(item.linkUrl || item.mediaUrl)" 
+                style="cursor:pointer; color:var(--ftn-blue); text-decoration:underline;">
+              {{ item.title }}
+            </h3>
+            <p class="card-excerpt">{{ item.content | slice:0:120 }}...</p>
+            
+            <div class="card-footer">
+          <div class="card-actions">
+            <!-- Boutons de Statut -->
+            <button title="Publier" *ngIf="item.status !== 'PUBLISHED'" (click)="publish(item)">✅</button>
+            <button title="Archiver" *ngIf="item.status !== 'ARCHIVED'" (click)="archive(item)">📁</button>
+            <button title="Remettre en Brouillon" *ngIf="item.status !== 'DRAFT'" (click)="setDraft(item)">📝</button>
+            
+            <div style="margin-left: 10px; border-left: 1px solid #eee; padding-left: 10px; display: inline-flex; gap: 8px; align-items: center;">
+              <button title="Modifier" (click)="goToEdit(item.idPressItem!)">✏️</button>
+              <button title="Supprimer" style="color:#e53e3e;" (click)="delete(item)">🗑️</button>
+              <button *ngIf="item.linkUrl" (click)="pressService.openLink(item.linkUrl)" 
+                      style="background: #edf2f7; border: 1px solid #e2e8f0; font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; font-weight: 600;">
+                Lire la suite →
+              </button>
+            </div>
+          </div>
+        </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+</div>
