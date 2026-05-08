@@ -1,692 +1,222 @@
 // ═══════════════════════════════════════
-//  Competition List — White / Blue
+//  Competition List — Scoped Theme
 // ═══════════════════════════════════════
-
-// ─── State color tokens ───
-$state-active-bg: rgba(6, 182, 212, 0.1);
-$state-active-border: #06b6d4;
-$state-active-text: #0891b2;
-
-$state-upcoming-bg: rgba(139, 92, 246, 0.08);
-$state-upcoming-border: #8b5cf6;
-$state-upcoming-text: #7c3aed;
-
-$state-completed-bg: rgba(148, 163, 184, 0.08);
-$state-completed-border: #94a3b8;
-$state-completed-text: #64748b;
-
-$state-cancelled-bg: rgba(239, 68, 68, 0.08);
-$state-cancelled-border: #ef4444;
-$state-cancelled-text: #b91c1c;
-
-// ─── List item sizing ───
-$item-height: 160px;
-$item-gap: 16px;
+@use '../../styles/competition-theme' as theme;
 
 :host {
-    display: block;
-    min-height: 100vh;
-    padding: 1.5rem;
-    background: var(--bg-page);
+  @include theme.tokens;
+  display: block;
+  min-height: 100vh;
+  padding: 1.5rem;
+  background: var(--bg-page);
+  font-family: var(--font-family);
+  color: var(--text-primary);
 }
 
 .dashboard {
-    display: grid;
-    gap: 1.15rem;
-    max-width: 1400px;
-    margin: 0 auto;
+  display: grid;
+  gap: 1.15rem;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 // ═══════════ HERO ═══════════
 .hero {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1rem;
-    padding: 1.75rem 2rem;
-    border-radius: var(--radius-xl);
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1.75rem 2rem;
+  border-radius: var(--radius-xl);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
 
-    &__eyebrow {
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--accent);
-    }
-
-    &__title {
-        font-size: clamp(1.6rem, 3vw, 2.6rem);
-        font-weight: 800;
-        color: var(--text-primary);
-    }
-
-    &__text {
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-    }
-
-    &__copy {
-        display: grid;
-        gap: 0.5rem;
-    }
+  &__eyebrow { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+  &__title { font-size: clamp(1.6rem, 3vw, 2.6rem); font-weight: 800; color: var(--text-primary); }
+  &__text { color: var(--text-secondary); font-size: 0.9rem; }
+  &__copy { display: grid; gap: 0.5rem; }
 }
 
 // ═══════════ BUTTONS ═══════════
 .btn {
-    border: none;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.88rem;
-    padding: 0.65rem 1.3rem;
-    transition: all var(--transition-base);
-
-    &--primary {
-        background: var(--accent);
-        color: var(--text-inverse);
-        box-shadow: 0 4px 14px var(--accent-glow);
-
-        &:hover {
-            background: var(--accent-dark);
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-glow);
-        }
-    }
+  border: none; border-radius: var(--radius-md); cursor: pointer; font-weight: 600; font-size: 0.88rem;
+  padding: 0.65rem 1.3rem; transition: all var(--transition-base);
+  &--primary {
+    background: var(--accent); color: var(--text-inverse); box-shadow: 0 4px 14px var(--accent-glow);
+    &:hover { background: var(--accent-dark); transform: translateY(-1px); box-shadow: var(--shadow-glow); }
+  }
 }
 
 // ═══════════ STATS ═══════════
-.stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.85rem;
-}
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.85rem; }
 
 .stat-card {
-    padding: 1rem 1.25rem;
-    border-radius: var(--radius-lg);
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-xs);
-
-    &--accent {
-        border-color: rgba(59, 130, 246, 0.2);
-        background: linear-gradient(135deg, var(--accent-softer), var(--bg-surface));
-    }
-
-    &--next {
-        border-color: rgba(139, 92, 246, 0.2);
-        background: linear-gradient(135deg, rgba(139, 92, 246, 0.04), var(--bg-surface));
-    }
-
-    &__label {
-        font-size: 0.7rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: var(--accent);
-    }
-
-    &__value {
-        font-size: 1.6rem;
-        font-weight: 800;
-        display: block;
-
-        &--sm {
-            font-size: 1rem;
-        }
-    }
-
-    &__countdown {
-        font-size: 0.82rem;
-        font-weight: 600;
-        color: #7c3aed;
-        margin-top: 0.15rem;
-    }
-
-    &__date {
-        font-size: 0.75rem;
-        color: var(--text-muted);
-    }
+  padding: 1rem 1.25rem; border-radius: var(--radius-lg); background: var(--bg-surface);
+  border: 1px solid var(--border-color); box-shadow: var(--shadow-xs);
+  &--accent { border-color: rgba(59,130,246,0.2); background: linear-gradient(135deg, var(--accent-softer), var(--bg-surface)); }
+  &--next { border-color: rgba(139,92,246,0.2); background: linear-gradient(135deg, rgba(139,92,246,0.04), var(--bg-surface)); }
+  &__label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); }
+  &__value { font-size: 1.6rem; font-weight: 800; display: block; &--sm { font-size: 1rem; } }
+  &__countdown { font-size: 0.82rem; font-weight: 600; color: #7c3aed; margin-top: 0.15rem; }
+  &__date { font-size: 0.75rem; color: var(--text-muted); }
 }
 
-// ═══════════ SPLIT PANE (stretch = same height) ═══════════
+// ═══════════ SPLIT PANE ═══════════
 .split-pane {
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 1.15rem;
-    align-items: stretch; // forces same height
-
-    &__main,
-    &__sidebar {
-        border-radius: var(--radius-xl);
-        background: var(--bg-surface);
-        border: 1px solid var(--border-color);
-        box-shadow: var(--shadow-sm);
-        padding: 1.25rem;
-        display: flex;
-        flex-direction: column;
-    }
-
-    &__sidebar {
-        overflow-y: auto;
-    }
+  display: grid; grid-template-columns: 1fr 340px; gap: 1.15rem; align-items: stretch;
+  &__main, &__sidebar {
+    border-radius: var(--radius-xl); background: var(--bg-surface); border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm); padding: 1.25rem; display: flex; flex-direction: column;
+  }
+  &__sidebar { overflow-y: auto; }
 }
 
 // ═══════════ TOOLBAR ═══════════
 .toolbar {
-    display: flex;
-    align-items: center;
-    gap: 0.85rem;
-    flex-wrap: wrap;
-    margin-bottom: 1rem;
-
-    &__label {
-        font-size: 1.1rem;
-        font-weight: 700;
-        text-transform: capitalize;
-        color: var(--text-primary);
-        margin-left: auto;
-    }
+  display: flex; align-items: center; gap: 0.85rem; flex-wrap: wrap; margin-bottom: 1rem;
+  &__label { font-size: 1.1rem; font-weight: 700; text-transform: capitalize; color: var(--text-primary); margin-left: auto; }
 }
-
 .view-toggle {
-    display: flex;
-    gap: 0.25rem;
-    padding: 0.2rem;
-    background: var(--bg-inset);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-
-    button {
-        padding: 0.4rem 0.85rem;
-        border: none;
-        border-radius: var(--radius-xs);
-        background: transparent;
-        color: var(--text-secondary);
-        font-size: 0.8rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all var(--transition-fast);
-
-        &:hover {
-            background: var(--bg-surface-hover);
-        }
-
-        &.active {
-            background: var(--accent);
-            color: var(--text-inverse);
-            box-shadow: 0 2px 6px var(--accent-glow);
-        }
-    }
+  display: flex; gap: 0.25rem; padding: 0.2rem; background: var(--bg-inset); border: 1px solid var(--border-color); border-radius: var(--radius-sm);
+  button {
+    padding: 0.4rem 0.85rem; border: none; border-radius: var(--radius-xs); background: transparent;
+    color: var(--text-secondary); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all var(--transition-fast);
+    &:hover { background: var(--bg-surface-hover); }
+    &.active { background: var(--accent); color: var(--text-inverse); box-shadow: 0 2px 6px var(--accent-glow); }
+  }
 }
-
-.nav-controls {
-    display: flex;
-    gap: 0.25rem;
-}
-
+.nav-controls { display: flex; gap: 0.25rem; }
 .nav-btn {
-    padding: 0.4rem 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    background: var(--bg-surface);
-    color: var(--text-secondary);
-    font-size: 0.88rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-
-    &:hover {
-        border-color: var(--accent);
-        color: var(--accent);
-    }
-
-    &--today {
-        font-size: 0.78rem;
-        font-weight: 600;
-    }
+  padding: 0.4rem 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm);
+  background: var(--bg-surface); color: var(--text-secondary); font-size: 0.88rem; font-weight: 700;
+  cursor: pointer; transition: all var(--transition-fast);
+  &:hover { border-color: var(--accent); color: var(--accent); }
+  &--today { font-size: 0.78rem; font-weight: 600; }
 }
 
-// ═══════════ CAL GRID (stretches to fill pane) ═══════════
+// ═══════════ CAL GRID ═══════════
 .cal-grid {
-    flex: 1;
-    display: grid;
-    min-height: 0;
-
-    &--month {
-        // 1 row for weekday headers + 5 rows for weeks
-        grid-template-rows: auto repeat(5, 1fr);
-    }
-
-    &--week {
-        // 1 row for weekday headers + 1 row for the week
-        grid-template-rows: auto 1fr;
-    }
+  flex: 1; display: grid; min-height: 0;
+  &--month { grid-template-rows: auto repeat(5, 1fr); }
+  &--week  { grid-template-rows: auto 1fr; }
 }
-
-// ═══════════ CAL WEEKDAYS ═══════════
 .cal-weekdays {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-
-    span {
-        text-align: center;
-        font-size: 0.75rem;
-        font-weight: 700;
-        color: var(--text-muted);
-        padding: 0.35rem 0;
-    }
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  span { text-align: center; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); padding: 0.35rem 0; }
 }
-
-// ═══════════ CAL ROW (fills its grid track) ═══════════
 .cal-row {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    position: relative;
-    // No min-height — the parent grid-template-rows: 1fr handles sizing
+  display: grid; grid-template-columns: repeat(7, 1fr); position: relative;
 }
-
 .cal-cell {
-    padding: 0.4rem 0.5rem;
-    border: 1px solid var(--border-light);
-    background: var(--bg-surface);
-    // Height determined by parent grid row, no fixed min-height
-
-    &--outside {
-        opacity: 0.3;
-    }
-
-    &--today {
-        background: var(--accent-softer);
-        border-color: rgba(59, 130, 246, 0.2);
-
-        .cal-cell__num {
-            color: var(--accent);
-            font-weight: 800;
-        }
-    }
-
-    &--tall {
-        min-height: 160px;
-    }
-
-    &__num {
-        font-size: 0.78rem;
-        font-weight: 700;
-        color: var(--text-primary);
-    }
+  padding: 0.4rem 0.5rem; border: 1px solid var(--border-light); background: var(--bg-surface);
+  &--outside { opacity: 0.3; }
+  &--today { background: var(--accent-softer); border-color: rgba(59,130,246,0.2);
+    .cal-cell__num { color: var(--accent); font-weight: 800; }
+  }
+  &--tall { min-height: 160px; }
+  &__num { font-size: 0.78rem; font-weight: 700; color: var(--text-primary); }
 }
 
-// ═══════════ EVENT BAR (state-colored) ═══════════
+// ═══════════ EVENT BAR ═══════════
 .event-bar {
-    position: absolute;
-    height: 22px;
-    padding: 0 0.5rem;
-    border-radius: var(--radius-xs);
-    font-size: 0.68rem;
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 22px;
-    cursor: pointer;
-    z-index: 2;
-    transition: all var(--transition-fast);
-    box-sizing: border-box;
-    border-left: 3px solid var(--accent);
-    background: var(--accent-soft);
-    color: var(--accent-dark);
-
-    &:hover {
-        box-shadow: 0 2px 8px var(--accent-glow);
-        filter: brightness(1.08);
-    }
-
-    // State colors
-    &.state-active {
-        background: $state-active-bg;
-        border-left-color: $state-active-border;
-        color: $state-active-text;
-    }
-
-    &.state-upcoming {
-        background: $state-upcoming-bg;
-        border-left-color: $state-upcoming-border;
-        color: $state-upcoming-text;
-    }
-
-    &.state-completed {
-        background: $state-completed-bg;
-        border-left-color: $state-completed-border;
-        color: $state-completed-text;
-    }
-
-    &.state-cancelled {
-        background: $state-cancelled-bg;
-        border-left-color: $state-cancelled-border;
-        color: $state-cancelled-text;
-    }
-
-    &--week {
-        height: 40px;
-        line-height: 1.3;
-        padding: 0.35rem 0.65rem;
-        display: flex;
-        flex-direction: column;
-        white-space: normal;
-
-        strong {
-            font-size: 0.78rem;
-        }
-
-        span {
-            font-size: 0.65rem;
-            color: var(--text-muted);
-        }
-    }
+  position: absolute; height: 22px; padding: 0 0.5rem; border-radius: var(--radius-xs);
+  font-size: 0.68rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  line-height: 22px; cursor: pointer; z-index: 2; transition: all var(--transition-fast); box-sizing: border-box;
+  border-left: 3px solid var(--accent); background: var(--accent-soft); color: var(--accent-dark);
+  &:hover { box-shadow: 0 2px 8px var(--accent-glow); filter: brightness(1.08); }
+  &.state-active    { background: theme.$state-active-bg;    border-left-color: theme.$state-active-border;    color: theme.$state-active-text; }
+  &.state-upcoming  { background: theme.$state-upcoming-bg;  border-left-color: theme.$state-upcoming-border;  color: theme.$state-upcoming-text; }
+  &.state-completed { background: theme.$state-completed-bg; border-left-color: theme.$state-completed-border; color: theme.$state-completed-text; }
+  &.state-cancelled { background: theme.$state-cancelled-bg; border-left-color: theme.$state-cancelled-border; color: theme.$state-cancelled-text; }
+  &--week {
+    height: 40px; line-height: 1.3; padding: 0.35rem 0.65rem; display: flex; flex-direction: column; white-space: normal;
+    strong { font-size: 0.78rem; } span { font-size: 0.65rem; color: var(--text-muted); }
+  }
 }
 
 // ═══════════ SIDEBAR ═══════════
 .sidebar-head {
-    margin-bottom: 1rem;
-
-    &__kicker {
-        font-size: 0.7rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: var(--accent);
-    }
-
-    &__title {
-        font-size: 1.15rem;
-        font-weight: 700;
-    }
+  margin-bottom: 1rem;
+  &__kicker { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); }
+  &__title { font-size: 1.15rem; font-weight: 700; }
 }
-
 .comp-list {
-    display: grid;
-    gap: $item-gap;
-    align-content: start;
-    height: calc((3 * #{$item-height}) + (2 * #{$item-gap}));
-    overflow: hidden;
+  display: grid; gap: theme.$item-gap; align-content: start;
+  height: calc((3 * #{theme.$item-height}) + (2 * #{theme.$item-gap})); overflow: hidden;
 }
-
 .comp-card {
-    display: grid;
-    grid-template-columns: 56px 1fr;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    height: $item-height;
-    flex-shrink: 0;
-    box-sizing: border-box;
-    overflow: hidden;
-    border-radius: var(--radius-md);
-    background: var(--bg-inset);
-    border: 1px solid var(--border-light);
-    transition: border-color var(--transition-fast);
-
-    &:hover {
-        border-color: var(--accent);
-    }
-
-    // State accent on cards (left border)
-    &.state-active {
-        border-left: 3px solid $state-active-border;
-    }
-
-    &.state-upcoming {
-        border-left: 3px solid $state-upcoming-border;
-    }
-
-    &.state-completed {
-        border-left: 3px solid $state-completed-border;
-    }
-
-    &.state-cancelled {
-        border-left: 3px solid $state-cancelled-border;
-    }
-
-    &__date {
-        display: grid;
-        place-items: center;
-        border-radius: var(--radius-sm);
-        background: linear-gradient(180deg, rgba(59, 130, 246, 0.08), rgba(59, 130, 246, 0.02));
-        min-height: 56px;
-
-        span {
-            font-size: 1.2rem;
-            font-weight: 800;
-            color: var(--accent);
-        }
-
-        small {
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: var(--text-muted);
-        }
-    }
-
-    &__body {
-        display: grid;
-        gap: 0.25rem;
-
-        h3 {
-            font-size: 0.88rem;
-            font-weight: 600;
-        }
-    }
-
-    &__meta {
-        font-size: 0.78rem;
-        color: var(--text-secondary);
-    }
-
-    &__dates {
-        font-size: 0.72rem;
-        color: var(--text-muted);
-    }
-
-    &__actions {
-        display: flex;
-        gap: 0.3rem;
-        margin-top: 0.2rem;
-    }
+  display: grid; grid-template-columns: 56px 1fr; gap: 0.75rem; padding: 0.75rem;
+  height: theme.$item-height; flex-shrink: 0; box-sizing: border-box; overflow: hidden;
+  border-radius: var(--radius-md); background: var(--bg-inset); border: 1px solid var(--border-light);
+  transition: border-color var(--transition-fast);
+  &:hover { border-color: var(--accent); }
+  &.state-active    { border-left: 3px solid theme.$state-active-border; }
+  &.state-upcoming  { border-left: 3px solid theme.$state-upcoming-border; }
+  &.state-completed { border-left: 3px solid theme.$state-completed-border; }
+  &.state-cancelled { border-left: 3px solid theme.$state-cancelled-border; }
+  &__date {
+    display: grid; place-items: center; border-radius: var(--radius-sm);
+    background: linear-gradient(180deg, rgba(59,130,246,0.08), rgba(59,130,246,0.02)); min-height: 56px;
+    span { font-size: 1.2rem; font-weight: 800; color: var(--accent); }
+    small { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+  }
+  &__body { display: grid; gap: 0.25rem; h3 { font-size: 0.88rem; font-weight: 600; } }
+  &__meta { font-size: 0.78rem; color: var(--text-secondary); }
+  &__dates { font-size: 0.72rem; color: var(--text-muted); }
+  &__actions { display: flex; gap: 0.3rem; margin-top: 0.2rem; }
 }
 
 // ─── Status chips ───
 .status-chip {
-    display: inline-block;
-    padding: 0.15rem 0.5rem;
-    border-radius: var(--radius-pill);
-    font-size: 0.68rem;
-    font-weight: 700;
-    text-transform: uppercase;
-
-    &--PLANIFIEE {
-        background: $state-upcoming-bg;
-        color: $state-upcoming-text;
-    }
-
-    &--EN_COURS {
-        background: $state-active-bg;
-        color: $state-active-text;
-    }
-
-    &--TERMINEE {
-        background: $state-completed-bg;
-        color: $state-completed-text;
-    }
-
-    &--ANNULEE {
-        background: $state-cancelled-bg;
-        color: $state-cancelled-text;
-    }
+  display: inline-block; padding: 0.15rem 0.5rem; border-radius: var(--radius-pill); font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+  &--PLANIFIEE  { background: theme.$state-upcoming-bg;  color: theme.$state-upcoming-text; }
+  &--EN_COURS   { background: theme.$state-active-bg;    color: theme.$state-active-text; }
+  &--TERMINEE   { background: theme.$state-completed-bg; color: theme.$state-completed-text; }
+  &--ANNULEE    { background: theme.$state-cancelled-bg; color: theme.$state-cancelled-text; }
 }
 
 // ─── Small buttons ───
 .btn-sm {
-    border: none;
-    border-radius: var(--radius-xs);
-    cursor: pointer;
-    font-size: 0.78rem;
-    padding: 0.3rem 0.55rem;
-    transition: all var(--transition-fast);
-
-    &--edit {
-        background: var(--accent-soft);
-        color: var(--accent-dark);
-
-        &:hover {
-            background: rgba(59, 130, 246, 0.15);
-        }
-    }
-
-    &--delete {
-        background: $state-cancelled-bg;
-        color: $state-cancelled-text;
-
-        &:hover {
-            background: rgba(239, 68, 68, 0.15);
-        }
-    }
+  border: none; border-radius: var(--radius-xs); cursor: pointer; font-size: 0.78rem; padding: 0.3rem 0.55rem;
+  transition: all var(--transition-fast);
+  &--edit { background: var(--accent-soft); color: var(--accent-dark); &:hover { background: rgba(59,130,246,0.15); } }
+  &--delete { background: theme.$state-cancelled-bg; color: theme.$state-cancelled-text; &:hover { background: rgba(239,68,68,0.15); } }
 }
 
 // ═══════════ PAGINATION ═══════════
 .pagination {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    padding: 0.85rem 0 0;
-    margin-top: auto;
-    border-top: 1px solid var(--border-light);
-
-    &__btn {
-        padding: 0.4rem 1rem;
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-sm);
-        background: var(--bg-surface);
-        color: var(--accent);
-        font-size: 0.82rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all var(--transition-fast);
-
-        &:hover:not(:disabled) {
-            border-color: var(--accent);
-            background: var(--accent-soft);
-        }
-
-        &:disabled {
-            opacity: 0.35;
-            cursor: not-allowed;
-        }
-    }
-
-    &__info {
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: var(--text-muted);
-    }
+  display: flex; align-items: center; justify-content: center; gap: 0.75rem;
+  padding: 0.85rem 0 0; margin-top: auto; border-top: 1px solid var(--border-light);
+  &__btn {
+    padding: 0.4rem 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm);
+    background: var(--bg-surface); color: var(--accent); font-size: 0.82rem; font-weight: 600;
+    cursor: pointer; transition: all var(--transition-fast);
+    &:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+    &:disabled { opacity: 0.35; cursor: not-allowed; }
+  }
+  &__info { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
 }
 
 // ═══════════ SKELETON / EMPTY ═══════════
-.skeleton-list {
-    display: grid;
-    gap: 0.5rem;
-}
-
-.skeleton-card {
-    padding: 1rem;
-    border-radius: var(--radius-md);
-    background: var(--bg-inset);
-    border: 1px solid var(--border-light);
-}
-
+.skeleton-list { display: grid; gap: 0.5rem; }
+.skeleton-card { padding: 1rem; border-radius: var(--radius-md); background: var(--bg-inset); border: 1px solid var(--border-light); }
 .skel-line {
-    height: 10px;
-    border-radius: 5px;
-    background: linear-gradient(90deg, var(--border-light) 25%, var(--border-color) 50%, var(--border-light) 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-    margin-bottom: 0.4rem;
-
-    &--w60 {
-        width: 60%;
-    }
-
-    &--w80 {
-        width: 80%;
-    }
-
-    &--w40 {
-        width: 40%;
-    }
+  height: 10px; border-radius: 5px;
+  background: linear-gradient(90deg, var(--border-light) 25%, var(--border-color) 50%, var(--border-light) 75%);
+  background-size: 200% 100%; animation: shimmer 1.5s infinite; margin-bottom: 0.4rem;
+  &--w60 { width: 60%; } &--w80 { width: 80%; } &--w40 { width: 40%; }
+}
+.empty-state { text-align: center; padding: 2.5rem 1rem; color: var(--text-muted);
+  &__icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+  h3 { color: var(--text-secondary); margin-bottom: 0.2rem; }
 }
 
-.empty-state {
-    text-align: center;
-    padding: 2.5rem 1rem;
-    color: var(--text-muted);
-
-    &__icon {
-        font-size: 2.5rem;
-        margin-bottom: 0.5rem;
-    }
-
-    h3 {
-        color: var(--text-secondary);
-        margin-bottom: 0.2rem;
-    }
-}
-
-@keyframes shimmer {
-    0% {
-        background-position: 200% 0;
-    }
-
-    100% {
-        background-position: -200% 0;
-    }
-}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
 // ═══════════ RESPONSIVE ═══════════
-@media (max-width: 1100px) {
-    .split-pane {
-        grid-template-columns: 1fr;
-    }
-
-    .split-pane__sidebar {
-        order: -1;
-    }
-}
-
-@media (max-width: 860px) {
-    :host {
-        padding: 1rem;
-    }
-
-    .stats {
-        grid-template-columns: 1fr;
-    }
-
-    .hero {
-        display: grid;
-    }
-
-    .toolbar {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .toolbar__label {
-        margin-left: 0;
-        text-align: center;
-    }
+@media (max-width: 1100px) { .split-pane { grid-template-columns: 1fr; } .split-pane__sidebar { order: -1; } }
+@media (max-width: 860px) { :host { padding: 1rem; } .stats { grid-template-columns: 1fr; } .hero { display: grid; }
+  .toolbar { flex-direction: column; align-items: stretch; } .toolbar__label { margin-left: 0; text-align: center; }
 }
