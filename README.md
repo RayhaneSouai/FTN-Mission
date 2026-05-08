@@ -66,12 +66,13 @@ ftn/
 │   ├── src/main/java/tn/federation/backend/
 │   │   ├── BackendApplication.java
 │   │   ├── entities/                # Entités JPA (partagées entre modules)
-│   │   ├── dto/                     # Data Transfer Objects
-│   │   ├── mapper/                  # Mappers Entity ↔ DTO
-│   │   ├── repository/              # Interfaces JPA
-│   │   ├── service/                 # Interfaces de service
-│   │   │   └── impl/                # Implémentations
-│   │   ├── controller/              # Contrôleurs REST
+│   │   ├── dtos/                     # Data Transfer Objects
+│   │   ├── mappers/                  # Mappers Entity ↔ DTO
+│   │   ├── repositories/              # Interfaces JPA
+│   │   ├── services/                 
+│   │   │   └── Abstract/            # Interfaces de service
+│   │   │   └── ServiceImpl/         # Implémentations
+│   │   ├── controllers/              # Contrôleurs REST
 │   │   ├── config/                  # Configuration (Security, CORS, Swagger...)
 │   │   ├── exception/               # Exceptions métier & handler global
 │   │   └── client/                  # Clients HTTP externes (FastAPI, etc.)
