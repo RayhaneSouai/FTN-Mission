@@ -1,0 +1,186 @@
+<app-toast-container />
+
+<main class="dashboard">
+    <!-- ══════ HERO ══════ -->
+    <section class="hero">
+        <div class="hero__copy">
+            <p class="hero__eyebrow">Fédération Tunisienne de Natation</p>
+            <h1 class="hero__title">Compétitions</h1>
+            <p class="hero__text">Calendrier, gestion et suivi de toutes les compétitions.</p>
+        </div>
+        <button class="btn btn--primary" type="button" (click)="openCreateModal()">＋ Nouvelle compétition</button>
+    </section>
+
+    <!-- ══════ STATS ══════ -->
+    <section class="stats">
+        <article class="stat-card stat-card--accent">
+            <span class="stat-card__label">Compétitions</span>
+            <strong class="stat-card__value">{{ state.competitions().length }}</strong>
+        </article>
+
+        <article class="stat-card">
+            <span class="stat-card__label">Disciplines</span>
+            <strong class="stat-card__value">{{ uniqueDisciplines().length }}</strong>
+        </article>
+
+        <!-- Next Nearest Competition -->
+        <article class="stat-card stat-card--next">
+            @if (state.nextNearest(); as next) {
+            <span class="stat-card__label">Prochaine</span>
+            <strong class="stat-card__value stat-card__value--sm">{{ next.competition.name }}</strong>
+            <p class="stat-card__countdown">
+                @if (next.daysUntil === 0) {
+                🔴 Aujourd'hui
+                } @else if (next.daysUntil === 1) {
+                ⏳ Demain
+                } @else {
+                ⏳ Dans {{ next.daysUntil }} jours
+                }
+            </p>
+            <p class="stat-card__date">{{ next.competition.startDate | date:'dd MMM yyyy' }}</p>
+            } @else {
+            <span class="stat-card__label">Prochaine</span>
+            <strong class="stat-card__value">—</strong>
+            <p class="stat-card__countdown">Aucune à venir</p>
+            }
+        </article>
+    </section>
+
+    <!-- ══════ SPLIT PANE (stretch = same height) ══════ -->
+    <section class="split-pane">
+        <!-- LEFT: Calendar -->
+        <div class="split-pane__main">
+            <div class="toolbar">
+                <div class="view-toggle">
+                    <button [class.active]="currentView() === 'month'" (click)="setView('month')">📅 Mois</button>
+                    <button [class.active]="currentView() === 'week'" (click)="setView('week')">📆 Semaine</button>
+                </div>
+                <div class="nav-controls">
+                    <button class="nav-btn" (click)="prevPeriod()">‹</button>
+                    <button class="nav-btn nav-btn--today" (click)="goToday()">Aujourd'hui</button>
+                    <button class="nav-btn" (click)="nextPeriod()">›</button>
+                </div>
+                <h2 class="toolbar__label">{{ currentView() === 'month' ? monthLabel() : weekLabel() }}</h2>
+            </div>
+
+            <!-- MONTH VIEW -->
+            @if (currentView() === 'month') {
+            <div class="cal-grid cal-grid--month">
+                <div class="cal-weekdays">
+                    @for (d of weekDays; track d) { <span>{{ d }}</span> }
+                </div>
+                @for (week of monthWeeks(); track $index) {
+                <div class="cal-row">
+                    @for (day of week.days; track day.isoDate) {
+                    <div class="cal-cell" [class.cal-cell--outside]="!day.inCurrentMonth"
+                        [class.cal-cell--today]="day.isToday">
+                        <span class="cal-cell__num">{{ day.label }}</span>
+                    </div>
+                    }
+                    @for (ev of week.events; track ev.competition.id) {
+                    <div class="event-bar {{ stateColor(ev.competition.status) }}" [ngStyle]="eventBarStyle(ev)"
+                        (click)="openEditModal(ev.competition)" [title]="ev.competition.name">{{ ev.competition.name }}
+                    </div>
+                    }
+                </div>
+                }
+            </div>
+            }
+
+            <!-- WEEK VIEW -->
+            @if (currentView() === 'week') {
+            <div class="cal-grid cal-grid--week">
+                <div class="cal-weekdays">
+                    @for (day of currentWeekData().days; track day.isoDate) {
+                    <span>{{ weekDays[$index] }} <strong>{{ day.label }}</strong></span>
+                    }
+                </div>
+                <div class="cal-row cal-row--week">
+                    @for (day of currentWeekData().days; track day.isoDate) {
+                    <div class="cal-cell cal-cell--tall" [class.cal-cell--today]="day.isToday"><span
+                            class="cal-cell__num">{{ day.label }}</span></div>
+                    }
+                    @for (ev of currentWeekData().events; track ev.competition.id) {
+                    <div class="event-bar event-bar--week {{ stateColor(ev.competition.status) }}"
+                        [ngStyle]="eventBarStyle(ev)" (click)="openEditModal(ev.competition)">
+                        <strong>{{ ev.competition.name }}</strong>
+                        <span>{{ disciplineLabel(ev.competition.discipline) }}</span>
+                    </div>
+                    }
+                </div>
+            </div>
+            }
+        </div>
+
+        <!-- RIGHT: Paginated List -->
+        <aside class="split-pane__sidebar">
+            <div class="sidebar-head">
+                <p class="sidebar-head__kicker">Compétitions</p>
+                <h2 class="sidebar-head__title">Liste</h2>
+            </div>
+
+            @if (state.isLoading() && state.competitions().length === 0) {
+            <div class="skeleton-list">
+                @for (i of [1, 2, 3]; track i) {
+                <div class="skeleton-card">
+                    <div class="skel-line skel-line--w60"></div>
+                    <div class="skel-line skel-line--w80"></div>
+                    <div class="skel-line skel-line--w40"></div>
+                </div>
+                }
+            </div>
+            }
+
+            @if (!state.isLoading() && state.competitions().length === 0) {
+            <div class="empty-state">
+                <div class="empty-state__icon">🏊</div>
+                <h3>Aucune compétition</h3>
+                <p>Créez votre première compétition.</p>
+            </div>
+            }
+
+            @if (state.competitions().length > 0) {
+            <div class="comp-list">
+                @for (comp of state.paginatedCompetitions(); track comp.id) {
+                <article class="comp-card {{ stateColor(comp.status) }}">
+                    <div class="comp-card__date">
+                        <span>{{ comp.startDate | date:'dd' }}</span>
+                        <small>{{ comp.startDate | date:'MMM' }}</small>
+                    </div>
+                    <div class="comp-card__body">
+                        <h3>{{ comp.name }}</h3>
+                        <p class="comp-card__meta">{{ disciplineLabel(comp.discipline) }} · {{ comp.location }}</p>
+                        <span class="status-chip status-chip--{{ comp.status }}">{{ statusLabel(comp.status) }}</span>
+                        <p class="comp-card__dates">{{ comp.startDate | date:'dd/MM' }} → {{ comp.endDate | date:'dd/MM'
+                            }}</p>
+                        <div class="comp-card__actions">
+                            <button class="btn-sm btn-sm--edit" (click)="openEditModal(comp)">✏️</button>
+                            <button class="btn-sm btn-sm--delete" (click)="requestDelete(comp.id)">🗑</button>
+                        </div>
+                    </div>
+                </article>
+                }
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <button class="pagination__btn" [disabled]="!state.canPrevPage()" (click)="state.prevPage()">‹
+                    Préc</button>
+                <span class="pagination__info">{{ state.currentPage() + 1 }} / {{ state.totalPages() }}</span>
+                <button class="pagination__btn" [disabled]="!state.canNextPage()" (click)="state.nextPage()">Suiv
+                    ›</button>
+            </div>
+            }
+        </aside>
+    </section>
+</main>
+
+@if (modalOpen()) {
+<app-competition-form [competition]="editingCompetition()" (closed)="closeModal()" />
+}
+
+@if (confirmDeleteOpen()) {
+<app-confirm-dialog title="Supprimer la compétition"
+    message="Cette action est irréversible. Voulez-vous supprimer cette compétition ?" confirmLabel="Oui, supprimer"
+    (confirmed)="onDeleteConfirmed()" (cancelled)="onDeleteCancelled()" />
+}

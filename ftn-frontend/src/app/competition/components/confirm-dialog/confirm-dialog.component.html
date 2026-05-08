@@ -1,0 +1,11 @@
+<div class="confirm-backdrop" (click)="onBackdrop($event)">
+    <article class="confirm-card">
+        <div class="confirm-icon">⚠️</div>
+        <h3 class="confirm-title">{{ title }}</h3>
+        <p class="confirm-message">{{ message }}</p>
+        <div class="confirm-actions">
+            <button class="btn btn--ghost" type="button" (click)="cancelled.emit()">{{ cancelLabel }}</button>
+            <button class="btn btn--danger" type="button" (click)="confirmed.emit()">{{ confirmLabel }}</button>
+        </div>
+    </article>
+</div>
