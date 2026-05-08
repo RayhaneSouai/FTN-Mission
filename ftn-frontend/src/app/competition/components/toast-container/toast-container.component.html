@@ -1,0 +1,13 @@
+<div class="toast-stack">
+    @for (toast of toastService.toasts(); track toast.id) {
+    <div class="toast toast--{{ toast.type }}">
+        <span class="toast__icon">
+            @if (toast.type === 'success') { ✓ }
+            @if (toast.type === 'error') { ✕ }
+            @if (toast.type === 'info') { ℹ }
+        </span>
+        <span class="toast__msg">{{ toast.message }}</span>
+        <button class="toast__close" (click)="toastService.dismiss(toast.id)">✕</button>
+    </div>
+    }
+</div>

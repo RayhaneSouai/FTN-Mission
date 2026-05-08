@@ -1,0 +1,105 @@
+<div class="modal-backdrop" (click)="onBackdropClick($event)">
+    <article class="modal-card" (click)="$event.stopPropagation()">
+        <!-- Header -->
+        <header class="modal-header">
+            <h2 class="modal-title">
+                {{ isEditMode() ? '✏️ Modifier la compétition' : '✨ Nouvelle compétition' }}
+            </h2>
+            <button class="modal-close" type="button" (click)="tryClose()">✕</button>
+        </header>
+
+        <!-- Form -->
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="modal-form">
+            <!-- Name -->
+            <div class="field">
+                <label for="comp-name">Nom de la compétition</label>
+                <input id="comp-name" formControlName="name" placeholder="Ex : Coupe Nationale Junior" />
+                @if (form.controls.name.invalid && form.controls.name.touched) {
+                <span class="field__error">⚠ Le nom est requis.</span>
+                }
+            </div>
+
+            <!-- Discipline + Status -->
+            <div class="field-row">
+                <div class="field">
+                    <label for="comp-discipline">Discipline</label>
+                    <select id="comp-discipline" formControlName="discipline">
+                        @for (d of disciplines; track d.value) {
+                        <option [value]="d.value">{{ d.label }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="comp-status">Statut</label>
+                    <select id="comp-status" formControlName="status">
+                        @for (s of statuses; track s.value) {
+                        <option [value]="s.value">{{ s.label }}</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <!-- Dates -->
+            <div class="field-row">
+                <div class="field">
+                    <label for="comp-start">Date de début</label>
+                    <input id="comp-start" type="date" formControlName="startDate" />
+                    @if (form.controls.startDate.invalid && form.controls.startDate.touched) {
+                    <span class="field__error">⚠ La date de début est requise.</span>
+                    }
+                </div>
+                <div class="field">
+                    <label for="comp-end">Date de fin</label>
+                    <input id="comp-end" type="date" formControlName="endDate" />
+                    @if (form.controls.endDate.invalid && form.controls.endDate.touched) {
+                    <span class="field__error">⚠ La date de fin est requise.</span>
+                    }
+                </div>
+            </div>
+
+            <!-- Cross-field date error -->
+            @if (form.hasError('dateRange')) {
+            <div class="field__error field__error--group">
+                ⚠ La date de fin doit être postérieure ou égale à la date de début.
+            </div>
+            }
+
+            <!-- Location + Region -->
+            <div class="field-row">
+                <div class="field">
+                    <label for="comp-location">Lieu</label>
+                    <input id="comp-location" formControlName="location" placeholder="Ex : Tunis Arena" />
+                    @if (form.controls.location.invalid && form.controls.location.touched) {
+                    <span class="field__error">⚠ Le lieu est requis.</span>
+                    }
+                </div>
+                <div class="field">
+                    <label for="comp-region">Région</label>
+                    <input id="comp-region" formControlName="region" placeholder="Ex : Grand Tunis" />
+                    @if (form.controls.region.invalid && form.controls.region.touched) {
+                    <span class="field__error">⚠ La région est requise.</span>
+                    }
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="modal-actions">
+                <button type="button" class="btn btn--ghost" (click)="tryClose()">Annuler</button>
+                <button type="submit" class="btn btn--primary" [disabled]="form.invalid || state.isLoading()">
+                    @if (state.isLoading()) {
+                    <span class="spinner"></span>
+                    }
+                    {{ isEditMode() ? 'Enregistrer' : 'Créer' }}
+                </button>
+            </div>
+        </form>
+    </article>
+</div>
+
+<!-- Unsaved changes confirm dialog -->
+@if (showUnsavedConfirm()) {
+<app-confirm-dialog title="Modifications non enregistrées"
+    message="Vous avez des modifications non sauvegardées. Voulez-vous vraiment quitter sans enregistrer ?"
+    confirmLabel="Oui, quitter" cancelLabel="Continuer l'édition" (confirmed)="onDiscardConfirmed()"
+    (cancelled)="onDiscardCancelled()" />
+}
