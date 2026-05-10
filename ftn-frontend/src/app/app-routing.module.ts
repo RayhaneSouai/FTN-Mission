@@ -6,6 +6,13 @@ import { ClubListComponent } from './components/club-list/club-list.component';
 const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'clubs', component: ClubListComponent },
+  {
+    path: 'competitions',
+    loadChildren: () =>
+      import('./competition/competition.routes').then(
+        (m) => m.COMPETITION_ROUTES
+      ),
+  },
 ];
 
 @NgModule({

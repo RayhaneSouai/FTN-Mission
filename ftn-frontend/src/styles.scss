@@ -1,0 +1,30 @@
+/* ═══════════════════════════════════════════════
+   GLOBAL STYLES — Universal reset only.
+   Feature-specific theming lives inside each module.
+   ═══════════════════════════════════════════════ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4, p {
+  margin: 0;
+}
+
+button, input, select, textarea {
+  font: inherit;
+}
