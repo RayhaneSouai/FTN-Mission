@@ -1,0 +1,167 @@
+/* ─── Navbar Wrapper ─────────────────────────────────────── */
+.navbar-wrapper {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+.navbar-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ─── Top Bar ─────────────────────────────────────────────── */
+.navbar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* Brand */
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-decoration: none;
+}
+.brand-logo {
+  height: 64px;
+  width: auto;
+  object-fit: contain;
+}
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+.brand-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1565C0;
+  line-height: 1.2;
+}
+.brand-subtitle {
+  font-size: 15px;
+  color: #1565C0;
+  font-weight: 400;
+}
+
+/* User info */
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.user-info {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+}
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a2e;
+}
+.user-role {
+  font-size: 12px;
+  color: #9ca3af;
+}
+.user-avatar {
+  background: #e5e7eb;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4b5563;
+}
+.logout-btn {
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #4b5563;
+  padding: 8px;
+  transition: color 0.2s;
+}
+.logout-btn:hover {
+  color: #1565C0;
+}
+
+/* ─── Nav Links ───────────────────────────────────────────── */
+.navbar-nav {
+  background: #ffffff;
+  padding: 0 24px;
+}
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding-left: 100px; /* Aligns with the title text approximately */
+}
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5563;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.nav-link:hover {
+  color: #1565C0;
+}
+.nav-link.active {
+  background-color: #f8fafc;
+  color: #1565C0;
+}
+
+.nav-dropdown {
+  position: relative;
+}
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #fff;
+  min-width: 180px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  z-index: 1000;
+  border-radius: 4px;
+  border-top: 2px solid #1565C0;
+}
+.dropdown-content a {
+  color: #374151;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+}
+.dropdown-content a:hover {
+  background-color: #f3f4f6;
+  color: #1565C0;
+}
+.nav-dropdown:hover .dropdown-content {
+  display: block;
+}
+.chevron {
+  display: block;
+}
+.has-dropdown {
+  cursor: pointer;
+}
+

@@ -1,5 +1,6 @@
 package tn.federation.backend.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -10,7 +11,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
+@ToString(exclude = {"coach", "licenses", "swimmers"})
 @Entity
 public class Club {
     @Id
@@ -22,13 +23,19 @@ public class Club {
     private String contact;
     private String manager;
     private LocalDate affiliationDate;
-    // private Double latitude; 9olna yetfas5ou
-    // private Double longitude; 9olna yetfas5ou
+    private Double latitude;
+    private Double longitude;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "coach_id")
     User coach;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "club")
     private List<License> licenses;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "club")
+    private List<User> swimmers;
 }

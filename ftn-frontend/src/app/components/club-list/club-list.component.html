@@ -1,0 +1,208 @@
+<!-- Hero Banner -->
+<section class="clubs-hero">
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <h1>Gestion des Clubs</h1>
+    <p>Gérez les clubs affiliés, consultez les statistiques et le classement par nombre de nageurs.</p>
+  </div>
+</section>
+
+<!-- Ranking Section -->
+<section class="ranking-section" *ngIf="topClubs.length > 0">
+  <div class="section-header">
+    <h2><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg> Top 3 Clubs (Par Nageurs)</h2>
+  </div>
+  <div class="top-clubs-grid">
+    <div class="top-club-card" *ngFor="let club of topClubs; let i = index">
+      <div class="rank-badge" [class]="'rank-' + (i+1)">{{ i + 1 }}</div>
+      <div class="top-club-info">
+        <h3>{{ club.name }}</h3>
+        <p>{{ club.region }}</p>
+      </div>
+      <div class="swimmers-count">
+        <span class="count-val">{{ club.swimmers?.length || 0 }}</span>
+        <span class="count-label">Nageurs</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Controls: search + add -->
+<section class="clubs-controls">
+  <div class="controls-inner">
+    <div class="search-box">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Rechercher un club par nom, région ou manager..."
+             [(ngModel)]="searchTerm"
+             (input)="onSearch()"/>
+    </div>
+    <button class="btn-primary" (click)="openAddForm()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Ajouter un club
+    </button>
+  </div>
+</section>
+
+<!-- Loading -->
+<div class="loading-container" *ngIf="loading">
+  <div class="spinner"></div>
+  <p>Chargement des clubs...</p>
+</div>
+
+<!-- Empty State -->
+<div class="empty-state" *ngIf="!loading && filteredClubs.length === 0">
+  <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/><path d="m16 16-1.9-1.9"/>
+  </svg>
+  <h3>Aucun club trouvé</h3>
+  <p *ngIf="searchTerm">Essayez avec un autre terme de recherche</p>
+  <p *ngIf="!searchTerm">Commencez par ajouter un nouveau club</p>
+</div>
+
+<!-- Clubs Grid -->
+<section class="clubs-section" *ngIf="!loading && filteredClubs.length > 0">
+  <div class="clubs-grid">
+    <div class="club-card" *ngFor="let club of filteredClubs">
+      <div class="card-header">
+        <div class="club-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/>
+          </svg>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn stats" (click)="openStats(club)" title="Statistiques">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </button>
+          <button class="action-btn edit" (click)="openEditForm(club)" title="Modifier">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+          </button>
+          <button class="action-btn delete" (click)="deleteClub(club.id!)" title="Supprimer">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
+      </div>
+      <h3 class="club-name">{{ club.name }}</h3>
+      <div class="club-detail"><span class="detail-label">Région</span><span>{{ club.region }}</span></div>
+      <div class="club-detail"><span class="detail-label">Adresse</span><span>{{ club.address }}</span></div>
+      <div class="club-detail"><span class="detail-label">Contact</span><span>{{ club.contact }}</span></div>
+      <div class="club-detail"><span class="detail-label">Manager</span><span>{{ club.manager }}</span></div>
+      <div class="club-detail" *ngIf="club.affiliationDate"><span class="detail-label">Affilié depuis</span><span>{{ club.affiliationDate }}</span></div>
+      <div class="card-footer" *ngIf="club.latitude && club.longitude">
+        <button class="btn-map">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          Voir sur la carte
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Modal Form -->
+<div class="modal-overlay" *ngIf="showForm" (click)="closeForm()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ editingClub ? 'Modifier le club' : 'Ajouter un club' }}</h2>
+      <button class="modal-close" (click)="closeForm()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form (ngSubmit)="saveClub()" class="club-form">
+      <div class="form-group">
+        <label for="club-name">Nom du club *</label>
+        <input id="club-name" type="text" [(ngModel)]="formData.name" name="name" required placeholder="Ex: Club Nautique de Tunis"/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="club-region">Région *</label>
+          <input id="club-region" type="text" [(ngModel)]="formData.region" name="region" required placeholder="Ex: Tunis"/>
+        </div>
+        <div class="form-group">
+          <label for="club-contact">Contact</label>
+          <input id="club-contact" type="text" [(ngModel)]="formData.contact" name="contact" placeholder="Ex: +216 71 123 456"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="club-address">Adresse</label>
+        <input id="club-address" type="text" [(ngModel)]="formData.address" name="address" placeholder="Ex: 12 Rue du Lac"/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="club-manager">Manager</label>
+          <input id="club-manager" type="text" [(ngModel)]="formData.manager" name="manager" placeholder="Ex: Ahmed Ben Ali"/>
+        </div>
+        <div class="form-group">
+          <label for="club-date">Date d'affiliation</label>
+          <input id="club-date" type="date" [(ngModel)]="formData.affiliationDate" name="affiliationDate"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="club-lat">Latitude</label>
+          <input id="club-lat" type="number" step="0.0001" [(ngModel)]="formData.latitude" name="latitude" placeholder="36.8065"/>
+        </div>
+        <div class="form-group">
+          <label for="club-lng">Longitude</label>
+          <input id="club-lng" type="number" step="0.0001" [(ngModel)]="formData.longitude" name="longitude" placeholder="10.1815"/>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="closeForm()">Annuler</button>
+        <button type="submit" class="btn-primary">{{ editingClub ? 'Enregistrer' : 'Ajouter' }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Stats Modal -->
+<div class="modal-overlay" *ngIf="showStats" (click)="closeStats()">
+  <div class="modal-content stats-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Statistiques : {{ selectedClub?.name }}</h2>
+      <button class="modal-close" (click)="closeStats()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="stats-body" *ngIf="statistics; else loadingStats">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="stat-label">Total Nageurs</span>
+          <span class="stat-value">{{ statistics.totalSwimmers }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Nageurs Actifs</span>
+          <span class="stat-value text-success">{{ statistics.activeSwimmers }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Moyenne d'âge</span>
+          <span class="stat-value">{{ statistics.averageAge | number:'1.1-1' }} ans</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Compétitions (Saison)</span>
+          <span class="stat-value">{{ statistics.competitionsCount }}</span>
+        </div>
+      </div>
+      <div class="stats-chart-placeholder">
+        <!-- Distribution by Category placeholder -->
+        <h4>Répartition par catégorie</h4>
+        <div class="bar-chart">
+          <div class="bar-row" *ngFor="let cat of statistics.distribution | keyvalue">
+            <span class="bar-label">{{ cat.key }}</span>
+            <div class="bar-container">
+              <div class="bar-fill" [style.width.%]="getBarWidth(cat.value)"></div>
+            </div>
+            <span class="bar-val">{{ cat.value }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ng-template #loadingStats>
+      <div class="loading-stats">
+        <div class="spinner small"></div>
+        <p>Récupération des données...</p>
+      </div>
+    </ng-template>
+    <div class="modal-footer">
+      <button class="btn-primary" (click)="closeStats()">Fermer</button>
+    </div>
+  </div>
+</div>
