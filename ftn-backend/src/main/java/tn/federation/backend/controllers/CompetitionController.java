@@ -34,7 +34,7 @@ public class CompetitionController {
     }
 
     // ✅ GET BY ID
-    @GetMapping("get/{id}")
+    @GetMapping("/get/{id}")
     public Competition getCompetitionById(@PathVariable long id) {
         return competitionService.getCompetitionById(id);
     }

@@ -98,13 +98,17 @@
 /* ─── Nav Links ───────────────────────────────────────────── */
 .navbar-nav {
   background: #ffffff;
-  padding: 0 24px;
+  padding: 0 24px 8px;
+  display: flex;
+  justify-content: center;
 }
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 32px;
-  padding-left: 100px; /* Aligns with the title text approximately */
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  max-width: 100%;
 }
 .nav-link {
   display: inline-flex;
