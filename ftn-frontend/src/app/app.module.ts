@@ -5,10 +5,10 @@ import { FormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { NavbarComponent } from './components/navbar/navbar.component';
-import { FooterComponent } from './components/footer/footer.component';
-import { ClubListComponent } from './components/club-list/club-list.component';
-import { HomeComponent } from './components/home/home.component';
+import { NavbarComponent } from './layout/navbar/navbar.component';
+import { FooterComponent } from './layout/footer/footer.component';
+import { ClubListComponent } from './features/clubs/components/club-list/club-list.component';
+import { HomeComponent } from './features/home/home.component';
 
 @NgModule({
   declarations: [

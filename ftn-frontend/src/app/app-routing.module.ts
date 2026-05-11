@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { HomeComponent } from './components/home/home.component';
-import { ClubListComponent } from './components/club-list/club-list.component';
+import { HomeComponent } from './features/home/home.component';
+import { ClubListComponent } from './features/clubs/components/club-list/club-list.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -9,7 +9,7 @@ const routes: Routes = [
   {
     path: 'competitions',
     loadChildren: () =>
-      import('./competition/competition.routes').then(
+      import('./features/competitions/competition.routes').then(
         (m) => m.COMPETITION_ROUTES
       ),
   },
