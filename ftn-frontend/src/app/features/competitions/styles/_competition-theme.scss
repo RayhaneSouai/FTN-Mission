@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════
 //  Competition Module — Theme Partial
-//  All design tokens scoped to the Competition feature.
+//  Design tokens unified with the Club page palette.
 //  Usage: @use '../styles/competition-theme' as theme;
 //         :host { @include theme.tokens; }
 // ═══════════════════════════════════════════════════
@@ -23,65 +23,68 @@ $state-cancelled-border:#ef4444;
 $state-cancelled-text:  #b91c1c;
 
 // ─── List item sizing ───
-$item-height: 160px;
+$item-height: 220px;
 $item-gap: 16px;
 
 /// Mixin that emits all CSS custom properties for the competition theme.
-/// Apply to :host so they cascade to all child elements within the component.
+/// Aligned with the Club page's design system (deep blue accent, Inter font, subtle shadows).
 @mixin tokens {
   // Backgrounds
   --bg-primary: #ffffff;
   --bg-secondary: #f8fafc;
   --bg-surface: #ffffff;
-  --bg-surface-hover: #f1f5f9;
-  --bg-page: #f0f4f8;
-  --bg-inset: #f8fafc;
+  --bg-surface-hover: #f3f4f6;
+  --bg-page: #f8fafc;
+  --bg-inset: #f1f5f9;
 
-  // Borders
-  --border-color: #e2e8f0;
-  --border-hover: #3b82f6;
-  --border-light: #f1f5f9;
+  // Borders (matches Club card borders)
+  --border-color: #e5e7eb;
+  --border-hover: #bfdbfe;
+  --border-light: #f3f4f6;
 
-  // Text
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
+  // Text (matches Club text hierarchy)
+  --text-primary: #1a1a2e;
+  --text-secondary: #374151;
+  --text-muted: #6b7280;
+  --text-label: #64748b;
   --text-inverse: #ffffff;
 
-  // Accent (Blue)
-  --accent: #3b82f6;
-  --accent-light: #60a5fa;
-  --accent-dark: #2563eb;
-  --accent-glow: rgba(59, 130, 246, 0.25);
-  --accent-soft: rgba(59, 130, 246, 0.08);
-  --accent-softer: rgba(59, 130, 246, 0.04);
+  // Accent — Club-page deep blue
+  --accent: #1565C0;
+  --accent-light: #1976D2;
+  --accent-dark: #0d47a1;
+  --accent-glow: rgba(21, 101, 192, 0.12);
+  --accent-soft: rgba(21, 101, 192, 0.08);
+  --accent-softer: rgba(21, 101, 192, 0.04);
+  --accent-tint-start: #e3f2fd;
+  --accent-tint-end: #bbdefb;
 
   // Semantic
-  --success: #22c55e;
-  --success-soft: rgba(34, 197, 94, 0.08);
+  --success: #10b981;
+  --success-soft: rgba(16, 185, 129, 0.08);
   --warning: #f59e0b;
   --warning-soft: rgba(245, 158, 11, 0.08);
-  --danger: #ef4444;
-  --danger-soft: rgba(239, 68, 68, 0.08);
+  --danger: #dc2626;
+  --danger-soft: rgba(220, 38, 38, 0.08);
   --info: #06b6d4;
 
-  // Radii
-  --radius-xs: 0.375rem;
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.25rem;
+  // Radii (Club page: 12px cards, 8px buttons/inputs, 16px modals)
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
   --radius-pill: 999px;
 
-  // Shadows
+  // Shadows (Club page: subtle, no glowing)
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.1);
-  --shadow-glow: 0 0 20px var(--accent-glow);
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.2);
+  --shadow-card-hover: 0 12px 32px rgba(21, 101, 192, 0.12);
 
-  // Typography & transitions
-  --font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  // Typography & transitions (Club uses Inter)
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --transition-fast: 0.15s ease;
   --transition-base: 0.25s ease;
 }
