@@ -1,1 +1,1 @@
-/* You can add global styles to this file, and also import other style files */
+body { font-family: 'Segoe UI', 'Roboto', sans-serif; background-color: #f5f7fa; color: #1a2332; } .ftn-primary { color: #0d2a6b; } .bg-ftn { background: linear-gradient(135deg, #1a3d7c, #0d2a6b); color: white; } .card { border-radius: 12px; border: 1px solid #e9ecef; box-shadow: 0 2px 4px rgba(0,0,0,0.04); }

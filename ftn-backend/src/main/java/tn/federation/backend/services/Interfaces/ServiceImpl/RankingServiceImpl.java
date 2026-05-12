@@ -22,10 +22,10 @@ public class RankingServiceImpl implements IRankingService {
     private final ParticipationRepository participationRepository;
     @Override
     public List<RankingEntryDTO> getNationalRanking(Integer distance, StrokeType stroke, Gender gender, Niveau niveau, Integer limit) {
-        // Pagination : limit = nombre max de nageurs dans le classement (ex: top 10, top 50)
+        // limit howa max des nageurs fel classement top 10 top 5
         Pageable pageable = PageRequest.of(0, limit != null ? limit : 100);
         List<Performance> performances = performanceRepository.findNationalRanking( distance, stroke, gender, niveau, pageable);
-        // Récupérer le record national pour marquer le #1
+
         Optional<Performance> nationalRecord = performanceRepository .findNationalRecord(distance, stroke, gender);
         AtomicInteger rankCounter = new AtomicInteger(1); return performances.stream() .map(p -> RankingEntryDTO.builder() .rank(rankCounter.getAndIncrement()) .swimmerId(p.getSwimmer().getId()) .swimmerFirstName(p.getSwimmer().getFirstName()) .swimmerLastName(p.getSwimmer().getLastName()) .category(p.getSwimmer().getNiveau()) .time(p.getTime()) .date(p.getDate()) .distance(p.getDistance()) .stroke(p.getStroke()) .isNationalRecord(nationalRecord.isPresent() && nationalRecord.get().getId().equals(p.getId())) .build()) .toList(); }
     @Override

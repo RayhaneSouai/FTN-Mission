@@ -16,7 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/rankings")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin("*")
 @Tag(name = "Rankings", description = "Classements nationaux et par compétition")
 public class RankingController {
     private final IRankingService rankingService;

@@ -23,7 +23,7 @@ public class PerformanceServiceImpl implements IPerformanceService {
     private final UserRepository userRepository;
     private final PerformanceMapper mapper;
 
-    // ============ CREATE ============
+
     @Override
     public PerformanceResponseDTO create(PerformanceRequestDTO dto) {
         User swimmer = userRepository.findById(dto.getSwimmerId())
@@ -33,17 +33,14 @@ public class PerformanceServiceImpl implements IPerformanceService {
         Performance entity = mapper.toEntity(dto);
         entity.setSwimmer(swimmer);
 
-        // 1. Sauvegarder d'abord (pour avoir un ID)
         Performance saved = performanceRepository.save(entity);
 
-        // 2. Recalculer le flag PR et mettre à jour l'ancien PR si nécessaire
         recomputePersonalRecord(saved);
 
-        // 3. Enrichir avec flag National (calculé dynamiquement)
         return enrichWithNationalFlag(saved);
     }
 
-    // ============ UPDATE ============
+
     @Override
     public PerformanceResponseDTO update(Long id, PerformanceRequestDTO dto) {
         Performance existing = performanceRepository.findById(id)
@@ -60,13 +57,12 @@ public class PerformanceServiceImpl implements IPerformanceService {
         mapper.updateEntityFromDto(dto, existing);
         Performance updated = performanceRepository.save(existing);
 
-        // Recalculer les PRs du nageur (au cas où le chrono a changé)
         recomputePersonalRecord(updated);
 
         return enrichWithNationalFlag(updated);
     }
 
-    // ============ DELETE ============
+
     @Override
     public void delete(Long id) {
         Performance toDelete = performanceRepository.findById(id)
@@ -79,11 +75,10 @@ public class PerformanceServiceImpl implements IPerformanceService {
 
         performanceRepository.deleteById(id);
 
-        // Si on a supprimé un PR, il faut en désigner un nouveau
         reassignPersonalRecordAfterDelete(swimmerId, distance, stroke);
     }
 
-    // ============ READ (one) ============
+
     @Override
     @Transactional(readOnly = true)
     public PerformanceResponseDTO findById(Long id) {
@@ -93,7 +88,7 @@ public class PerformanceServiceImpl implements IPerformanceService {
         return enrichWithNationalFlag(entity);
     }
 
-    // ============ READ (all) ============
+
     @Override
     @Transactional(readOnly = true)
     public List<PerformanceResponseDTO> findAll() {
@@ -102,7 +97,7 @@ public class PerformanceServiceImpl implements IPerformanceService {
                 .toList();
     }
 
-    // ============ READ (by swimmer) ============
+
     @Override
     @Transactional(readOnly = true)
     public List<PerformanceResponseDTO> findBySwimmer(Long swimmerId) {
@@ -111,32 +106,20 @@ public class PerformanceServiceImpl implements IPerformanceService {
                 .toList();
     }
 
-    // ==================================================================
-    // MÉTHODES PRIVÉES
-    // ==================================================================
-
-    /**
-     * Recalcule le Personal Record pour un nageur sur une épreuve donnée.
-     * - Le meilleur chrono reçoit le flag isPersonalRecord = true
-     * - Les autres performances sur la même épreuve reçoivent false
-     */
-    private void recomputePersonalRecord(Performance trigger) {
+       private void recomputePersonalRecord(Performance trigger) {
         Long swimmerId = trigger.getSwimmer().getId();
         Integer distance = trigger.getDistance();
         var stroke = trigger.getStroke();
 
-        // Récupérer toutes les perfs du nageur sur cette épreuve
         List<Performance> allPerfs = performanceRepository
                 .findBySwimmerIdAndDistanceAndStrokeOrderByDateDesc(swimmerId, distance, stroke);
 
         if (allPerfs.isEmpty()) return;
 
-        // Trouver la meilleure (temps minimum)
         Performance best = allPerfs.stream()
                 .min((a, b) -> Double.compare(a.getTime(), b.getTime()))
                 .orElseThrow();
 
-        // Mettre à jour tous les flags
         for (Performance p : allPerfs) {
             boolean shouldBePR = p.getId().equals(best.getId());
             if (!Boolean.valueOf(shouldBePR).equals(p.getIsPersonalRecord())) {
@@ -146,10 +129,7 @@ public class PerformanceServiceImpl implements IPerformanceService {
         }
     }
 
-    /**
-     * Après suppression d'une performance, on recalcule le PR pour la paire
-     * (swimmer, distance, stroke) concernée.
-     */
+
     private void reassignPersonalRecordAfterDelete(Long swimmerId, Integer distance,
                                                    tn.federation.backend.entities.StrokeType stroke) {
         List<Performance> remaining = performanceRepository
@@ -170,9 +150,7 @@ public class PerformanceServiceImpl implements IPerformanceService {
         }
     }
 
-    /**
-     * Ajoute le flag nationalRecord (calculé dynamiquement, pas stocké en BDD).
-     */
+
     private PerformanceResponseDTO enrichWithNationalFlag(Performance entity) {
         PerformanceResponseDTO dto = mapper.toDto(entity);
 

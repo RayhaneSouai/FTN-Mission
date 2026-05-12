@@ -1,8 +1,17 @@
 import { NgModule } from '@angular/core';
-import { BrowserModule, provideClientHydration } from '@angular/platform-browser';
+import { BrowserModule } from '@angular/platform-browser';
+import { HttpClientModule } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
+
+import { AppComponent } from './app.component';
 
 import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './app.component';
+
+import { HeaderComponent } from './shared/components/header/header.component';
+
+import { MyPerformancesComponent } from './features/my-performance/my-performances.component';
+
+import { RankingComponent } from './features/ranking/ranking.component';
 
 @NgModule({
   declarations: [
@@ -10,11 +19,15 @@ import { AppComponent } from './app.component';
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    HttpClientModule,
+    FormsModule,
+    AppRoutingModule,
+
+    HeaderComponent,
+    MyPerformancesComponent,
+    RankingComponent
   ],
-  providers: [
-    provideClientHydration()
-  ],
+  providers: [],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {}

@@ -12,7 +12,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/performances")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin("*")
 public class PerformanceController {
     private final IPerformanceService performanceService;
 

@@ -17,9 +17,9 @@ public class PerformanceMapper {
                 .distance(entity.getDistance())
                 .stroke(entity.getStroke())
                 .date(entity.getDate())
-                // ✅ On lit directement depuis l'entité (au lieu de mettre false par défaut)
+
                 .personalRecord(Boolean.TRUE.equals(entity.getIsPersonalRecord()))
-                .nationalRecord(false) // toujours calculé dans le service
+                .nationalRecord(false)
                 .build();
 
         if (entity.getSwimmer() != null) {
@@ -40,7 +40,7 @@ public class PerformanceMapper {
         entity.setDistance(dto.getDistance());
         entity.setStroke(dto.getStroke());
         entity.setDate(dto.getDate());
-        entity.setIsPersonalRecord(false); // par défaut, sera recalculé par le service
+        entity.setIsPersonalRecord(false);
         return entity;
     }
 
