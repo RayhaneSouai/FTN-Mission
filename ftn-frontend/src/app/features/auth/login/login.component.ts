@@ -42,7 +42,8 @@ export class LoginComponent {
         }
       },
       error: (err) => {
-        this.errorMessage = 'Email ou mot de passe incorrect';
+        this.errorMessage =
+          err?.error?.message || 'Email ou mot de passe incorrect.';
         console.error(err);
       }
     });
