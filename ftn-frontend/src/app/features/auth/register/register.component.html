@@ -1,0 +1,178 @@
+<div class="auth-split-container auth-layout--form-left auth-page--register">
+  <div class="auth-split-left auth-split-left--visual-end">
+    <div class="auth-split-left-content">
+      <h1 class="display-5 fw-bold mb-4">Rejoignez-nous !</h1>
+      <p class="fs-5 opacity-75">Faites partie de la Fédération Tunisienne de Natation. Inscrivez-vous pour gérer votre carrière sportive et vos licences.</p>
+    </div>
+    <div class="auth-split-left-footer">
+      &copy; 2026 FTN. Tous droits réservés.
+    </div>
+  </div>
+
+  <div class="auth-split-right">
+    <div class="auth-form-wrapper" style="max-width: 500px;">
+      <div class="text-center text-lg-start mb-4">
+        <h2>Créer un compte</h2>
+        <p class="subtitle subtitle-register">{{ step === 1 ? 'Identité et sécurité du compte.' : 'Quelques détails pour finaliser votre profil.' }}</p>
+      </div>
+
+      <div class="auth-register-stepper" [class.auth-register-stepper--step2]="step === 2">
+        <div class="auth-register-step" [class.auth-register-step--current]="step === 1" [class.auth-register-step--done]="step === 2">
+          <div class="auth-register-step-circle">
+            <span *ngIf="step === 1">1</span>
+            <i *ngIf="step === 2" class="bi bi-check-lg" aria-hidden="true"></i>
+          </div>
+          <span class="auth-register-step-label">Compte</span>
+        </div>
+        <div class="auth-register-step-connector" aria-hidden="true"></div>
+        <div class="auth-register-step" [class.auth-register-step--current]="step === 2">
+          <div class="auth-register-step-circle">2</div>
+          <span class="auth-register-step-label">Profil</span>
+        </div>
+      </div>
+
+      <form #registerForm="ngForm" (ngSubmit)="step === 2 && registerForm.valid && register()">
+        <div class="auth-register-panels">
+          <!-- Étape 1 : identité + mots de passe (reste dans le DOM pour NgForm) -->
+          <div class="auth-step-panel" [class.auth-step-panel--visible]="step === 1" [class.auth-step-panel--left]="step === 2" [attr.aria-hidden]="step !== 1">
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="firstName" name="firstName" placeholder="Prénom" [(ngModel)]="userData.firstName" #firstName="ngModel" [ngClass]="{'is-invalid': firstName.invalid && (firstName.dirty || firstName.touched)}" required>
+                  <label for="firstName">Prénom</label>
+                  <div class="invalid-feedback">Prénom requis</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="lastName" name="lastName" placeholder="Nom" [(ngModel)]="userData.lastName" #lastName="ngModel" [ngClass]="{'is-invalid': lastName.invalid && (lastName.dirty || lastName.touched)}" required>
+                  <label for="lastName">Nom</label>
+                  <div class="invalid-feedback">Nom requis</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-floating mb-3">
+              <input type="email" class="form-control" id="email" name="email" placeholder="nom@exemple.com" [(ngModel)]="userData.email" #email="ngModel" [ngClass]="{'is-invalid': email.invalid && (email.dirty || email.touched)}" required email>
+              <label for="email"><i class="bi bi-envelope me-2"></i>Adresse Email</label>
+              <div class="invalid-feedback">Email valide requis</div>
+            </div>
+
+            <div class="form-floating mb-3">
+              <input type="password" class="form-control" id="password" name="password" placeholder="Mot de passe" [(ngModel)]="userData.password" #password="ngModel" [ngClass]="{'is-invalid': password.invalid && (password.dirty || password.touched)}" required minlength="6" autocomplete="new-password">
+              <label for="password"><i class="bi bi-lock me-2"></i>Mot de passe</label>
+              <div class="invalid-feedback">Le mot de passe doit faire au moins 6 caractères</div>
+            </div>
+
+            <div class="form-floating mb-4">
+              <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirmer" [(ngModel)]="confirmPassword" #confirmPasswordCtrl="ngModel" [ngClass]="{'is-invalid': confirmPasswordInvalid(confirmPasswordCtrl)}" required autocomplete="new-password">
+              <label for="confirmPassword"><i class="bi bi-lock-fill me-2"></i>Confirmer le mot de passe</label>
+              <div class="invalid-feedback d-block" *ngIf="confirmPasswordError(confirmPasswordCtrl) as msg">{{ msg }}</div>
+            </div>
+
+            <div class="btn-auth-row mb-4">
+              <button type="button" class="btn-auth w-100" (click)="goToStep2(registerForm)">
+                Continuer <i class="bi bi-arrow-right ms-2"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Étape 2 : profil -->
+          <div class="auth-step-panel" [class.auth-step-panel--visible]="step === 2" [attr.aria-hidden]="step !== 2">
+            <div class="form-floating mb-3">
+              <select class="form-select" id="role" name="role" [(ngModel)]="userData.role" aria-label="Rôle" required>
+                <option value="SWIMMER">Nageur</option>
+                <option value="COACH">Coach</option>
+              </select>
+              <label for="role"><i class="bi bi-person-badge me-2"></i>Je suis un...</label>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <div class="form-floating">
+                  <select name="gender" class="form-select" id="gender" [(ngModel)]="userData.gender">
+                    <option value="">Sélectionner</option>
+                    <option value="HOMME">Homme</option>
+                    <option value="FEMME">Femme</option>
+                  </select>
+                  <label for="gender">Genre</label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-floating">
+                  <input type="date" name="birthDate" class="form-control" id="birthDate" [(ngModel)]="userData.birthDate">
+                  <label for="birthDate">Date de naissance</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3" *ngIf="userData.role === 'SWIMMER'">
+              <div class="col-md-6">
+                <div class="form-floating">
+                  <select name="discipline" class="form-select" id="discipline" [(ngModel)]="userData.discipline">
+                    <option value="">Discipline</option>
+                    <option value="NATATION">Natation</option>
+                    <option value="EAU_LIBRE">Eau libre</option>
+                    <option value="WATER_POLO">Water-polo</option>
+                    <option value="PLONGEON">Plongeon</option>
+                    <option value="NAGE_SYNCHRONISEE">Nage synchronisée</option>
+                  </select>
+                  <label for="discipline">Discipline</label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-floating">
+                  <select name="niveau" class="form-select" id="niveau" [(ngModel)]="userData.niveau">
+                    <option value="">Niveau</option>
+                    <option value="POUSSIN">Poussin</option>
+                    <option value="BENJAMIN">Benjamin</option>
+                    <option value="MINIME">Minime</option>
+                    <option value="CADET">Cadet</option>
+                    <option value="JUNIOR">Junior</option>
+                    <option value="SENIOR">Senior</option>
+                    <option value="MASTER">Master</option>
+                  </select>
+                  <label for="niveau">Niveau</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-floating mb-4" *ngIf="userData.role === 'COACH'">
+              <input type="number" name="anciennete" class="form-control" id="anciennete" [(ngModel)]="userData.anciennete" min="0" placeholder="Ancienneté">
+              <label for="anciennete">Ancienneté (années)</label>
+            </div>
+
+            <div *ngIf="errorMessage" class="alert alert-danger py-2 d-flex align-items-center mb-4" role="alert">
+              <i class="bi bi-exclamation-octagon-fill me-2 fs-5"></i>
+              <div>{{ errorMessage }}</div>
+            </div>
+
+            <div *ngIf="successMessage" class="alert alert-success py-2 d-flex align-items-center mb-4" role="alert">
+              <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+              <div>{{ successMessage }}</div>
+            </div>
+
+            <div class="btn-auth-row mb-4">
+              <button type="submit" class="btn-auth w-100" [disabled]="registerForm.invalid || passwordsMismatch()">
+                S'inscrire <i class="bi bi-person-plus-fill ms-2"></i>
+              </button>
+              <button type="button" class="btn-auth-secondary w-100" (click)="goToStep1()">
+                <i class="bi bi-arrow-left me-2"></i> Retour
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <p class="text-center text-muted" [hidden]="step !== 1">
+          Vous avez déjà un compte ?
+          <a routerLink="/auth/login" class="auth-link fw-bold">Connectez-vous</a>
+        </p>
+        <p class="text-center text-muted" [hidden]="step !== 2">
+          <a routerLink="/auth/login" class="auth-link fw-bold">Connexion</a>
+          <span class="text-muted"> · </span>
+          <button type="button" class="btn btn-link p-0 align-baseline text-muted" (click)="goToStep1()">Modifier l’étape 1</button>
+        </p>
+      </form>
+    </div>
+  </div>
+</div>
