@@ -9,21 +9,23 @@
           <span class="brand-subtitle">de Natation</span>
         </div>
       </div>
-      <div class="navbar-user">
+      <div class="navbar-user" *ngIf="isLoggedIn">
         <div class="user-info">
-          <span class="user-name">Mehdi Ben Salem</span>
-          <span class="user-role">Nageur - Juniors</span>
+          <span class="user-name">{{ user?.firstName }} {{ user?.lastName }}</span>
+          <span class="user-role">{{ user?.role }}</span>
         </div>
         <div class="user-avatar">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-          </svg>
+          <img [src]="'https://ui-avatars.com/api/?name=' + user?.firstName + '+' + user?.lastName + '&background=random&size=32&color=fff'" 
+               class="rounded-circle shadow-sm" alt="Avatar">
         </div>
-        <button class="logout-btn" title="Se déconnecter">
+        <button class="logout-btn" (click)="logout()" title="Se déconnecter">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
           </svg>
         </button>
+      </div>
+      <div class="navbar-user" *ngIf="!isLoggedIn">
+        <a routerLink="/auth/login" class="btn btn-sm btn-outline-primary rounded-pill px-3">Connexion</a>
       </div>
     </div>
 
@@ -44,6 +46,8 @@
         <div class="nav-dropdown">
           <a class="nav-link has-dropdown">MON ESPACE <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
           <div class="dropdown-content">
+            <a routerLink="/utilisateurs">Gestion Utilisateurs</a>
+            <a routerLink="/licences">Gestion Licences</a>
             <a routerLink="/clubs">Gestion Clubs</a>
             <a routerLink="/mon-profil">Mon Profil</a>
           </div>

@@ -1,0 +1,12 @@
+<div
+  class="auth-shell"
+  [class.auth-shell--pan-left]="panorama === 'left'"
+  [class.auth-shell--pan-right]="panorama === 'right'">
+  <div class="auth-shell-panorama" aria-hidden="true">
+    <div class="auth-shell-panorama__img"></div>
+    <div class="auth-shell-panorama__scrim"></div>
+  </div>
+  <div class="auth-shell-outlet">
+    <router-outlet></router-outlet>
+  </div>
+</div>

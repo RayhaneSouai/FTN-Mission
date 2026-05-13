@@ -62,6 +62,9 @@ public class User {
     @OneToMany(mappedBy = "swimmer")
     private List<Participation> participations;
 
+    @Enumerated(EnumType.STRING)
+    private RegistrationStatus registrationStatus;
+
     @JsonIgnore
     @OneToMany(mappedBy = "swimmer")
     private List<Performance> performances;
