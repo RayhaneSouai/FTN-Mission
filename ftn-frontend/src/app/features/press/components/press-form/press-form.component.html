@@ -65,7 +65,7 @@
       <!-- Preview Image -->
       <div *ngIf="item.mediaUrl" style="margin-top: 1.5rem; padding: 1rem; background: #f7fafc; border-radius: 8px; text-align: center;">
         <p style="font-size: 0.8rem; color: #718096; margin-bottom: 0.5rem;">Aperçu du média :</p>
-        <iframe *ngIf="item.type === 'VIDEO' && item.mediaUrl.includes('yout')" [src]="pressService.getEmbedUrl(item.mediaUrl) | safe" style="width:100%; aspect-ratio:16/9; border-radius:8px;" frameborder="0"></iframe>
+        <iframe *ngIf="item.type === 'VIDEO' && item.mediaUrl?.includes('yout')" [src]="pressService.getEmbedUrl(item.mediaUrl || '') | safe" style="width:100%; aspect-ratio:16/9; border-radius:8px;" frameborder="0"></iframe>
         <img *ngIf="item.type !== 'VIDEO'" [src]="item.mediaUrl" style="max-height: 200px; border-radius: 8px;">
       </div>
 

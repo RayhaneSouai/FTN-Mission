@@ -1,4 +1,4 @@
-package tn.federation.backend.controllers.press;
+package tn.federation.backend.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -7,10 +7,10 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import tn.federation.backend.entities.press.PressItem;
-import tn.federation.backend.entities.press.PressType;
-import tn.federation.backend.dto.press.PressStatsDTO;
-import tn.federation.backend.services.press.Abstraction.IPressService;
+import tn.federation.backend.entities.PressItem;
+import tn.federation.backend.entities.PressType;
+import tn.federation.backend.dto.PressStatsDTO;
+import tn.federation.backend.services.Abstraction.IPressService;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/press")
-@CrossOrigin("*")
+
 @Tag(name = "Press", description = "Gestion des articles de presse (CRUD + publication/archivage)")
 public class PressController {
 
@@ -34,14 +34,20 @@ public class PressController {
 
     @Operation(summary = "Télécharger une image")
     @PostMapping(value = "/upload", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Map<String, String> uploadFile(@RequestPart("file") MultipartFile file) {
+    public Map<String, String> uploadFile(@RequestParam("file") MultipartFile file) {
+        System.out.println("DEBUG: Tentative d'upload de fichier: " + file.getOriginalFilename());
         Map<String, String> response = new HashMap<>();
         try {
-            if (!Files.exists(root)) Files.createDirectory(root);
+            if (!Files.exists(root)) {
+                Files.createDirectories(root);
+                System.out.println("DEBUG: Dossier 'uploads' créé.");
+            }
             String filename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
             Files.copy(file.getInputStream(), this.root.resolve(filename));
+            System.out.println("DEBUG: Fichier enregistré sous: " + filename);
             response.put("url", "/api/press/images/" + filename);
         } catch (Exception e) {
+            System.err.println("DEBUG: Erreur upload: " + e.getMessage());
             response.put("error", "Erreur upload: " + e.getMessage());
         }
         return response;
@@ -59,10 +65,15 @@ public class PressController {
     @Operation(summary = "Extraire titre et image depuis un lien externe")
     @GetMapping("/fetch-metadata")
     public Map<String, String> fetchMetadata(@RequestParam String url) {
+        System.out.println("DEBUG: Extraction pour URL: " + url);
         Map<String, String> metadata = new HashMap<>();
         try {
-            // 1. Traitement spécial YouTube pour les miniatures
+            // 1. Initialiser avec l'URL originale
+            metadata.put("sourceUrl", url);
+
+            // 2. Traitement spécial YouTube
             if (url.contains("youtube.com") || url.contains("youtu.be")) {
+                System.out.println("DEBUG: Détection YouTube");
                 String videoId = "";
                 if (url.contains("v=")) {
                     videoId = url.split("v=")[1].split("&")[0];
@@ -71,35 +82,43 @@ public class PressController {
                 }
                 if (!videoId.isEmpty()) {
                     metadata.put("image", "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg");
+                    metadata.put("videoUrl", "https://www.youtube.com/watch?v=" + videoId);
                 }
             }
 
-            // 2. Connexion avec User-Agent pour éviter d'être bloqué par les sites (ex: Kapitalis)
+            // 3. Connexion avec Jsoup
             Document doc = Jsoup.connect(url)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36")
                     .timeout(10000)
                     .get();
 
             metadata.put("title", doc.title());
 
-            // Contenu (OpenGraph ou standard)
+            // Contenu / Description (Plusieurs fallbacks)
+            String content = "";
             Element ogDesc = doc.select("meta[property=og:description]").first();
-            metadata.put("content", ogDesc != null ? ogDesc.attr("content") : "");
+            if (ogDesc != null) {
+                content = ogDesc.attr("content");
+            } else {
+                Element metaDesc = doc.select("meta[name=description]").first();
+                if (metaDesc != null) content = metaDesc.attr("content");
+            }
+            metadata.put("content", content);
 
-            // Image (si pas déjà trouvée via YouTube)
-            if (!metadata.containsKey("image")) {
+            // Image (si pas déjà YouTube)
+            if (!metadata.containsKey("image") || metadata.get("image").isEmpty()) {
                 Element ogImage = doc.select("meta[property=og:image]").first();
-                String image = "";
                 if (ogImage != null) {
-                    image = ogImage.attr("content");
+                    metadata.put("image", ogImage.attr("content"));
                 } else {
                     Element firstImg = doc.select("img[src~=(?i)\\.(png|jpe?g|webp)]").first();
-                    if (firstImg != null) image = firstImg.absUrl("src");
+                    if (firstImg != null) metadata.put("image", firstImg.absUrl("src"));
                 }
-                metadata.put("image", image);
             }
 
+            System.out.println("DEBUG: Extraction réussie - Titre: " + metadata.get("title"));
         } catch (Exception e) {
+            System.err.println("DEBUG: Erreur d'extraction pour " + url + " : " + e.getMessage());
             metadata.put("error", "Erreur extraction: " + e.getMessage());
         }
         return metadata;

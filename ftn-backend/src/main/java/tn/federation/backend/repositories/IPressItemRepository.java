@@ -1,11 +1,11 @@
-package tn.federation.backend.repositories.press;
+package tn.federation.backend.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-import tn.federation.backend.entities.press.PressItem;
-import tn.federation.backend.entities.press.PressType;
-import tn.federation.backend.entities.press.PressStatus;
+import tn.federation.backend.entities.PressItem;
+import tn.federation.backend.entities.PressType;
+import tn.federation.backend.entities.PressStatus;
 import java.util.List;
 
 @Repository

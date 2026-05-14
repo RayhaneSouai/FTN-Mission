@@ -1,7 +1,8 @@
-package tn.federation.backend.services.press.Abstraction;
+package tn.federation.backend.services.Abstraction;
 
-import tn.federation.backend.entities.press.PressItem;
-import tn.federation.backend.entities.press.PressType;
+import tn.federation.backend.entities.PressItem;
+import tn.federation.backend.entities.PressType;
+import tn.federation.backend.dto.PressStatsDTO;
 import java.util.List;
 
 public interface IPressService {
@@ -16,7 +17,5 @@ public interface IPressService {
     List<PressItem> getByType(PressType type);
     List<PressItem> getByTypeAndDiscipline(PressType type, String discipline);
 
-    void deletePressItem(long id); // Méthode hybride (Soft/Hard delete)
-
-    tn.federation.backend.dto.press.PressStatsDTO getStats();
+    PressStatsDTO getStats();
 }

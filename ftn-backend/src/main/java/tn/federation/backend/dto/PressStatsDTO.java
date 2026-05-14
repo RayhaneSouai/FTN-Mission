@@ -1,4 +1,4 @@
-package tn.federation.backend.dto.press;
+package tn.federation.backend.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

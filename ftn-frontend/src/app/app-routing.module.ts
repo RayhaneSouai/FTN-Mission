@@ -33,7 +33,7 @@ const routes: Routes = [
       },
       {
         path: 'press',
-        loadChildren: () => import('./press/press.module').then(m => m.PressModule)
+        loadChildren: () => import('./features/press/press.module').then(m => m.PressModule)
       }
     ]
   },

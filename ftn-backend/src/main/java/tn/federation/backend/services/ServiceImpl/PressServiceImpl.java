@@ -1,13 +1,14 @@
-package tn.federation.backend.services.press.ServiceImpl;
+package tn.federation.backend.services.ServiceImpl;
+
+import tn.federation.backend.services.Abstraction.IPressService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import tn.federation.backend.dto.press.PressStatsDTO;
-import tn.federation.backend.entities.press.PressItem;
-import tn.federation.backend.entities.press.PressStatus;
-import tn.federation.backend.entities.press.PressType;
-import tn.federation.backend.repositories.press.IPressItemRepository;
-import tn.federation.backend.services.press.Abstraction.IPressService;
+import tn.federation.backend.dto.PressStatsDTO;
+import tn.federation.backend.entities.PressItem;
+import tn.federation.backend.entities.PressStatus;
+import tn.federation.backend.entities.PressType;
+import tn.federation.backend.repositories.IPressItemRepository;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;

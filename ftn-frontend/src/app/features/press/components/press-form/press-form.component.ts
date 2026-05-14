@@ -48,12 +48,21 @@ export class PressFormComponent implements OnInit {
         } else {
           this.item.title = data.title || '';
           
-          // Extraction des 3 premières phrases de la description reçue
+          // Détecter si c'est une vidéo YouTube
+          if (data.videoUrl) {
+            this.item.type = 'VIDEO';
+            this.item.mediaUrl = data.videoUrl;
+          } else if (data.image) {
+            this.item.mediaUrl = data.image;
+          }
+
+          // Extraction du contenu (description)
           const rawContent = data.content || '';
-          const sentences = rawContent.split(/[.!?]\s+/);
-          this.item.content = sentences.slice(0, 3).join('. ') + (sentences.length > 0 ? '.' : '');
+          if (rawContent) {
+            const sentences = rawContent.split(/[.!?]\s+/);
+            this.item.content = sentences.slice(0, 3).join('. ') + (sentences.length > 0 ? '.' : '');
+          }
           
-          if (data.image) this.item.mediaUrl = data.image;
           this.showMessage('Données extraites avec succès !', 'success');
         }
         this.loading = false;

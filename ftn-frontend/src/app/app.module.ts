@@ -10,6 +10,7 @@ import { FooterComponent } from './layout/footer/footer.component';
 import { PublicLayoutComponent } from './layout/public/public-layout.component';
 import { ClubListComponent } from './features/clubs/components/club-list/club-list.component';
 import { HomeComponent } from './features/home/home.component';
+import { SharedModule } from './shared/shared.module';
 
 @NgModule({
   declarations: [
@@ -23,7 +24,8 @@ import { HomeComponent } from './features/home/home.component';
   imports: [
     BrowserModule,
     AppRoutingModule,
-    FormsModule
+    FormsModule,
+    SharedModule
   ],
   providers: [
     provideClientHydration(),

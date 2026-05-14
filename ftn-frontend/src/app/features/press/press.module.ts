@@ -5,7 +5,7 @@ import { PressRoutingModule } from './press-routing.module';
 import { PressListComponent } from './components/press-list/press-list.component';
 import { PressFormComponent } from './components/press-form/press-form.component';
 import { PressVisitorComponent } from './components/press-visitor/press-visitor.component';
-import { SharedModule } from '../shared/shared.module';
+import { SharedModule } from '../../shared/shared.module';
 
 @NgModule({
   declarations: [

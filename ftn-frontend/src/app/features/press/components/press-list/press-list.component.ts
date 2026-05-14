@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { PressItem, PressType } from '../../models/press-item.model';
 import { PressStats } from '../../models/press-stats.model';
 import { PressService } from '../../services/press.service';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-press-list',
@@ -25,8 +26,19 @@ export class PressListComponent implements OnInit {
   message = '';
   messageType: 'success' | 'error' = 'success';
   types: PressType[] = ['ARTICLE', 'VIDEO', 'PHOTO', 'COMMUNIQUE'];
+  disciplines: string[] = ['Natation', 'Water-Polo', 'Plongeon', 'Natation Artistique', 'Eau Libre', 'Général'];
 
-  constructor(public pressService: PressService, private router: Router) {}
+  // Modal Form State
+  showForm = false;
+  editingItem = false;
+  submitting = false;
+  formData: PressItem = this.getEmptyItem();
+
+  constructor(
+    public pressService: PressService, 
+    private router: Router,
+    private http: HttpClient
+  ) {}
 
   ngOnInit(): void {
     this.loadAll();
@@ -117,8 +129,121 @@ export class PressListComponent implements OnInit {
     this.filterStatus = status;
   }
 
-  goToAdd(): void { this.router.navigate(['/press/add']); }
-  goToEdit(id: number): void { this.router.navigate(['/press/edit', id]); }
+  goToAdd(): void { 
+    this.openAddForm();
+  }
+  
+  goToEdit(id: number): void { 
+    const item = this.items.find(i => i.idPressItem === id);
+    if (item) this.openEditForm(item);
+  }
+
+  // --- Modal Form Logic ---
+
+  getEmptyItem(): PressItem {
+    return {
+      title: '',
+      content: '',
+      mediaUrl: '',
+      discipline: 'Général',
+      type: 'ARTICLE'
+    };
+  }
+
+  openAddForm(): void {
+    this.editingItem = false;
+    this.formData = this.getEmptyItem();
+    this.showForm = true;
+  }
+
+  openEditForm(item: PressItem): void {
+    this.editingItem = true;
+    this.formData = { ...item };
+    this.showForm = true;
+  }
+
+  closeForm(): void {
+    this.showForm = false;
+  }
+
+  saveItem(): void {
+    if (!this.formData.title || !this.formData.content || !this.formData.discipline) {
+      this.showMessage('Veuillez remplir tous les champs obligatoires.', 'error');
+      return;
+    }
+    this.submitting = true;
+    const action$ = this.editingItem 
+      ? this.pressService.update(this.formData.idPressItem!, this.formData)
+      : this.pressService.add(this.formData);
+
+    action$.subscribe({
+      next: () => {
+        this.submitting = false;
+        this.showForm = false;
+        this.loadAll();
+        this.showMessage(this.editingItem ? '✅ Article mis à jour' : '✅ Article ajouté', 'success');
+      },
+      error: () => {
+        this.submitting = false;
+        this.showMessage('❌ Erreur lors de l\'enregistrement', 'error');
+      }
+    });
+  }
+
+  fetchFromUrl(): void {
+    if (!this.formData.linkUrl) {
+      this.showMessage('Veuillez entrer un lien valide.', 'error');
+      return;
+    }
+
+    this.loading = true;
+    this.http.get<any>(`/api/press/fetch-metadata?url=${encodeURIComponent(this.formData.linkUrl)}`).subscribe({
+      next: (data) => {
+        if (data.error) {
+          this.showMessage(data.error, 'error');
+        } else {
+          this.formData.title = data.title || '';
+          if (data.videoUrl) {
+            this.formData.type = 'VIDEO';
+            this.formData.mediaUrl = data.videoUrl;
+          } else if (data.image) {
+            this.formData.mediaUrl = data.image;
+          }
+          const rawContent = data.content || '';
+          if (rawContent) {
+            const sentences = rawContent.split(/[.!?]\s+/);
+            this.formData.content = sentences.slice(0, 3).join('. ') + (sentences.length > 0 ? '.' : '');
+          }
+          this.showMessage('✨ Données extraites !', 'success');
+        }
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+        this.showMessage('❌ Erreur lors de l\'extraction.', 'error');
+      }
+    });
+  }
+
+  onFileSelected(event: any): void {
+    const file: File = event.target.files[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append('file', file);
+      this.loading = true;
+      this.http.post<any>('/api/press/upload', formData).subscribe({
+        next: (res) => {
+          this.formData.mediaUrl = res.url;
+          this.loading = false;
+          this.showMessage('🖼️ Image importée !', 'success');
+        },
+        error: () => {
+          this.loading = false;
+          this.showMessage('❌ Erreur lors de l\'import.', 'error');
+        }
+      });
+    }
+  }
 
   publish(item: PressItem, event?: Event): void {
     if (event) event.stopPropagation();

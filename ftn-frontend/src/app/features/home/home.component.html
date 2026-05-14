@@ -32,9 +32,46 @@
 <section class="news-section">
   <div class="news-header">
     <h2>Actualités</h2>
-    <a href="#" class="view-all">Voir tout <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+    <a routerLink="/press/visitor" class="view-all">Voir tout <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
   </div>
-  <div class="news-placeholder">
-    <!-- Placeholder for news content -->
+
+  <!-- Loading -->
+  <div *ngIf="loading" style="display:flex; justify-content:center; padding: 60px 0;">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- News Grid -->
+  <div class="news-grid" *ngIf="!loading && news.length > 0">
+    <div *ngFor="let item of news" class="news-card">
+      <div class="card-media">
+        <iframe *ngIf="item.type === 'VIDEO' && item.mediaUrl?.includes('yout')" [src]="pressService.getEmbedUrl(item.mediaUrl || '') | safe" frameborder="0" allowfullscreen></iframe>
+        <img *ngIf="item.type !== 'VIDEO' && item.mediaUrl" [src]="item.mediaUrl" alt="Actualité">
+        <div *ngIf="!item.mediaUrl && item.type !== 'VIDEO'" style="display:flex; align-items:center; justify-content:center; height:100%; font-size:2.5rem; background:#f1f5f9;">📰</div>
+      </div>
+
+      <div class="card-body">
+        <div class="discipline-tag">{{ item.discipline }}</div>
+        <h3 class="card-title">{{ item.title }}</h3>
+        <p class="card-excerpt">{{ item.content }}</p>
+
+        <div class="card-footer">
+          <button class="btn-read-more" (click)="openLink(item.linkUrl || item.mediaUrl)">
+            {{ item.type === 'VIDEO' ? 'Regarder' : 'Lire la suite' }}
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && news.length === 0" class="news-empty">
+    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#cbd5e0" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+    </svg>
+    <p>Aucune actualité publiée pour le moment.</p>
+    <a routerLink="/press/visitor" class="btn-read-more" style="display:inline-flex; align-items:center; gap:8px; margin-top:16px; text-decoration:none;">
+      Voir toutes les actualités
+    </a>
   </div>
 </section>
