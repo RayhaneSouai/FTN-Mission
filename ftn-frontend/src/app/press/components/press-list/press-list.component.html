@@ -1,0 +1,211 @@
+<div style="padding: 2rem; max-width: 1200px; margin: 0 auto;">
+
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+      <h1 style="color: var(--ftn-blue); font-size: 1.8rem;">Gestion de la Presse</h1>
+      <p style="color: #718096;">Espace Administration</p>
+    </div>
+    <button class="btn-ftn btn-ftn-blue" (click)="goToAdd()">
+      ＋ Ajouter un Élément
+    </button>
+  </div>
+
+  <!-- TABLEAU DE BORD (STATS) -->
+  <div style="background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 2.5rem; border: 1px solid #edf2f7;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
+      <div>
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: #2d3748; margin-bottom: 0.25rem;">Tableau de Bord</h2>
+        <p style="font-size: 0.85rem; color: #718096; margin: 0;">Aperçu global des contenus</p>
+      </div>
+      <div style="text-align: right;">
+        <div style="font-size: 2rem; font-weight: 900; color: var(--ftn-blue); line-height: 1;">{{ richStats?.total || stats.total }}</div>
+        <div style="font-size: 0.7rem; font-weight: 700; color: #a0aec0; text-transform: uppercase; letter-spacing: 0.05em;">Total Articles</div>
+      </div>
+    </div>
+
+    <!-- Barre de distribution des statuts -->
+    <div style="height: 12px; display: flex; border-radius: 6px; overflow: hidden; background: #edf2f7; margin-bottom: 2rem;">
+      <div [style.width]="getPercentage(richStats?.published || 0, richStats?.total || 1)" style="background: #48bb78; transition: width 0.5s ease;" title="Publiés"></div>
+      <div [style.width]="getPercentage(richStats?.draft || 0, richStats?.total || 1)" style="background: #ed8936; transition: width 0.5s ease;" title="Brouillons"></div>
+      <div [style.width]="getPercentage(richStats?.archived || 0, richStats?.total || 1)" style="background: #a0aec0; transition: width 0.5s ease;" title="Archivés"></div>
+      <div [style.width]="getPercentage(richStats?.deleted || 0, richStats?.total || 1)" style="background: #e53e3e; transition: width 0.5s ease;" title="Corbeille"></div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+      <!-- Stats par Statut -->
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <h3 style="font-size: 0.75rem; font-weight: 800; color: #a0aec0; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem;">Statut</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 8px; height: 8px; border-radius: 50%; background: #48bb78;"></div>
+            <span style="font-size: 0.9rem; font-weight: 600; color: #4a5568;">Publiés</span>
+          </div>
+          <span style="font-weight: 700; color: #2d3748;">{{ richStats?.published || 0 }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 8px; height: 8px; border-radius: 50%; background: #ed8936;"></div>
+            <span style="font-size: 0.9rem; font-weight: 600; color: #4a5568;">Brouillons</span>
+          </div>
+          <span style="font-weight: 700; color: #2d3748;">{{ richStats?.draft || 0 }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 8px; height: 8px; border-radius: 50%; background: #a0aec0;"></div>
+            <span style="font-size: 0.9rem; font-weight: 600; color: #4a5568;">Archivés</span>
+          </div>
+          <span style="font-weight: 700; color: #2d3748;">{{ richStats?.archived || 0 }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 8px; height: 8px; border-radius: 50%; background: #e53e3e;"></div>
+            <span style="font-size: 0.9rem; font-weight: 600; color: #4a5568;">Corbeille</span>
+          </div>
+          <span style="font-weight: 700; color: #e53e3e;">{{ richStats?.deleted || 0 }}</span>
+        </div>
+      </div>
+
+      <!-- Stats par Type -->
+      <div style="display: flex; flex-direction: column; gap: 12px; border-left: 1px solid #edf2f7; padding-left: 2rem;">
+        <h3 style="font-size: 0.75rem; font-weight: 800; color: #a0aec0; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem;">Types de Contenu</h3>
+        <div *ngFor="let type of getMapKeys(richStats?.countByType)" style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.9rem; font-weight: 600; color: #4a5568;">{{ type }}</span>
+          <span style="font-weight: 700; color: #2d3748;">{{ richStats?.countByType?.[type] || 0 }}</span>
+        </div>
+      </div>
+
+      <!-- Stats par Discipline -->
+      <div style="display: flex; flex-direction: column; gap: 12px; border-left: 1px solid #edf2f7; padding-left: 2rem;">
+        <h3 style="font-size: 0.75rem; font-weight: 800; color: #a0aec0; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem;">Disciplines Top</h3>
+        <div *ngFor="let disc of getMapKeys(richStats?.countByDiscipline) | slice:0:3" style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.9rem; font-weight: 600; color: #4a5568;">{{ disc }}</span>
+          <span style="font-weight: 700; color: #2d3748;">{{ richStats?.countByDiscipline?.[disc] || 0 }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+    <div style="position: relative; flex: 1;">
+      <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--ftn-blue); font-size: 1.2rem;">🔍</span>
+      <input type="text" placeholder="Rechercher par titre, contenu ou discipline..." 
+             style="width: 100%; padding: 1rem 1rem 1rem 3.5rem; border-radius: 12px; border: 2px solid #e2e8f0; outline: none; transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.05);"
+             (input)="onSearch($any($event.target).value)">
+    </div>
+  </div>
+
+  <div *ngIf="message" [class]="'alert ' + messageType" style="margin-bottom: 2rem; padding: 1rem; border-radius: 8px; text-align: center; background: #fffaf0; border: 1px solid #feebc8; color: #744210;">
+    {{ message }}
+  </div>
+
+  <!-- FILTRES -->
+  <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 2.5rem; background: #f8fafc; padding: 1.5rem; border-radius: 12px;">
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <span style="font-weight: 700; font-size: 0.8rem; color: #64748b; min-width: 80px;">PAR TYPE :</span>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button class="filter-chip" [class.active]="filterType === 'ALL'" (click)="onFilterChange('ALL')">Tous</button>
+        <button *ngFor="let t of types" class="filter-chip" [class.active]="filterType === t" (click)="onFilterChange(t)">{{ t }}</button>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <span style="font-weight: 700; font-size: 0.8rem; color: #64748b; min-width: 80px;">STATUT :</span>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button class="filter-chip" [class.active]="filterStatus === 'ALL'" (click)="onStatusFilterChange('ALL')">Actifs</button>
+        <button class="filter-chip" [class.active]="filterStatus === 'PUBLISHED'" (click)="onStatusFilterChange('PUBLISHED')">Publiés</button>
+        <button class="filter-chip" [class.active]="filterStatus === 'DRAFT'" (click)="onStatusFilterChange('DRAFT')">Brouillons</button>
+        <button class="filter-chip" [class.active]="filterStatus === 'ARCHIVED'" (click)="onStatusFilterChange('ARCHIVED')">Archivés</button>
+        <button class="filter-chip trash" [class.active]="filterStatus === 'DELETED'" (click)="onStatusFilterChange('DELETED')">🗑️ Corbeille</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" style="text-align: center; padding: 2rem;">
+    <div class="spinner" style="margin: 0 auto;"></div>
+    <p style="margin-top: 10px; color: #718096;">Chargement des données...</p>
+  </div>
+
+  <!-- LISTE DES ELEMENTS -->
+  <div *ngIf="!loading && getFilteredItems().length === 0" style="text-align: center; padding: 4rem; background: #f8fafc; border-radius: 12px; color: #718096;">
+    <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
+    <h3>Aucun élément trouvé</h3>
+    <p>Essayez de modifier vos filtres ou lancez une nouvelle recherche.</p>
+  </div>
+
+  <div class="news-grid" *ngIf="!loading">
+    <div *ngFor="let item of getFilteredItems()" class="news-card">
+      <div class="card-media" (click)="pressService.openLink(item.linkUrl || item.mediaUrl)" style="cursor: pointer; position: relative;">
+        <!-- Badge de type (Vidéo, Photo, etc.) -->
+        <div class="type-badge" [ngClass]="item.type.toLowerCase()" 
+             style="position: absolute; top: 12px; left: 12px; z-index: 2; padding: 5px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 800; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); color: white;"
+             [style.background]="item.type === 'VIDEO' ? '#e53e3e' : (item.type === 'PHOTO' ? '#9f7aea' : (item.type === 'COMMUNIQUE' ? '#ed8936' : '#3182ce'))">
+          <span *ngIf="item.type === 'VIDEO'">▶️ Vidéo</span>
+          <span *ngIf="item.type === 'PHOTO'">🖼️ Photo</span>
+          <span *ngIf="item.type === 'COMMUNIQUE'">📢 Communiqué</span>
+          <span *ngIf="item.type === 'ARTICLE'">📄 Article</span>
+        </div>
+
+        <!-- Image pour les articles standards ou miniature pour les vidéos -->
+        <img *ngIf="item.type !== 'VIDEO' && item.mediaUrl" [src]="item.mediaUrl" alt="Media content">
+        <img *ngIf="item.type === 'VIDEO'" [src]="pressService.getVideoThumbnail(item.mediaUrl || '')" alt="Video thumbnail" onerror="this.src='https://images.unsplash.com/photo-1504450758481-7338eba7524a?q=80&w=500&auto=format&fit=crop'">
+        
+        <!-- Overlay spécifique pour les vidéos (Bouton Play) -->
+        <div *ngIf="item.type === 'VIDEO'" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.6); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+          ▶️
+        </div>
+
+        <!-- Placeholder si aucune image -->
+        <div *ngIf="!item.mediaUrl && item.type !== 'VIDEO'" style="display:flex; align-items:center; justify-content:center; height:100%; font-size:2rem; background:#edf2f7;">📰</div>
+      </div>
+
+      <div class="card-body">
+        <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:0.5rem;">
+          <span style="font-weight:700; color:var(--ftn-blue); font-size: 0.75rem; text-transform: uppercase;">{{ item.discipline }}</span>
+          <span class="badge" [ngClass]="getStatusClass(item.status)">{{ item.status }}</span>
+        </div>
+        
+        <h3 class="card-title" (click)="goToEdit(item.idPressItem!)">{{ item.title }}</h3>
+        <p class="card-excerpt">{{ item.content | slice:0:100 }}...</p>
+        
+        <div class="card-actions" (click)="$event.stopPropagation()" style="margin-top: auto; padding-top: 1rem; border-top: 1px solid #f1f5f9; display: flex; gap: 8px; flex-wrap: wrap; position: relative; z-index: 10;">
+          
+          <!-- Actions Normales (Non-Supprimé) -->
+          <ng-container *ngIf="item.status !== 'DELETED'">
+            <button type="button" title="Publier" *ngIf="item.status !== 'PUBLISHED'" class="action-btn publish" (click)="publish(item, $event)">🚀</button>
+            <button type="button" title="Archiver" *ngIf="item.status !== 'ARCHIVED'" class="action-btn archive" (click)="archive(item, $event)">📁</button>
+            <button type="button" title="Dépublier / Brouillon" *ngIf="item.status === 'PUBLISHED' || item.status === 'ARCHIVED'" class="action-btn draft" (click)="setDraft(item, $event)">📝</button>
+            <button type="button" title="Modifier" class="action-btn edit" (click)="goToEdit(item.idPressItem!)">✏️</button>
+            <button type="button" title="Mettre en corbeille" class="action-btn delete" (click)="openTrashModal(item, $event)">🗑️</button>
+          </ng-container>
+
+          <!-- Actions Corbeille -->
+          <ng-container *ngIf="item.status === 'DELETED'">
+            <button type="button" class="btn-ftn" style="background: #48bb78; color: white; flex: 1; font-size: 0.8rem; padding: 0.5rem;" (click)="restore(item, $event)">⚡ Restaurer</button>
+            <button type="button" class="btn-ftn" style="background: #e53e3e; color: white; flex: 1; font-size: 0.8rem; padding: 0.5rem;" (click)="openDeleteModal(item, $event)">❌ Supprimer</button>
+          </ng-container>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALE DE CONFIRMATION CUSTOM (PREMIUM DESIGN) -->
+  <div *ngIf="showConfirmModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; animation: fadeIn 0.3s ease;">
+    <div style="background: white; width: 90%; max-width: 450px; border-radius: 24px; padding: 2.5rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; transform: scale(1); transition: all 0.3s ease;">
+      <div style="width: 70px; height: 70px; background: #fff5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem;">
+        {{ isHardDelete ? '⚠️' : '🗑️' }}
+      </div>
+      <h2 style="color: #1a202c; font-size: 1.5rem; font-weight: 800; margin-bottom: 1rem;">{{ modalTitle }}</h2>
+      <p style="color: #4a5568; font-size: 1rem; line-height: 1.6; margin-bottom: 2.5rem;">{{ modalMessage }}</p>
+      
+      <div style="display: flex; gap: 12px;">
+        <button (click)="closeModal()" style="flex: 1; padding: 1rem; border-radius: 14px; border: 2px solid #edf2f7; background: white; color: #4a5568; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+          Annuler
+        </button>
+        <button (click)="confirmAction()" [style.background]="isHardDelete ? '#e53e3e' : 'var(--ftn-blue)'" style="flex: 1; padding: 1rem; border-radius: 14px; border: none; color: white; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+          Confirmer
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

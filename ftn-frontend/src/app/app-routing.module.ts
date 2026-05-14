@@ -5,8 +5,7 @@ import { ClubListComponent } from './features/clubs/components/club-list/club-li
 import { PublicLayoutComponent } from './layout/public/public-layout.component';
 
 const routes: Routes = [
-  // Main Layout Space (Includes Navbar/Footer)
-  {
+      {
     path: '',
     component: PublicLayoutComponent,
     children: [
@@ -31,6 +30,10 @@ const routes: Routes = [
       {
         path: 'mon-profil',
         loadChildren: () => import('./features/profile/profile.module').then(m => m.ProfileModule)
+      },
+      {
+        path: 'press',
+        loadChildren: () => import('./press/press.module').then(m => m.PressModule)
       }
     ]
   },
