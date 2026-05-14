@@ -1,0 +1,89 @@
+<div style="padding: 2rem; max-width: 800px; margin: 0 auto;">
+  <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+    
+    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 2rem; border-bottom: 1px solid #edf2f7; padding-bottom: 1rem;">
+      <span style="font-size: 2rem;">{{ isEdit ? '✏️' : '＋' }}</span>
+      <div>
+        <h1 style="color: var(--ftn-blue); margin: 0;">{{ isEdit ? 'Modifier' : 'Ajouter' }} un Élément</h1>
+        <p style="color: #718096; margin: 0;">Remplissez les informations ci-dessous</p>
+      </div>
+    </div>
+
+    <div *ngIf="loading" style="text-align: center; padding: 2rem;">Chargement...</div>
+
+    <form *ngIf="!loading" (ngSubmit)="submit()">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        
+        <div class="form-group" style="grid-column: span 2;">
+          <label>Titre *</label>
+          <input type="text" [(ngModel)]="item.title" name="title" placeholder="Ex: Championnat de Tunisie..." required>
+        </div>
+
+        <div class="form-group">
+          <label>Type *</label>
+          <select [(ngModel)]="item.type" name="type" required>
+            <option *ngFor="let t of types" [value]="t">{{ t }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Discipline *</label>
+          <select [(ngModel)]="item.discipline" name="discipline" required>
+            <option value="" disabled selected>Choisir une discipline</option>
+            <option *ngFor="let d of disciplines" [value]="d">{{ d }}</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="grid-column: span 2;">
+          <label>Lien de l'article (Source)</label>
+          <div style="display: flex; gap: 10px;">
+            <input type="text" [(ngModel)]="item.linkUrl" name="linkUrl" placeholder="https://..." style="flex: 1;">
+            <button type="button" class="btn-ftn" (click)="fetchFromUrl()" style="background: var(--ftn-blue); color: white; border: none; white-space: nowrap;">
+              ✨ Extraire les infos
+            </button>
+          </div>
+          <small style="color: #718096; font-style: italic;">Collez n'importe quel lien d'article (Tunisie Numérique, L'Équipe, Wikipedia...) pour remplir les infos.</small>
+        </div>
+
+        <div class="form-group" style="grid-column: span 2;">
+          <label>Image d'illustration (Lien ou Fichier)</label>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="text" [(ngModel)]="item.mediaUrl" name="mediaUrl" placeholder="Collez un lien d'image..." style="flex: 1;">
+            
+            <div style="position: relative;">
+              <input type="file" (change)="onFileSelected($event)" style="display: none;" #fileInput accept="image/*">
+              <button type="button" class="btn-ftn" (click)="fileInput.click()" style="background: #edf2f7; border: 1px solid #cbd5e0; white-space: nowrap;">
+                📁 Importer depuis PC
+              </button>
+            </div>
+          </div>
+          <small style="color: #718096;">Vous pouvez coller un lien **OU** choisir un fichier sur votre ordinateur.</small>
+        </div>
+
+      </div>
+
+      <!-- Preview Image -->
+      <div *ngIf="item.mediaUrl" style="margin-top: 1.5rem; padding: 1rem; background: #f7fafc; border-radius: 8px; text-align: center;">
+        <p style="font-size: 0.8rem; color: #718096; margin-bottom: 0.5rem;">Aperçu du média :</p>
+        <iframe *ngIf="item.type === 'VIDEO' && item.mediaUrl?.includes('yout')" [src]="pressService.getEmbedUrl(item.mediaUrl || '') | safe" style="width:100%; aspect-ratio:16/9; border-radius:8px;" frameborder="0"></iframe>
+        <img *ngIf="item.type !== 'VIDEO'" [src]="item.mediaUrl" style="max-height: 200px; border-radius: 8px;">
+      </div>
+
+      <div class="form-group" style="margin-top: 1.5rem;">
+        <label>Contenu *</label>
+        <textarea [(ngModel)]="item.content" name="content" rows="6" placeholder="Écrivez votre article ici..." required></textarea>
+      </div>
+
+      <div *ngIf="message" [class]="'alert ' + messageType" style="margin-top: 1rem; padding: 1rem; border-radius: 8px; text-align: center;">
+        {{ message }}
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; border-top: 1px solid #edf2f7; padding-top: 1.5rem;">
+        <button type="button" class="btn-ftn" (click)="cancel()" style="background: #edf2f7; color: #4a5568;">Annuler</button>
+        <button type="submit" class="btn-ftn btn-ftn-blue" [disabled]="submitting">
+          {{ submitting ? 'Enregistrement...' : (isEdit ? 'Mettre à jour' : 'Enregistrer') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

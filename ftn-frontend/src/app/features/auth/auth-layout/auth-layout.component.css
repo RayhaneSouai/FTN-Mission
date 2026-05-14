@@ -1,0 +1,81 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.auth-shell {
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+/* Plein écran : une seule image, 2× largeur pour montrer gauche OU droite */
+.auth-shell-panorama {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.auth-shell-panorama__img {
+  position: absolute;
+  inset: -20px;
+  background-image: url('/assets/home-hero.png');
+  background-repeat: no-repeat;
+  background-size: 200% 100%;
+  background-position: 0% 50%;
+  filter: blur(10px);
+  -webkit-filter: blur(10px);
+  transform: scale(1.05);
+}
+
+.auth-shell--pan-left .auth-shell-panorama__img {
+  background-position: 0% 50%;
+  filter: blur(10px) saturate(1.12) contrast(1.08);
+  -webkit-filter: blur(10px) saturate(1.12) contrast(1.08);
+}
+
+.auth-shell--pan-right .auth-shell-panorama__img {
+  background-position: 100% 50%;
+  filter: blur(10px) saturate(1.12) contrast(1.08);
+  -webkit-filter: blur(10px) saturate(1.12) contrast(1.08);
+}
+
+/* Voile léger : lisibilité + cohérence avec le pan gauche / droite */
+.auth-shell-panorama__scrim {
+  position: absolute;
+  inset: 0;
+}
+
+.auth-shell--pan-left .auth-shell-panorama__scrim {
+  /* Aligné visuellement avec l’inscription : moins de zone « lavée », bleus plus denses */
+  background: linear-gradient(
+    100deg,
+    rgba(8, 28, 58, 0.82) 0%,
+    rgba(11, 44, 91, 0.58) 32%,
+    rgba(11, 44, 91, 0.45) 48%,
+    rgba(15, 52, 102, 0.38) 58%,
+    rgba(241, 245, 249, 0.48) 74%,
+    rgba(248, 250, 252, 0.9) 100%
+  );
+}
+
+.auth-shell--pan-right .auth-shell-panorama__scrim {
+  /* Moins de blanc qu’avant : la moitié droite de la photo paraissait lavée */
+  background: linear-gradient(
+    90deg,
+    rgba(248, 250, 252, 0.92) 0%,
+    rgba(248, 250, 252, 0.38) 14%,
+    rgba(15, 52, 102, 0.52) 32%,
+    rgba(11, 44, 91, 0.72) 58%,
+    rgba(8, 28, 58, 0.82) 100%
+  );
+}
+
+.auth-shell-outlet {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+

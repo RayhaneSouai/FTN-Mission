@@ -9,7 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/competitions")
-@CrossOrigin("*") // utile pour Angular
+
 public class CompetitionController {
 
     @Autowired

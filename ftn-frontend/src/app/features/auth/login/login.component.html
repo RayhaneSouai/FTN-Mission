@@ -1,0 +1,79 @@
+<div class="auth-split-container auth-page--login">
+  <div class="auth-split-left">
+    <div class="auth-split-left-content">
+      <h1 class="display-5 fw-bold mb-4">Fédération Tunisienne de Natation</h1>
+      <p class="fs-5 opacity-75">Connectez-vous pour accéder à votre espace personnel, suivre vos performances, gérer vos licences et bien plus encore.</p>
+    </div>
+    <div class="auth-split-left-footer">
+      &copy; 2026 FTN. Tous droits réservés.
+    </div>
+  </div>
+
+  <!-- Right Side: Form -->
+  <div class="auth-split-right">
+    <div class="auth-form-wrapper">
+      <div class="text-center text-lg-start mb-5">
+        <h2>Bon retour !</h2>
+        <p class="subtitle">Veuillez entrer vos identifiants pour continuer.</p>
+      </div>
+
+      <form (ngSubmit)="login()">
+        <div class="form-floating mb-4">
+          <input 
+            type="email" 
+            class="form-control" 
+            id="email" 
+            name="email" 
+            placeholder="nom@exemple.com"
+            [(ngModel)]="credentials.email" 
+            required>
+          <label for="email"><i class="bi bi-envelope me-2"></i>Adresse Email</label>
+        </div>
+
+        <div class="form-floating mb-4 position-relative">
+          <input 
+            [type]="showPassword ? 'text' : 'password'" 
+            class="form-control" 
+            id="password" 
+            name="password" 
+            placeholder="Mot de passe"
+            [(ngModel)]="credentials.password" 
+            required>
+          <label for="password"><i class="bi bi-lock me-2"></i>Mot de passe</label>
+          <button type="button" 
+                  class="btn position-absolute end-0 top-50 translate-middle-y border-0 me-2" 
+                  (mousedown)="togglePassword(true)" 
+                  (mouseup)="togglePassword(false)" 
+                  (mouseleave)="togglePassword(false)"
+                  style="z-index: 10;">
+            <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+          </button>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="rememberMe">
+            <label class="form-check-label text-muted" for="rememberMe">
+              Se souvenir de moi
+            </label>
+          </div>
+          <a routerLink="/auth/forgot-password" class="auth-link fs-6">Mot de passe oublié ?</a>
+        </div>
+
+        <div *ngIf="errorMessage" class="alert alert-danger py-2 d-flex align-items-center mb-4" role="alert">
+          <i class="bi bi-exclamation-octagon-fill me-2 fs-5"></i>
+          <div>{{ errorMessage }}</div>
+        </div>
+
+        <button type="submit" class="btn-auth w-100 mb-4">
+          Se connecter <i class="bi bi-arrow-right"></i>
+        </button>
+
+        <p class="text-center text-muted">
+          Vous n'avez pas encore de compte ? 
+          <a routerLink="/auth/register" class="auth-link fw-bold">Créer un compte</a>
+        </p>
+      </form>
+    </div>
+  </div>
+</div>

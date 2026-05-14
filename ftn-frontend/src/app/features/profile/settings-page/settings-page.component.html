@@ -1,0 +1,54 @@
+<div class="rich-container p-4 animate__animated animate__fadeIn">
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="max-width: 800px; margin: 0 auto;">
+    <div class="card-header bg-white border-bottom p-4">
+      <h5 class="fw-bold mb-0">Paramètres de l'application</h5>
+      <p class="text-muted small mb-0">Personnalisez votre expérience</p>
+    </div>
+    <div class="card-body p-4">
+      <div *ngIf="success" class="alert alert-success border-0 rounded-3 mb-4 d-flex align-items-center">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        {{ success }}
+      </div>
+
+      <form (ngSubmit)="saveSettings()">
+        <div class="mb-4 pb-4 border-bottom">
+          <h6 class="fw-bold mb-3">Général</h6>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" [(ngModel)]="settings.darkMode" name="darkMode" id="darkMode">
+            <label class="form-check-label fw-medium" for="darkMode">Mode sombre</label>
+            <div class="form-text small">Activer l'interface à thème sombre.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-muted text-uppercase">Langue</label>
+            <select class="form-select rounded-3" [(ngModel)]="settings.language" name="language">
+              <option value="fr">Français</option>
+              <option value="en">English</option>
+              <option value="ar">العربية</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mb-4 pb-4 border-bottom">
+          <h6 class="fw-bold mb-3">Notifications</h6>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" [(ngModel)]="settings.notifications" name="notifications" id="notifications">
+            <label class="form-check-label fw-medium" for="notifications">Notifications Push</label>
+            <div class="form-text small">Recevoir des notifications en temps réel dans le navigateur.</div>
+          </div>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" [(ngModel)]="settings.emailAlerts" name="emailAlerts" id="emailAlerts">
+            <label class="form-check-label fw-medium" for="emailAlerts">Alertes Email</label>
+            <div class="form-text small">Recevoir un email pour les nouvelles inscriptions en attente.</div>
+          </div>
+        </div>
+
+        <div class="text-end">
+          <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 fw-bold" [disabled]="loading">
+            <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Enregistrer les paramètres
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,160 @@
+  <div class="modal-body p-4 pt-3">
+    <form (ngSubmit)="saveUser()" #userForm="ngForm" id="userSaveForm">
+      <!-- General Info Section -->
+      <div class="form-section mb-4">
+        <div class="d-flex align-items-center mb-3">
+          <div class="section-icon bg-primary-subtle text-primary rounded-3 p-2 me-2">
+            <i class="bi bi-person-lines-fill fs-5"></i>
+          </div>
+          <h5 class="fw-bold mb-0 text-dark">Informations Générales</h5>
+        </div>
+        
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="form-floating custom-form-control">
+              <input type="text" name="firstName" class="form-control" id="firstName" [(ngModel)]="userData.firstName" placeholder="Prénom" [disabled]="isViewOnly" required>
+              <label for="firstName">Prénom</label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-floating custom-form-control">
+              <input type="text" name="lastName" class="form-control" id="lastName" [(ngModel)]="userData.lastName" placeholder="Nom" [disabled]="isViewOnly" required>
+              <label for="lastName">Nom</label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-floating custom-form-control">
+              <input type="email" name="email" class="form-control" id="email" [(ngModel)]="userData.email" placeholder="Email" [disabled]="isViewOnly" required>
+              <label for="email">Email</label>
+            </div>
+          </div>
+          <div class="col-md-6" *ngIf="!isEditMode">
+            <div class="form-floating custom-form-control">
+              <input type="password" name="password" class="form-control" id="password" [(ngModel)]="userData.password" placeholder="Mot de passe" required>
+              <label for="password">Mot de passe</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile & Role Section -->
+      <div class="form-section mb-4">
+        <div class="d-flex align-items-center mb-3 pt-2">
+          <div class="section-icon bg-info-subtle text-info rounded-3 p-2 me-2">
+            <i class="bi bi-shield-check fs-5"></i>
+          </div>
+          <h5 class="fw-bold mb-0 text-dark">Profil & Rôle</h5>
+        </div>
+        
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="form-floating custom-form-control">
+              <select name="role" class="form-select" id="role" [(ngModel)]="userData.role" [disabled]="isViewOnly" required>
+                <option value="ADMIN">Administrateur</option>
+                <option value="COACH">Coach</option>
+                <option value="SWIMMER">Nageur</option>
+              </select>
+              <label for="role">Rôle</label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-floating custom-form-control">
+              <select name="gender" class="form-select" id="gender" [(ngModel)]="userData.gender" [disabled]="isViewOnly">
+                <option value="">-- Sélectionner --</option>
+                <option value="HOMME">Homme</option>
+                <option value="FEMME">Femme</option>
+              </select>
+              <label for="gender">Genre</label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-floating custom-form-control">
+              <input type="date" name="birthDate" class="form-control" id="birthDate" [(ngModel)]="userData.birthDate" [disabled]="isViewOnly">
+              <label for="birthDate">Date de naissance</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sports Details Section -->
+      <div class="form-section mb-4">
+        <div class="d-flex align-items-center mb-3 pt-2">
+          <div class="section-icon bg-success-subtle text-success rounded-3 p-2 me-2">
+            <i class="bi bi-water fs-5"></i>
+          </div>
+          <h5 class="fw-bold mb-0 text-dark">Détails Sportifs</h5>
+        </div>
+        
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="form-floating custom-form-control">
+              <select name="discipline" class="form-select" id="discipline" [(ngModel)]="userData.discipline" [disabled]="isViewOnly">
+                <option value="">-- Sélectionner --</option>
+                <option value="NATATION">Natation</option>
+                <option value="EAU_LIBRE">Eau libre</option>
+                <option value="WATER_POLO">Water-polo</option>
+                <option value="PLONGEON">Plongeon</option>
+                <option value="NAGE_SYNCHRONISEE">Nage synchronisée</option>
+              </select>
+              <label for="discipline">Discipline</label>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-floating custom-form-control">
+              <select name="niveau" class="form-select" id="niveau" [(ngModel)]="userData.niveau" [disabled]="isViewOnly">
+                <option value="">-- Sélectionner --</option>
+                <option value="POUSSIN">Poussin</option>
+                <option value="BENJAMIN">Benjamin</option>
+                <option value="MINIME">Minime</option>
+                <option value="CADET">Cadet</option>
+                <option value="JUNIOR">Junior</option>
+                <option value="SENIOR">Senior</option>
+                <option value="MASTER">Master</option>
+              </select>
+              <label for="niveau">Catégorie / Niveau</label>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-floating custom-form-control">
+              <input type="number" name="anciennete" class="form-control" id="anciennete" [(ngModel)]="userData.anciennete" min="0" placeholder="Ancienneté" [disabled]="isViewOnly">
+              <label for="anciennete">Ancienneté (années)</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Section -->
+      <div class="mb-4" *ngIf="isEditMode">
+        <div class="card bg-light border-0 rounded-3 p-3">
+          <div class="form-check form-switch d-flex align-items-center mb-0">
+            <input class="form-check-input mt-0" type="checkbox" role="switch" id="activeStatus" name="active" [(ngModel)]="userData.active" [disabled]="isViewOnly" style="width: 2.5rem; height: 1.25rem;">
+            <label class="form-check-label fw-semibold ms-3" for="activeStatus">
+              {{ userData.active ? 'Compte Actif' : 'Compte Inactif' }}
+              <small class="d-block text-muted fw-normal mt-1">Désactiver ce compte empêchera l'utilisateur de se connecter.</small>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="error" class="alert alert-danger border-0 shadow-sm d-flex align-items-center mb-4 rounded-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+        <div>{{ error }}</div>
+      </div>
+      
+      <div *ngIf="success" class="alert alert-success border-0 shadow-sm d-flex align-items-center mb-4 rounded-3" role="alert">
+        <i class="bi bi-check-circle-fill me-3 fs-4"></i>
+        <div>{{ success }}</div>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal-footer border-0 p-4 pt-0">
+    <button type="button" class="btn btn-link text-decoration-none text-secondary fw-semibold px-4" (click)="cancel()" [disabled]="submitting">
+      {{ isViewOnly ? 'Fermer' : 'Annuler' }}
+    </button>
+    <button *ngIf="!isViewOnly" type="submit" form="userSaveForm" class="btn btn-primary px-5 py-2 fw-bold shadow rounded-pill" [disabled]="submitting || !userForm.valid">
+      <i class="bi bi-check2-circle me-2" *ngIf="!submitting"></i>
+      <span *ngIf="submitting" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      {{ submitting ? 'Enregistrement...' : 'Enregistrer' }}
+    </button>
+  </div>
