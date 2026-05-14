@@ -59,28 +59,31 @@ public class AuthServiceImpl implements IAuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable avec email: " + request.getEmail()));
 
+        RegistrationStatus reg = user.getRegistrationStatus();
+        if (reg == RegistrationStatus.EN_ATTENTE) {
+            throw new IllegalArgumentException(
+                    "Votre compte est en attente de validation par un administrateur. Vous recevrez un accès après approbation.");
+        }
+        if (reg == RegistrationStatus.ANNULEE) {
+            throw new IllegalArgumentException(
+                    "Cette inscription a été refusée. Contactez l'administration pour plus d'informations.");
+        }
+        if (Boolean.FALSE.equals(user.getActive())) {
+            throw new IllegalArgumentException("Ce compte a été désactivé.");
+        }
+
+        boolean jwtEnabled = user.getActive() != null ? user.getActive() : true;
         String token = jwtService.generateToken(new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPasswordHash(),
-                user.getActive() != null ? user.getActive() : true,
+                jwtEnabled,
                 true,
                 true,
                 true,
                 List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
         ));
 
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(user.getId());
-        userDTO.setFirstName(user.getFirstName());
-        userDTO.setLastName(user.getLastName());
-        userDTO.setEmail(user.getEmail());
-        userDTO.setRole(user.getRole());
-        userDTO.setActive(user.getActive());
-        userDTO.setBirthDate(user.getBirthDate());
-        userDTO.setGender(user.getGender() != null ? user.getGender().name() : null);
-        userDTO.setNiveau(user.getNiveau() != null ? user.getNiveau().name() : null);
-        userDTO.setDiscipline(user.getDiscipline() != null ? user.getDiscipline().name() : null);
-        userDTO.setAnciennete(user.getAnciennete());
+        UserDTO userDTO = mapToDTO(user);
 
         return new AuthResponseDTO(token, userDTO);
     }

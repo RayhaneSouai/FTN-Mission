@@ -33,7 +33,7 @@ export class LoginComponent {
           // Check if the user is an admin based on the backend response
           if (res.user.role === 'ADMIN' || res.user.role === 'ADMINISTRATEUR') {
             localStorage.setItem('isAdmin', 'true');
-            this.router.navigate(['/utilisateurs']);
+            this.router.navigate(['/admin']);
           } else {
             // Normal user / Swimmer / Coach
             localStorage.removeItem('isAdmin');
@@ -42,7 +42,8 @@ export class LoginComponent {
         }
       },
       error: (err) => {
-        this.errorMessage = 'Email ou mot de passe incorrect';
+        this.errorMessage =
+          err?.error?.message || 'Email ou mot de passe incorrect.';
         console.error(err);
       }
     });
