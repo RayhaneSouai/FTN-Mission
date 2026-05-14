@@ -1,5 +1,6 @@
 package tn.federation.backend.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,6 +22,7 @@ public class License {
     private LocalDate issueDate;
     private LocalDate expiryDate;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "club_id")
     Club club;

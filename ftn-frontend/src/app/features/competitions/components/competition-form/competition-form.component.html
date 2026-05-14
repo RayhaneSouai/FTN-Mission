@@ -1,0 +1,160 @@
+<div class="modal-backdrop" (click)="onBackdropClick($event)">
+    <article class="modal-card" (click)="$event.stopPropagation()">
+        <!-- Header -->
+        <header class="modal-header">
+            <h2 class="modal-title">
+                {{ isEditMode() ? '✏️ Modifier la compétition' : 'Nouvelle compétition' }}
+            </h2>
+            <button class="modal-close" type="button" (click)="tryClose()">✕</button>
+        </header>
+
+        <!-- Form -->
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="modal-form">
+            <div class="field-row">
+            <!-- Name -->
+            <div class="field">
+                <label for="comp-name">Nom de la compétition</label>
+                <input id="comp-name" formControlName="name" placeholder="Ex : Coupe Nationale Junior" />
+                @if (form.controls.name.invalid && form.controls.name.touched) {
+                <span class="field__error">⚠ Le nom est requis.</span>
+                }
+            </div>
+            <div class="field">
+                <label for="comp-discipline">Discipline</label>
+                <select id="comp-discipline" formControlName="discipline">
+                    @for (d of disciplines; track d.value) {
+                    <option [value]="d.value">{{ d.label }}</option>
+                    }
+                </select>
+            </div>
+            </div>
+
+            <!-- Description -->
+            <div class="field">
+                <label for="comp-desc">Description</label>
+                <textarea id="comp-desc" formControlName="description" rows="3"
+                    placeholder="Description de la compétition (optionnel)"></textarea>
+            </div>
+
+            <!-- Dates -->
+            <div class="field-row">
+                <div class="field">
+                    <label for="comp-start">Date de début</label>
+                    <input id="comp-start" type="date" formControlName="startDate" />
+                    @if (form.controls.startDate.invalid && form.controls.startDate.touched) {
+                    <span class="field__error">⚠ La date de début est requise.</span>
+                    }
+                </div>
+                <div class="field">
+                    <label for="comp-end">Date de fin</label>
+                    <input id="comp-end" type="date" formControlName="endDate" />
+                    @if (form.controls.endDate.invalid && form.controls.endDate.touched) {
+                    <span class="field__error">⚠ La date de fin est requise.</span>
+                    }
+                </div>
+            </div>
+
+            <!-- Cross-field date error -->
+            @if (form.hasError('dateRange')) {
+            <div class="field__error field__error--group">
+                ⚠ La date de fin doit être postérieure ou égale à la date de début.
+            </div>
+            }
+
+            <!-- Secteur (National / International) -->
+            <div class="field">
+                <label>Secteur</label>
+                <div class="radio-group radio-group--row">
+                    <label class="radio-option">
+                        <input type="radio" name="secteur" value="NATIONAL"
+                            [checked]="selectedSecteur() === 'NATIONAL'"
+                            (change)="onSecteurChange('NATIONAL')" />
+                        <span class="radio-label"> National</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="secteur" value="INTERNATIONAL"
+                            [checked]="selectedSecteur() === 'INTERNATIONAL'"
+                            (change)="onSecteurChange('INTERNATIONAL')" />
+                        <span class="radio-label">International</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- National fields -->
+            @if (isNational()) {
+            <div class="field-row">
+                <div class="field">
+                    <label for="comp-region">Région</label>
+                    <select id="comp-region" formControlName="region" (change)="onRegionChange()">
+                        <option value="" disabled>Sélectionner une région</option>
+                        @for (r of regions; track r.value) {
+                        <option [value]="r.value">{{ r.label }}</option>
+                        }
+                    </select>
+                    @if (form.controls.region.invalid && form.controls.region.touched) {
+                    <span class="field__error">⚠ La région est requise.</span>
+                    }
+                </div>
+                <div class="field">
+                    <label for="comp-lieu">Piscine</label>
+                    <select id="comp-lieu" formControlName="lieu" [attr.disabled]="filteredPiscines().length === 0 ? true : null">
+                        <option value="" disabled>Sélectionner une piscine</option>
+                        @for (p of filteredPiscines(); track p.value) {
+                        <option [value]="p.value">{{ p.label }}</option>
+                        }
+                    </select>
+                    @if (form.controls.lieu.invalid && form.controls.lieu.touched) {
+                    <span class="field__error">⚠ La piscine est requise.</span>
+                    }
+                </div>
+            </div>
+            }
+
+            <!-- International fields -->
+            @if (!isNational()) {
+            <div class="field-row">
+                <div class="field">
+                    <label for="comp-country">Pays</label>
+                    <input id="comp-country" formControlName="country" placeholder="Ex : France" />
+                    @if (form.controls.country.invalid && form.controls.country.touched) {
+                    <span class="field__error">⚠ Le pays est requis.</span>
+                    }
+                </div>
+                <div class="field">
+                    <label for="comp-city">Ville</label>
+                    <input id="comp-city" formControlName="city" placeholder="Ex : Paris" />
+                    @if (form.controls.city.invalid && form.controls.city.touched) {
+                    <span class="field__error">⚠ La ville est requise.</span>
+                    }
+                </div>
+            </div>
+            <div class="field">
+                <label for="comp-venue">Nom du lieu</label>
+                <input id="comp-venue" formControlName="venue" placeholder="Ex : Paris La Défense Arena" />
+                @if (form.controls.venue.invalid && form.controls.venue.touched) {
+                <span class="field__error">⚠ Le nom du lieu est requis.</span>
+                }
+            </div>
+            }
+
+            <!-- Actions -->
+            <div class="modal-actions">
+                <button type="button" class="btn btn--ghost" (click)="tryClose()">Annuler</button>
+                <button type="submit" class="btn btn--primary" [disabled]="form.invalid || state.isLoading()">
+                    @if (state.isLoading()) {
+                    <span class="spinner"></span>
+                    }
+                    {{ isEditMode() ? 'Enregistrer' : 'Créer' }}
+                </button>
+            </div>
+        </form>
+    </article>
+</div>
+
+<!-- Unsaved changes confirm dialog -->
+@if (showUnsavedConfirm()) {
+<app-confirm-dialog title="Modifications non enregistrées"
+    message="Vous avez des modifications non sauvegardées. Voulez-vous vraiment quitter sans enregistrer ?"
+    confirmLabel="Oui, quitter" cancelLabel="Continuer l'édition" (confirmed)="onDiscardConfirmed()"
+    (cancelled)="onDiscardCancelled()" />
+}

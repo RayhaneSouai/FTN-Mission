@@ -1,0 +1,131 @@
+/* ─── CTA Banner ──────────────────────────────────────────── */
+.cta-banner {
+  background: #1565C0;
+  color: #fff;
+  text-align: center;
+  padding: 56px 24px;
+}
+.cta-banner h2 {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+.cta-banner p {
+  font-size: 15px;
+  margin: 0 0 28px;
+  opacity: 0.9;
+}
+.btn-outline-white {
+  display: inline-block;
+  padding: 12px 32px;
+  border: 2px solid #fff;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-outline-white:hover {
+  background: #fff;
+  color: #1565C0;
+}
+
+/* ─── Footer ──────────────────────────────────────────────── */
+.site-footer {
+  background: #12205e;
+  color: #c8d4f0;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-size: 13.5px;
+}
+.footer-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 40px 32px;
+}
+.footer-brand {}
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.footer-badge {
+  width: 44px;
+  height: 44px;
+  background: #1565C0;
+  color: #fff;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.footer-brand-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.4;
+}
+.footer-address {
+  color: #8fa7d4;
+  line-height: 1.8;
+  margin: 0;
+}
+.footer-col h4 {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0 0 16px;
+  text-transform: uppercase;
+}
+.footer-col ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.footer-col ul li {
+  color: #8fa7d4;
+}
+.footer-col ul li a {
+  color: #8fa7d4;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-col ul li a:hover {
+  color: #fff;
+}
+
+/* Bottom bar */
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 18px 40px;
+  font-size: 12px;
+  color: #8fa7d4;
+}
+.footer-legal {
+  display: flex;
+  gap: 24px;
+}
+.footer-legal a {
+  color: #8fa7d4;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-legal a:hover {
+  color: #fff;
+}

@@ -1,0 +1,73 @@
+<div class="modal-body p-4">
+  <div *ngIf="loading && !licenseData.id" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Chargement...</span>
+    </div>
+    <p class="mt-2 text-muted">Chargement des données...</p>
+  </div>
+
+  <form *ngIf="!loading || licenseData.id" #licenseForm="ngForm">
+    <div class="row g-3">
+      <div class="col-md-12 mb-3">
+        <label class="form-label fw-bold">Numéro de Licence</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light"><i class="bi bi-hash"></i></span>
+          <input type="text" name="licenseNumber" class="form-control" 
+                 [(ngModel)]="licenseData.licenseNumber" 
+                 placeholder="Généré automatiquement" 
+                 [disabled]="isEditMode || viewOnly">
+        </div>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label class="form-label fw-bold">Saison</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light"><i class="bi bi-calendar-event"></i></span>
+          <input type="text" name="season" class="form-control" [(ngModel)]="licenseData.season" required [disabled]="viewOnly">
+        </div>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label class="form-label fw-bold">Club</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light"><i class="bi bi-building"></i></span>
+          <select name="clubId" class="form-select" [(ngModel)]="licenseData.clubId" required [disabled]="viewOnly">
+            <option [ngValue]="null" disabled>Sélectionner un club</option>
+            <option *ngFor="let club of clubs" [ngValue]="club.id">{{ club.name }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label class="form-label fw-bold">Date d'émission</label>
+        <input type="date" name="issueDate" class="form-control" [(ngModel)]="licenseData.issueDate" required [disabled]="viewOnly">
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label class="form-label fw-bold">Date d'expiration</label>
+        <input type="date" name="expiryDate" class="form-control" [(ngModel)]="licenseData.expiryDate" required [disabled]="viewOnly">
+      </div>
+    </div>
+
+    <!-- Feedback Messages -->
+    <div *ngIf="error" class="alert alert-danger mt-3 py-2 d-flex align-items-center">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      <div>{{ error }}</div>
+    </div>
+    
+    <div *ngIf="success" class="alert alert-success mt-3 py-2 d-flex align-items-center">
+      <i class="bi bi-check-circle-fill me-2"></i>
+      <div>{{ success }}</div>
+    </div>
+  </form>
+</div>
+
+<div class="modal-footer border-0 p-4 pt-0">
+  <button type="button" class="btn btn-light rounded-pill px-4" (click)="onCancel()">
+    {{ viewOnly ? 'Fermer' : 'Annuler' }}
+  </button>
+  <button *ngIf="!viewOnly" type="button" class="btn btn-primary rounded-pill px-4" (click)="saveLicense()" [disabled]="loading">
+    <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+    {{ isEditMode ? 'Mettre à jour' : 'Enregistrer' }}
+  </button>
+</div>

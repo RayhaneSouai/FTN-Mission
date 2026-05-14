@@ -26,3 +26,19 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Backend specific
+ftn-backend/target/
+ftn-backend/bin/
+ftn-backend/uploads/
+ftn-backend/.settings/
+ftn-backend/.classpath/
+ftn-backend/.project/
+ftn-backend/out/
+
+# IDE specific
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store

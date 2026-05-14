@@ -1,0 +1,93 @@
+// ═══════════════════════════════════════
+//  Confirm Dialog — Unified with Club Page Theme
+// ═══════════════════════════════════════
+@use '../../styles/competition-theme' as theme;
+
+:host {
+  @include theme.tokens;
+}
+
+// ─── Backdrop (matches Club .modal-overlay) ───
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+
+// ─── Card (matches Club .modal-content style) ───
+.confirm-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 32px 28px 28px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  animation: slideUp 0.3s ease;
+}
+
+.confirm-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+.confirm-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 8px;
+}
+.confirm-message {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+.confirm-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+// ─── Buttons (matches Club .btn-primary / .btn-secondary) ───
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 24px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s, transform 0.15s;
+
+  &--ghost {
+    background: #fff;
+    color: #374151;
+    border: 1px solid #d1d5db;
+
+    &:hover { background: #f3f4f6; }
+  }
+  &--danger {
+    background: #dc2626;
+    color: #fff;
+
+    &:hover {
+      background: #b91c1c;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(220, 38, 38, 0.2);
+    }
+  }
+}
+
+// ─── Animations ───
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }

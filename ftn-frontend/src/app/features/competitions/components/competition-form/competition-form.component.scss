@@ -1,0 +1,243 @@
+// ═══════════════════════════════════════
+//  Competition Form (Modal) — Unified with Club Page Theme
+// ═══════════════════════════════════════
+@use '../../styles/competition-theme' as theme;
+
+:host {
+  @include theme.tokens;
+}
+
+// ═══════════ BACKDROP (matches Club .modal-overlay) ═══════════
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+
+// ═══════════ MODAL CARD (matches Club .modal-content) ═══════════
+.modal-card {
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease;
+}
+
+// ═══════════ HEADER (matches Club .modal-header) ═══════════
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 28px 0;
+}
+.modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+.modal-close {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  font-size: 16px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #f3f4f6;
+  }
+}
+
+// ═══════════ FORM (matches Club .club-form) ═══════════
+.modal-form {
+  padding: 24px 28px 28px;
+  display: grid;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+  }
+
+  &__error {
+    font-size: 12px;
+    color: #dc2626;
+    font-weight: 500;
+
+    &--group {
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: rgba(220, 38, 38, 0.06);
+      border: 1px solid rgba(220, 38, 38, 0.12);
+    }
+  }
+}
+.field-row {
+  display: flex;
+  gap: 16px;
+}
+
+// ─── Inputs (matches Club .form-group input) ───
+input, select, textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #1a1a2e;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+
+  &::placeholder { color: #9ca3af; }
+  &:focus {
+    border-color: #1565C0;
+    box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.1);
+  }
+  &.ng-invalid.ng-touched {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.08);
+  }
+}
+
+textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+select option {
+  background: #fff;
+  color: #1a1a2e;
+}
+
+// ═══════════ ACTIONS (matches Club .form-actions) ═══════════
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 24px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s, transform 0.15s;
+
+  &--primary {
+    background: #1565C0;
+    color: #fff;
+
+    &:hover:not(:disabled) {
+      background: #0d47a1;
+      transform: translateY(-1px);
+    }
+    &:disabled { opacity: 0.45; cursor: not-allowed; }
+  }
+  &--ghost {
+    background: #fff;
+    color: #374151;
+    border: 1px solid #d1d5db;
+
+    &:hover { background: #f3f4f6; }
+  }
+}
+
+// ─── Spinner ───
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+// ─── Radio Group (Secteur) ───
+.radio-group {
+  display: flex;
+  gap: 16px;
+
+  &--row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  transition: all 0.2s;
+
+  &:has(input:checked) {
+    border-color: #1565C0;
+    background: rgba(21, 101, 192, 0.04);
+    box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.08);
+  }
+
+  input[type="radio"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #1565C0;
+    cursor: pointer;
+  }
+}
+
+.radio-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+// ═══════════ ANIMATIONS ═══════════
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes spin    { to { transform: rotate(360deg); } }
+
+// ═══════════ RESPONSIVE ═══════════
+@media (max-width: 640px) {
+  .modal-card { margin: 16px; max-width: none; }
+  .field-row { flex-direction: column; gap: 0; }
+  .modal-header, .modal-form { padding-inline: 20px; }
+  .modal-actions { flex-direction: column-reverse; }
+}

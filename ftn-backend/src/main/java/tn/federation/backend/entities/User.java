@@ -1,5 +1,6 @@
 package tn.federation.backend.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,7 +12,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
+@ToString(exclude = {"club", "clubs", "participations", "performances"})
 @Entity
 @Table(name = "user")
 public class User {
@@ -23,11 +24,19 @@ public class User {
 
     @Column(unique = true, nullable = false)
     private String email;
+
+    @JsonIgnore
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
+
+    @ManyToOne
+    @JoinColumn(name = "club_id")
+    @JsonIgnore
+    private Club club;
+
     private Boolean active;
     private LocalDateTime createdAt;
 
@@ -44,13 +53,19 @@ public class User {
     private Integer anciennete;
 
     // Coach 1 (gérer) * Club
+    @JsonIgnore
     @OneToMany(mappedBy = "coach")
     private List<Club> clubs;
 
     // Swimmer 1 (possede) * Performance
+    @JsonIgnore
     @OneToMany(mappedBy = "swimmer")
     private List<Participation> participations;
 
+    @Enumerated(EnumType.STRING)
+    private RegistrationStatus registrationStatus;
+
+    @JsonIgnore
     @OneToMany(mappedBy = "swimmer")
     private List<Performance> performances;
 }

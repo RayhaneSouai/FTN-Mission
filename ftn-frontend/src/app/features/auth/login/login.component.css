@@ -1,0 +1,285 @@
+/* ═══════════════════════════════════════
+   PREMIUM AUTH STYLES
+   ═══════════════════════════════════════ */
+
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.auth-split-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background: transparent;
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+}
+
+/* Inscription : formulaire à gauche, visuel à droite (login / mot de passe oublié inchangés) */
+.auth-split-container.auth-layout--form-left {
+  flex-direction: row-reverse;
+}
+
+/* Colonne texte (login / mot de passe oublié) : même famille de contraste que l’inscription */
+.auth-split-left {
+  flex: 1.2;
+  position: relative;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px;
+  overflow: hidden;
+  background: linear-gradient(
+    90deg,
+    rgba(11, 44, 91, 0.55) 0%,
+    rgba(11, 44, 91, 0.28) 50%,
+    rgba(11, 44, 91, 0.12) 100%
+  );
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+/* Panneau branding à droite (inscription) : plus de contraste sur la photo */
+.auth-split-left--visual-end {
+  background: linear-gradient(
+    270deg,
+    rgba(11, 44, 91, 0.58) 0%,
+    rgba(11, 44, 91, 0.32) 48%,
+    rgba(11, 44, 91, 0.14) 100%
+  );
+}
+
+.auth-split-left-content {
+  position: relative;
+  z-index: 2;
+  max-width: 500px;
+  animation: authHeroContentIn 0.4s ease-out;
+}
+
+@keyframes authHeroContentIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-split-left-content h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 24px;
+  letter-spacing: -1.5px;
+}
+
+.auth-split-left-content p {
+  font-size: 1.25rem;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+.auth-split-left-footer {
+  position: absolute;
+  bottom: 40px;
+  left: 80px;
+  right: 80px;
+  font-size: 0.9rem;
+  opacity: 0.65;
+  z-index: 2;
+}
+
+/* ─── Right Panel: Form (blanc) — entrée animée au changement de route ─── */
+.auth-split-container.auth-page--login .auth-split-right,
+.auth-split-container.auth-page--forgot .auth-split-right {
+  animation: authFormPaneFromRight 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-split-container.auth-page--register .auth-split-right {
+  animation: authFormPaneFromLeft 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes authFormPaneFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes authFormPaneFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.auth-split-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background-color: #f8fafc;
+}
+
+.auth-form-wrapper {
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-form-wrapper h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.auth-form-wrapper .subtitle {
+  color: #64748b;
+  font-size: 1.1rem;
+  margin-bottom: 40px;
+}
+
+/* ─── Form Controls (scoped styles override Bootstrap; match floating-label padding) ─── */
+
+.form-floating > .form-control,
+.form-floating > .form-select {
+  min-height: calc(3.5rem + 2px);
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  font-size: 1rem;
+  line-height: 1.25;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: #fff;
+}
+
+/* Text-like inputs: empty / default */
+.form-floating > .form-control {
+  padding: 1rem 1rem;
+}
+
+/* Filled or focused: room above for the floated label (matches Bootstrap 5.3) */
+.form-floating > .form-control:focus,
+.form-floating > .form-control:not(:placeholder-shown),
+.form-floating > .form-control:-webkit-autofill {
+  padding-top: 1.625rem;
+  padding-bottom: 0.625rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Selects always show a value — use label-floating padding only */
+.form-floating > .form-select {
+  padding-top: 1.625rem;
+  padding-bottom: 0.625rem;
+  padding-left: 1rem;
+  padding-right: 2.25rem;
+}
+
+.form-floating > .form-control:focus,
+.form-floating > .form-select:focus {
+  border-color: #1565C0;
+  box-shadow: 0 0 0 4px rgba(21, 101, 192, 0.1);
+  outline: none;
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+  border-color: #ef4444 !important;
+  background-image: none !important;
+}
+
+.form-control.is-invalid:focus,
+.form-select.is-invalid:focus {
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1) !important;
+}
+
+.invalid-feedback {
+  font-size: 0.8rem;
+  color: #ef4444;
+  margin-top: 4px;
+  margin-left: 4px;
+}
+
+.form-floating > label {
+  padding: 1rem;
+  color: #94a3b8;
+}
+
+/* ─── Buttons ─── */
+.btn-auth {
+  height: 60px;
+  background: #1565C0;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-auth:hover {
+  background: #0d47a1;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(21, 101, 192, 0.25);
+}
+
+.btn-auth:active {
+  transform: translateY(0);
+}
+
+/* ─── Links ─── */
+.auth-link {
+  color: #1565C0;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.auth-link:hover {
+  color: #0d47a1;
+  text-decoration: underline;
+}
+
+/* ─── Alerts ─── */
+.alert-danger {
+  background-color: #fef2f2;
+  border: 1px solid #fee2e2;
+  color: #991b1b;
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 1024px) {
+  .auth-split-left {
+    display: none;
+  }
+  .auth-split-right {
+    background-color: #fff;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-split-left-content,
+  .auth-split-container.auth-page--login .auth-split-right,
+  .auth-split-container.auth-page--forgot .auth-split-right,
+  .auth-split-container.auth-page--register .auth-split-right {
+    animation: none !important;
+  }
+}
