@@ -13,6 +13,7 @@ const routes: Routes = [
     path: 'admin',
     component: AdminLayoutComponent,
     canActivate: [adminGuard],
+  
     children: [
       { path: '', component: DashboardComponent },
       {
@@ -26,6 +27,10 @@ const routes: Routes = [
       {
         path: 'mon-profil',
         loadChildren: () => import('./features/profile/profile.module').then(m => m.ProfileModule)
+      },
+      {
+        path: 'press',
+        loadChildren: () => import('./features/press/press.module').then(m => m.PressModule)
       }
     ]
   },
