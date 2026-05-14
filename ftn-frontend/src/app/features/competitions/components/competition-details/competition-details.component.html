@@ -1,0 +1,62 @@
+<div class="details-page">
+    <!-- Header -->
+    <header class="details-header">
+        <a class="back-link" routerLink="/competitions">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+            </svg>
+            Retour aux compétitions
+        </a>
+
+        @if (state.selectedCompetition(); as comp) {
+        <h1 class="details-title">{{ comp.name }}</h1>
+        <p class="details-subtitle">
+            {{ comp.startDate | date:'dd MMM yyyy' }} — {{ comp.endDate | date:'dd MMM yyyy' }}
+        </p>
+        } @else if (state.isLoading()) {
+        <h1 class="details-title">Chargement...</h1>
+        }
+    </header>
+
+    <!-- Tabs -->
+    <nav class="tabs-nav">
+        <a class="tab-link" routerLink="overview" routerLinkActive="is-active">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+            </svg>
+            Vue d'ensemble
+        </a>
+        <a class="tab-link" routerLink="participants" routerLinkActive="is-active">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            Participants
+        </a>
+        <a class="tab-link" routerLink="resultat" routerLinkActive="is-active">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 6 9 6 9Z" />
+                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 18 9 18 9Z" />
+                <path d="M4 22h16" />
+                <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+            </svg>
+            Résultat
+        </a>
+    </nav>
+
+    <!-- Child route content -->
+    <section class="tab-content">
+        <router-outlet />
+    </section>
+</div>

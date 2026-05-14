@@ -1,0 +1,62 @@
+@if (state.selectedCompetition(); as comp) {
+<div class="overview-grid">
+    <div class="info-card">
+        <h3 class="info-card__title">Informations générales</h3>
+        <div class="info-row">
+            <span class="info-label">Discipline</span>
+            <span class="info-value">{{ disciplineLabel(comp.discipline) }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Secteur</span>
+            <span class="info-value">{{ comp.secteur === 'NATIONAL' ? '🇹🇳 National' : '🌍 International' }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Date de début</span>
+            <span class="info-value">{{ comp.startDate | date:'dd MMMM yyyy' }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Date de fin</span>
+            <span class="info-value">{{ comp.endDate | date:'dd MMMM yyyy' }}</span>
+        </div>
+    </div>
+
+    <div class="info-card">
+        <h3 class="info-card__title">Localisation</h3>
+        @if (comp.secteur === 'NATIONAL') {
+        <div class="info-row">
+            <span class="info-label">Région</span>
+            <span class="info-value">{{ regionLabel(comp.region ?? '') }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Piscine</span>
+            <span class="info-value">{{ piscineLabel(comp.lieu ?? '') }}</span>
+        </div>
+        } @else {
+        <div class="info-row">
+            <span class="info-label">Pays</span>
+            <span class="info-value">{{ comp.country }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Ville</span>
+            <span class="info-value">{{ comp.city }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Lieu</span>
+            <span class="info-value">{{ comp.venue }}</span>
+        </div>
+        }
+    </div>
+
+    @if (comp.description) {
+    <div class="info-card info-card--full">
+        <h3 class="info-card__title">Description</h3>
+        <p class="info-description">{{ comp.description }}</p>
+    </div>
+    }
+</div>
+} @else if (state.isLoading()) {
+<div class="loading-container">
+    <div class="spinner"></div>
+    <p>Chargement des détails...</p>
+</div>
+}
