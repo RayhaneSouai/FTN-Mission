@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/FTN-Mission.iml" filepath="$PROJECT_DIR$/.idea/FTN-Mission.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ftn-backend/backend.iml" filepath="$PROJECT_DIR$/ftn-backend/backend.iml" />
     </modules>
   </component>
 </project>
