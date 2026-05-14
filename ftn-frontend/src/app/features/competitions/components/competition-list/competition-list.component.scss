@@ -185,6 +185,31 @@
   color: #6b7280;
 }
 
+.stat-sub {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.discipline-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.discipline-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(21, 101, 192, 0.08);
+  color: #1565C0;
+  letter-spacing: 0.02em;
+}
+
 // ═══════════ SPLIT PANE (matches Club section layout) ═══════════
 .split-pane {
   display: grid;
@@ -263,9 +288,12 @@
 }
 
 .nav-controls {
-  display: flex;
-  gap: 4px;
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    margin-left: auto;
 }
+
 
 .nav-btn {
   padding: 7px 14px;
@@ -297,7 +325,7 @@
   min-height: 0;
 
   &--month {
-    grid-template-rows: auto repeat(5, 1fr);
+    grid-template-rows: auto repeat(5, minmax(90px, auto));
   }
 
   &--week {
@@ -324,12 +352,14 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   position: relative;
+  min-height: 90px;
 }
 
 .cal-cell {
   padding: 6px 8px;
   border: 1px solid #f3f4f6;
   background: #fff;
+  min-height: 80px;
 
   &--outside {
     opacity: 0.3;
@@ -346,7 +376,7 @@
   }
 
   &--tall {
-    min-height: 160px;
+    min-height: 180px;
   }
 
   &__num {
@@ -359,15 +389,15 @@
 // ═══════════ EVENT BAR ═══════════
 .event-bar {
   position: absolute;
-  height: 22px;
-  padding: 0 8px;
+  height: 26px;
+  padding: 0 10px;
   border-radius: 6px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 22px;
+  line-height: 26px;
   cursor: pointer;
   z-index: 2;
   transition: all 0.15s ease;
@@ -377,49 +407,34 @@
   color: #0d47a1;
 
   &:hover {
-    box-shadow: 0 2px 8px rgba(21, 101, 192, 0.15);
-    filter: brightness(1.05);
-  }
-
-  &.state-active {
-    background: theme.$state-active-bg;
-    border-left-color: theme.$state-active-border;
-    color: theme.$state-active-text;
-  }
-
-  &.state-upcoming {
-    background: theme.$state-upcoming-bg;
-    border-left-color: theme.$state-upcoming-border;
-    color: theme.$state-upcoming-text;
-  }
-
-  &.state-completed {
-    background: theme.$state-completed-bg;
-    border-left-color: theme.$state-completed-border;
-    color: theme.$state-completed-text;
-  }
-
-  &.state-cancelled {
-    background: theme.$state-cancelled-bg;
-    border-left-color: theme.$state-cancelled-border;
-    color: theme.$state-cancelled-text;
+    box-shadow: 0 3px 10px rgba(21, 101, 192, 0.2);
+    background: rgba(21, 101, 192, 0.14);
+    transform: translateY(-1px);
   }
 
   &--week {
-    height: 40px;
+    height: 48px;
     line-height: 1.3;
-    padding: 5px 10px;
+    padding: 6px 12px;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     white-space: normal;
+    overflow: hidden;
 
     strong {
       font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     span {
       font-size: 11px;
       color: #6b7280;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 }
@@ -498,9 +513,9 @@
 
 .comp-card {
   display: grid;
-  grid-template-columns: 56px 1fr;
+  grid-template-columns: 50px 1fr;
   gap: 12px;
-  padding: 16px;
+  padding: 10px;
   height: theme.$item-height;
   flex-shrink: 0;
   box-sizing: border-box;
@@ -508,6 +523,7 @@
   border-radius: 12px;
   background: #ffffff;
   border: 1px solid #e5e7eb;
+  border-left: 3px solid #1565C0;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 
   &:hover {
@@ -516,28 +532,12 @@
     border-color: #bfdbfe;
   }
 
-  &.state-active {
-    border-left: 3px solid theme.$state-active-border;
-  }
-
-  &.state-upcoming {
-    border-left: 3px solid theme.$state-upcoming-border;
-  }
-
-  &.state-completed {
-    border-left: 3px solid theme.$state-completed-border;
-  }
-
-  &.state-cancelled {
-    border-left: 3px solid theme.$state-cancelled-border;
-  }
-
   &__date {
     display: grid;
     place-items: center;
     border-radius: 10px;
     background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-    min-height: 56px;
+    min-height: 50px;
 
     span {
       font-size: 18px;
@@ -570,11 +570,12 @@
 
   &__detail {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: baseline;
     padding: 2px 0;
     font-size: 13px;
     color: #374151;
+    gap : 8px;
   }
 
   &__dates {
@@ -634,38 +635,6 @@
       background: #fef2f2;
       border-color: #fca5a5;
     }
-  }
-}
-
-// ─── Status chips ───
-.status-chip {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  width: fit-content;
-
-  &--PLANIFIEE {
-    background: theme.$state-upcoming-bg;
-    color: theme.$state-upcoming-text;
-  }
-
-  &--EN_COURS {
-    background: theme.$state-active-bg;
-    color: theme.$state-active-text;
-  }
-
-  &--TERMINEE {
-    background: theme.$state-completed-bg;
-    color: theme.$state-completed-text;
-  }
-
-  &--ANNULEE {
-    background: theme.$state-cancelled-bg;
-    color: theme.$state-cancelled-text;
   }
 }
 

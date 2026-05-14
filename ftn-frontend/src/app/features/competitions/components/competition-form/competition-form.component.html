@@ -3,13 +3,14 @@
         <!-- Header -->
         <header class="modal-header">
             <h2 class="modal-title">
-                {{ isEditMode() ? '✏️ Modifier la compétition' : '✨ Nouvelle compétition' }}
+                {{ isEditMode() ? '✏️ Modifier la compétition' : 'Nouvelle compétition' }}
             </h2>
             <button class="modal-close" type="button" (click)="tryClose()">✕</button>
         </header>
 
         <!-- Form -->
         <form [formGroup]="form" (ngSubmit)="onSubmit()" class="modal-form">
+            <div class="field-row">
             <!-- Name -->
             <div class="field">
                 <label for="comp-name">Nom de la compétition</label>
@@ -18,25 +19,21 @@
                 <span class="field__error">⚠ Le nom est requis.</span>
                 }
             </div>
+            <div class="field">
+                <label for="comp-discipline">Discipline</label>
+                <select id="comp-discipline" formControlName="discipline">
+                    @for (d of disciplines; track d.value) {
+                    <option [value]="d.value">{{ d.label }}</option>
+                    }
+                </select>
+            </div>
+            </div>
 
-            <!-- Discipline + Status -->
-            <div class="field-row">
-                <div class="field">
-                    <label for="comp-discipline">Discipline</label>
-                    <select id="comp-discipline" formControlName="discipline">
-                        @for (d of disciplines; track d.value) {
-                        <option [value]="d.value">{{ d.label }}</option>
-                        }
-                    </select>
-                </div>
-                <div class="field">
-                    <label for="comp-status">Statut</label>
-                    <select id="comp-status" formControlName="status">
-                        @for (s of statuses; track s.value) {
-                        <option [value]="s.value">{{ s.label }}</option>
-                        }
-                    </select>
-                </div>
+            <!-- Description -->
+            <div class="field">
+                <label for="comp-desc">Description</label>
+                <textarea id="comp-desc" formControlName="description" rows="3"
+                    placeholder="Description de la compétition (optionnel)"></textarea>
             </div>
 
             <!-- Dates -->
@@ -64,23 +61,81 @@
             </div>
             }
 
-            <!-- Location + Region -->
+            <!-- Secteur (National / International) -->
+            <div class="field">
+                <label>Secteur</label>
+                <div class="radio-group radio-group--row">
+                    <label class="radio-option">
+                        <input type="radio" name="secteur" value="NATIONAL"
+                            [checked]="selectedSecteur() === 'NATIONAL'"
+                            (change)="onSecteurChange('NATIONAL')" />
+                        <span class="radio-label"> National</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="secteur" value="INTERNATIONAL"
+                            [checked]="selectedSecteur() === 'INTERNATIONAL'"
+                            (change)="onSecteurChange('INTERNATIONAL')" />
+                        <span class="radio-label">International</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- National fields -->
+            @if (isNational()) {
             <div class="field-row">
                 <div class="field">
-                    <label for="comp-location">Lieu</label>
-                    <input id="comp-location" formControlName="location" placeholder="Ex : Tunis Arena" />
-                    @if (form.controls.location.invalid && form.controls.location.touched) {
-                    <span class="field__error">⚠ Le lieu est requis.</span>
-                    }
-                </div>
-                <div class="field">
                     <label for="comp-region">Région</label>
-                    <input id="comp-region" formControlName="region" placeholder="Ex : Grand Tunis" />
+                    <select id="comp-region" formControlName="region" (change)="onRegionChange()">
+                        <option value="" disabled>Sélectionner une région</option>
+                        @for (r of regions; track r.value) {
+                        <option [value]="r.value">{{ r.label }}</option>
+                        }
+                    </select>
                     @if (form.controls.region.invalid && form.controls.region.touched) {
                     <span class="field__error">⚠ La région est requise.</span>
                     }
                 </div>
+                <div class="field">
+                    <label for="comp-lieu">Piscine</label>
+                    <select id="comp-lieu" formControlName="lieu" [attr.disabled]="filteredPiscines().length === 0 ? true : null">
+                        <option value="" disabled>Sélectionner une piscine</option>
+                        @for (p of filteredPiscines(); track p.value) {
+                        <option [value]="p.value">{{ p.label }}</option>
+                        }
+                    </select>
+                    @if (form.controls.lieu.invalid && form.controls.lieu.touched) {
+                    <span class="field__error">⚠ La piscine est requise.</span>
+                    }
+                </div>
             </div>
+            }
+
+            <!-- International fields -->
+            @if (!isNational()) {
+            <div class="field-row">
+                <div class="field">
+                    <label for="comp-country">Pays</label>
+                    <input id="comp-country" formControlName="country" placeholder="Ex : France" />
+                    @if (form.controls.country.invalid && form.controls.country.touched) {
+                    <span class="field__error">⚠ Le pays est requis.</span>
+                    }
+                </div>
+                <div class="field">
+                    <label for="comp-city">Ville</label>
+                    <input id="comp-city" formControlName="city" placeholder="Ex : Paris" />
+                    @if (form.controls.city.invalid && form.controls.city.touched) {
+                    <span class="field__error">⚠ La ville est requise.</span>
+                    }
+                </div>
+            </div>
+            <div class="field">
+                <label for="comp-venue">Nom du lieu</label>
+                <input id="comp-venue" formControlName="venue" placeholder="Ex : Paris La Défense Arena" />
+                @if (form.controls.venue.invalid && form.controls.venue.touched) {
+                <span class="field__error">⚠ Le nom du lieu est requis.</span>
+                }
+            </div>
+            }
 
             <!-- Actions -->
             <div class="modal-actions">
