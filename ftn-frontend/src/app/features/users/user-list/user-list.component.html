@@ -28,7 +28,37 @@
           <i class="bi bi-people-fill"></i>
         </div>
       </div>
-      <!-- Add more stat cards here if needed -->
+      <div
+        class="stat-card stat-card--pending"
+        [class.stat-card--pending-click]="pendingValidationCount > 0"
+        (click)="openPendingValidationHub()"
+        (keydown.enter)="openPendingValidationHub()"
+        (keydown.space)="$event.preventDefault(); openPendingValidationHub()"
+        [attr.tabindex]="pendingValidationCount > 0 ? 0 : null"
+        [attr.role]="pendingValidationCount > 0 ? 'button' : null"
+        [attr.aria-label]="
+          pendingValidationCount > 0
+            ? 'Traiter les ' + pendingValidationCount + ' demandes en attente de validation'
+            : 'Aucune demande en attente de validation'
+        ">
+        <div class="stat-card-pending-row">
+          <div class="stat-info">
+            <span class="stat-label">En attente de validation</span>
+            <span
+              class="stat-value"
+              [class.text-warning]="pendingValidationCount > 0"
+              [class.text-secondary]="pendingValidationCount === 0">
+              {{ pendingValidationCount }}
+            </span>
+          </div>
+          <div class="stat-icon" [class.text-warning]="pendingValidationCount > 0" [class.text-secondary]="pendingValidationCount === 0">
+            <i class="bi bi-hourglass-split"></i>
+          </div>
+        </div>
+        <span class="stat-card-hint" [class.stat-card-hint--muted]="pendingValidationCount === 0">
+          {{ pendingValidationCount > 0 ? 'Cliquer pour examiner et décider' : 'Aucune demande à traiter pour le moment' }}
+        </span>
+      </div>
     </div>
   </section>
 
@@ -73,24 +103,34 @@
                 </span>
               </td>
               <td>
-                <span class="badge rounded-pill px-3" [class.bg-success]="user.active" [class.bg-warning]="!user.active">
-                  {{ user.active ? 'Actif' : 'En attente' }}
+                <span class="badge rounded-pill px-3 registration-badge" [ngClass]="registrationBadgeClass(user)">
+                  {{ registrationLabel(user) }}
                 </span>
               </td>
               <td class="text-end pe-4">
-                <div class="d-flex justify-content-end gap-2">
-                  <button class="btn btn-outline-info btn-sm rounded-circle" (click)="openViewModal(user.id)" title="Consulter">
-                    <i class="bi bi-eye"></i>
-                  </button>
-                  <ng-container *ngIf="user.role !== 'ADMIN'">
-                    <button class="btn btn-outline-primary btn-sm rounded-circle" (click)="openEditModal(user.id)" title="Modifier">
-                      <i class="bi bi-pencil"></i>
+                <ng-container *ngIf="isRowPendingValidation(user); else userCrudActions">
+                  <span class="pending-row-hint text-muted small">Validation via la carte ci-dessus</span>
+                </ng-container>
+                <ng-template #userCrudActions>
+                  <div class="d-flex justify-content-end align-items-center gap-2 flex-wrap">
+                    <button class="btn btn-outline-info btn-sm rounded-circle" (click)="openViewModal(user.id)" title="Consulter">
+                      <i class="bi bi-eye"></i>
                     </button>
-                    <button class="btn btn-outline-danger btn-sm rounded-circle" (click)="confirmDelete(user.id)" title="Supprimer">
-                      <i class="bi bi-trash"></i>
-                    </button>
-                  </ng-container>
-                </div>
+                    <ng-container *ngIf="user.role !== 'ADMIN'">
+                      <button
+                        type="button"
+                        class="btn btn-outline-primary btn-sm rounded-circle"
+                        [disabled]="isRegistrationRefused(user)"
+                        (click)="openEditModal(user.id)"
+                        [attr.title]="isRegistrationRefused(user) ? 'Modification impossible : inscription refusée' : 'Modifier'">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button class="btn btn-outline-danger btn-sm rounded-circle" (click)="confirmDelete(user.id)" title="Supprimer">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </ng-container>
+                  </div>
+                </ng-template>
               </td>
             </tr>
           </tbody>
@@ -126,6 +166,165 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" #closeModalBtn></button>
       </div>
       <app-user-form [userId]="selectedUserId" [isViewOnly]="isViewOnlyMode" (formSaved)="onFormSaved()" (formClosed)="closeModalBtn.click()"></app-user-form>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal fade"
+  id="pendingReviewModal"
+  tabindex="-1"
+  aria-labelledby="pendingReviewModalLabel"
+  data-bs-backdrop="true"
+  data-bs-keyboard="true">
+  <div
+    class="modal-dialog modal-dialog-centered modal-dialog-scrollable"
+    [ngClass]="{ 'modal-lg': pendingReviewView === 'list', 'modal-md': pendingReviewView === 'detail' }">
+    <div class="modal-content border-0 shadow-lg rounded-4 pending-review-modal">
+      <div class="modal-header border-0 pb-2 pt-3 px-3 px-sm-4 pending-review-modal__header">
+        <div class="d-flex align-items-start gap-2 flex-grow-1 min-w-0">
+          <div class="min-w-0">
+            <p class="text-uppercase small text-white-50 mb-0 letter-spacing-1" style="font-size: 0.65rem">Inscription</p>
+            <div class="d-flex align-items-center flex-wrap gap-1 mt-1">
+              <h2 class="modal-title h6 fw-bold text-white mb-0 text-truncate" id="pendingReviewModalLabel">
+                <ng-container *ngIf="pendingReviewView === 'list'">Demandes en attente</ng-container>
+                <ng-container *ngIf="pendingReviewView === 'detail'">Décision</ng-container>
+              </h2>
+              <span
+                *ngIf="pendingReviewView === 'detail'"
+                class="pending-title-tip"
+                tabindex="0"
+                role="button"
+                [attr.aria-label]="pendingDecisionInfoText">
+                <i class="bi bi-info-circle pending-title-tip__icon" aria-hidden="true"></i>
+                <span class="pending-title-tip__bubble">{{ pendingDecisionInfoText }}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+
+      <!-- Liste -->
+      <div class="modal-body px-3 px-sm-4 pt-2 pb-3 bg-white" *ngIf="pendingReviewView === 'list'">
+        <ul class="list-group list-group-flush rounded-3 border pending-review-picker mb-0">
+          <li
+            *ngFor="let pu of pendingUsersToReview"
+            class="list-group-item list-group-item-action d-flex align-items-center justify-content-between gap-2 py-2 py-sm-3 pending-review-picker__row"
+            role="button"
+            tabindex="0"
+            (click)="selectPendingUserFromList(pu)"
+            (keydown.enter)="selectPendingUserFromList(pu)"
+            (keydown.space)="$event.preventDefault(); selectPendingUserFromList(pu)">
+            <div class="d-flex align-items-center gap-2 gap-sm-3 min-w-0">
+              <img
+                class="rounded-2 flex-shrink-0 shadow-sm"
+                width="44"
+                height="44"
+                [src]="'https://ui-avatars.com/api/?name=' + pu.firstName + '+' + pu.lastName + '&background=1565C0&color=fff&size=88'"
+                alt="" />
+              <div class="min-w-0">
+                <div class="fw-semibold text-dark text-truncate small">{{ pu.firstName }} {{ pu.lastName }}</div>
+                <div class="text-muted text-truncate" style="font-size: 0.8rem">{{ pu.email }}</div>
+                <span class="badge rounded-pill bg-white text-primary border mt-1" style="font-size: 0.65rem">{{ roleLabel(pu.role) }}</span>
+              </div>
+            </div>
+            <i class="bi bi-chevron-right text-muted flex-shrink-0 small" aria-hidden="true"></i>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Détail consultation + décision -->
+      <div class="modal-body px-3 px-sm-4 pt-2 pb-3 pending-review-detail-body" *ngIf="pendingReviewView === 'detail' && pendingReviewUser as u">
+        <button
+          *ngIf="pendingUsersToReview.length > 1"
+          type="button"
+          class="btn btn-link btn-sm text-primary text-decoration-none px-0 py-0 mb-2"
+          (click)="backToPendingList()">
+          <i class="bi bi-arrow-left me-1"></i> Liste
+        </button>
+
+        <div *ngIf="pendingDetailLoading" class="text-center py-4 text-muted small">
+          <span class="spinner-border spinner-border-sm text-primary me-2" role="status"></span>
+          Chargement du dossier…
+        </div>
+
+        <ng-container *ngIf="!pendingDetailLoading">
+          <div class="d-flex gap-3 align-items-center mb-3 p-3 bg-white rounded-3 border shadow-sm" *ngIf="!pendingReviewRejectStep">
+            <img
+              class="rounded-3 flex-shrink-0 shadow-sm"
+              width="56"
+              height="56"
+              [src]="'https://ui-avatars.com/api/?name=' + u.firstName + '+' + u.lastName + '&background=1565C0&color=fff&size=112'"
+              alt="" />
+            <div class="min-w-0">
+              <div class="fw-bold text-dark text-truncate">{{ u.firstName }} {{ u.lastName }}</div>
+              <div class="text-muted text-truncate small">{{ u.email }}</div>
+              <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle mt-1">{{ roleLabel(u.role) }}</span>
+            </div>
+          </div>
+
+          <ng-container *ngIf="!pendingReviewRejectStep">
+            <p class="text-muted small mb-2 fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase">Dossier</p>
+            <dl class="pending-spec mb-0">
+              <div class="pending-spec__row"><dt>Prénom</dt><dd>{{ displayOrDash(u.firstName) }}</dd></div>
+              <div class="pending-spec__row"><dt>Nom</dt><dd>{{ displayOrDash(u.lastName) }}</dd></div>
+              <div class="pending-spec__row"><dt>Email</dt><dd class="text-break">{{ displayOrDash(u.email) }}</dd></div>
+              <div class="pending-spec__row"><dt>Rôle</dt><dd>{{ roleLabel(u.role) }}</dd></div>
+              <div class="pending-spec__row"><dt>Genre</dt><dd>{{ genderLabel(u.gender) }}</dd></div>
+              <div class="pending-spec__row"><dt>Naissance</dt><dd>{{ formatDateFr(u.birthDate) }}</dd></div>
+              <div class="pending-spec__row" *ngIf="u.role === 'SWIMMER'"><dt>Discipline</dt><dd>{{ disciplineLabel(u.discipline) }}</dd></div>
+              <div class="pending-spec__row" *ngIf="u.role === 'SWIMMER'"><dt>Niveau</dt><dd>{{ niveauLabel(u.niveau) }}</dd></div>
+              <div class="pending-spec__row" *ngIf="u.role === 'COACH'"><dt>Ancienneté</dt><dd>{{ u.anciennete !== null && u.anciennete !== undefined ? (u.anciennete + ' ans') : '—' }}</dd></div>
+            </dl>
+          </ng-container>
+
+          <ng-container *ngIf="pendingReviewRejectStep">
+            <div class="rounded-3 border border-danger bg-danger-subtle p-3">
+              <p class="text-danger small fw-semibold mb-1">Refuser cette inscription ?</p>
+              <p class="text-muted small mb-0" style="font-size: 0.8rem">Action définitive : plus d’accès avec ce compte.</p>
+            </div>
+          </ng-container>
+        </ng-container>
+      </div>
+
+      <!-- Pied : liste = rien (fermer par clic extérieur ou ✕) -->
+      <div
+        class="modal-footer border-0 px-3 px-sm-4 py-3 pending-review-footer bg-white border-top"
+        *ngIf="pendingReviewView === 'detail' && pendingReviewUser && !pendingDetailLoading">
+        <ng-container *ngIf="!pendingReviewRejectStep">
+          <div class="d-flex flex-column-reverse flex-sm-row align-items-stretch gap-2 w-100">
+            <button
+              type="button"
+              class="btn btn-outline-secondary rounded-3 py-2"
+              (click)="beginRejectPendingFromModal()"
+              [disabled]="actionInProgress">
+              Refuser
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary fw-semibold rounded-3 py-2 flex-sm-grow-1"
+              (click)="approvePendingFromModal()"
+              [disabled]="actionInProgress">
+              <span *ngIf="!actionInProgress" class="d-inline-flex align-items-center justify-content-center gap-2 w-100">
+                <i class="bi bi-check2-circle"></i> Accepter
+              </span>
+              <span *ngIf="actionInProgress" class="spinner-border spinner-border-sm" role="status"></span>
+            </button>
+          </div>
+        </ng-container>
+        <ng-container *ngIf="pendingReviewRejectStep">
+          <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch gap-2 w-100">
+            <button type="button" class="btn btn-link text-secondary text-decoration-none py-2" (click)="cancelRejectPendingFromModal()" [disabled]="actionInProgress">
+              Retour
+            </button>
+            <button type="button" class="btn btn-danger rounded-3 px-4 py-2 fw-semibold" (click)="confirmRejectPendingFromModal()" [disabled]="actionInProgress">
+              <span *ngIf="!actionInProgress">Confirmer le refus</span>
+              <span *ngIf="actionInProgress" class="spinner-border spinner-border-sm" role="status"></span>
+            </button>
+          </div>
+        </ng-container>
+      </div>
     </div>
   </div>
 </div>

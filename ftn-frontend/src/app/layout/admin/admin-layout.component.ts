@@ -3,14 +3,13 @@ import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-navbar',
-  templateUrl: './navbar.component.html',
-  styleUrl: './navbar.component.css'
+  selector: 'app-admin-layout',
+  templateUrl: './admin-layout.component.html',
+  styleUrls: ['./admin-layout.component.css']
 })
-export class NavbarComponent implements OnInit {
+export class AdminLayoutComponent implements OnInit {
   user: any = null;
-  isLoggedIn = false;
-  isAdmin = false;
+  isSidebarCollapsed = false;
 
   constructor(
     private router: Router,
@@ -19,30 +18,22 @@ export class NavbarComponent implements OnInit {
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      this.checkLogin();
-    }
-  }
-
-  checkLogin() {
-    if (isPlatformBrowser(this.platformId)) {
       const userStr = localStorage.getItem('user');
       if (userStr) {
         this.user = JSON.parse(userStr);
-        this.isLoggedIn = true;
-        this.isAdmin = localStorage.getItem('isAdmin') === 'true';
       } else {
-        this.user = null;
-        this.isLoggedIn = false;
-        this.isAdmin = false;
+        this.router.navigate(['/auth/login']);
       }
     }
+  }
+
+  toggleSidebar() {
+    this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
 
   logout() {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.clear();
-      this.isLoggedIn = false;
-      this.user = null;
       this.router.navigate(['/auth/login']);
     }
   }
