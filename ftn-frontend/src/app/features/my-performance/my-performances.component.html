@@ -1,0 +1,55 @@
+<app-header></app-header>
+
+<div class="container py-4">
+
+  <h2 class="fw-bold mb-4">
+    Mes Performances
+  </h2>
+
+  @if (loading()) {
+
+    <div class="text-center">
+      <div class="spinner-border text-primary"></div>
+    </div>
+
+  } @else if (error()) {
+
+    <div class="alert alert-danger">
+      {{ error() }}
+    </div>
+
+  } @else {
+
+    @for (p of bestPerEvent(); track p.id) {
+
+      <div class="card mb-3">
+
+        <div class="card-body">
+
+          <div class="d-flex justify-content-between">
+
+            <div>
+              <h5>
+                {{ p.distance }}m {{ p.stroke }}
+              </h5>
+
+              <small class="text-muted">
+                {{ p.date | date:'dd/MM/yyyy' }}
+              </small>
+            </div>
+
+            <div>
+              <strong>
+                {{ formatTime(p.time) }}
+              </strong>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    }
+  }
+
+</div>

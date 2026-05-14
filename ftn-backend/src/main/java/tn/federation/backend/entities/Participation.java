@@ -19,6 +19,8 @@ public class Participation {
     @Enumerated(EnumType.STRING)
     private RegistrationStatus status;
     private Double officialTime;
+
+    @Column(name = "rank_pos")
     private Integer rank;
     private LocalDateTime recordedAt;
     private Boolean disqualified;

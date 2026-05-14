@@ -7,6 +7,11 @@ import { AdminLayoutComponent } from './layout/admin/admin-layout.component';
 import { DashboardComponent } from './features/admin/dashboard/dashboard.component';
 import { adminGuard } from './core/guards/admin.guard';
 
+import { MyPerformancesComponent } from './features/my-performance/my-performances.component';
+import { RankingComponent } from './features/ranking/ranking.component';
+
+
+  
 const routes: Routes = [
   // Admin Space (Backoffice)
   {
@@ -32,6 +37,19 @@ const routes: Routes = [
         path: 'press',
         loadChildren: () => import('./features/press/press.module').then(m => m.PressModule)
       }
+     ,
+      {
+    path: 'performances',
+    component: MyPerformancesComponent
+  },
+  {
+    path: 'ranking',
+    component: RankingComponent
+  },
+  {
+    path: '**',
+    redirectTo: 'performances'
+  }
     ]
   },
 
@@ -71,4 +89,4 @@ const routes: Routes = [
   imports: [RouterModule.forRoot(routes,{scrollPositionRestoration: 'top'})],
   exports: [RouterModule]
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}
