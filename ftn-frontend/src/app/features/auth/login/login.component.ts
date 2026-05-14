@@ -33,7 +33,7 @@ export class LoginComponent {
           // Check if the user is an admin based on the backend response
           if (res.user.role === 'ADMIN' || res.user.role === 'ADMINISTRATEUR') {
             localStorage.setItem('isAdmin', 'true');
-            this.router.navigate(['/utilisateurs']);
+            this.router.navigate(['/admin']);
           } else {
             // Normal user / Swimmer / Coach
             localStorage.removeItem('isAdmin');
