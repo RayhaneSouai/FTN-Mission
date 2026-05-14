@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import tn.federation.backend.entities.press.PressItem;
 import tn.federation.backend.entities.press.PressType;
+import tn.federation.backend.dto.press.PressStatsDTO;
 import tn.federation.backend.services.press.Abstraction.IPressService;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,9 +28,13 @@ public class PressController {
 
     private final Path root = Paths.get("uploads");
 
+    // =====================================================================
+    // GESTION DES FICHIERS (Upload / Affichage)
+    // =====================================================================
+
     @Operation(summary = "Télécharger une image")
-    @PostMapping("/upload")
-    public Map<String, String> uploadFile(@RequestParam("file") MultipartFile file) {
+    @PostMapping(value = "/upload", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Map<String, String> uploadFile(@RequestPart("file") MultipartFile file) {
         Map<String, String> response = new HashMap<>();
         try {
             if (!Files.exists(root)) Files.createDirectory(root);
@@ -47,104 +52,141 @@ public class PressController {
         return Files.readAllBytes(root.resolve(filename));
     }
 
-    @Operation(summary = "Extraire les métadonnées d'une URL")
-    @GetMapping("/extract")
-    public Map<String, String> extractMetadata(@RequestParam String url) {
+    // =====================================================================
+    // EXTRACTION DE METADONNEES
+    // =====================================================================
+
+    @Operation(summary = "Extraire titre et image depuis un lien externe")
+    @GetMapping("/fetch-metadata")
+    public Map<String, String> fetchMetadata(@RequestParam String url) {
         Map<String, String> metadata = new HashMap<>();
         try {
+            // 1. Traitement spécial YouTube pour les miniatures
+            if (url.contains("youtube.com") || url.contains("youtu.be")) {
+                String videoId = "";
+                if (url.contains("v=")) {
+                    videoId = url.split("v=")[1].split("&")[0];
+                } else if (url.contains("youtu.be/")) {
+                    videoId = url.split("youtu.be/")[1].split("\\?")[0];
+                }
+                if (!videoId.isEmpty()) {
+                    metadata.put("image", "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg");
+                }
+            }
+
+            // 2. Connexion avec User-Agent pour éviter d'être bloqué par les sites (ex: Kapitalis)
             Document doc = Jsoup.connect(url)
-                    .userAgent("Mozilla/5.0")
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
                     .timeout(10000)
                     .get();
 
-            // Extraction du titre
-            String title = doc.title();
-            Element ogTitle = doc.selectFirst("meta[property=og:title]");
-            if (ogTitle != null) title = ogTitle.attr("content");
-            metadata.put("title", title);
+            metadata.put("title", doc.title());
 
-            // Extraction du contenu (Description)
-            String description = "";
-            Element ogDesc = doc.selectFirst("meta[property=og:description]");
-            if (ogDesc != null) description = ogDesc.attr("content");
-            else {
-                Element metaDesc = doc.selectFirst("meta[name=description]");
-                if (metaDesc != null) description = metaDesc.attr("content");
+            // Contenu (OpenGraph ou standard)
+            Element ogDesc = doc.select("meta[property=og:description]").first();
+            metadata.put("content", ogDesc != null ? ogDesc.attr("content") : "");
+
+            // Image (si pas déjà trouvée via YouTube)
+            if (!metadata.containsKey("image")) {
+                Element ogImage = doc.select("meta[property=og:image]").first();
+                String image = "";
+                if (ogImage != null) {
+                    image = ogImage.attr("content");
+                } else {
+                    Element firstImg = doc.select("img[src~=(?i)\\.(png|jpe?g|webp)]").first();
+                    if (firstImg != null) image = firstImg.absUrl("src");
+                }
+                metadata.put("image", image);
             }
-            metadata.put("content", description);
-
-            // Extraction de l'image
-            String image = "";
-            Element ogImage = doc.selectFirst("meta[property=og:image]");
-            if (ogImage != null) image = ogImage.attr("content");
-            metadata.put("image", image);
 
         } catch (Exception e) {
-            metadata.put("error", "Impossible d'extraire les données : " + e.getMessage());
+            metadata.put("error", "Erreur extraction: " + e.getMessage());
         }
         return metadata;
     }
 
-    @Operation(summary = "Récupérer tous les articles de presse")
+    // =====================================================================
+    // LECTURE (GET)
+    // =====================================================================
+
+    @Operation(summary = "Liste complète des articles")
     @GetMapping("/getAll")
     public List<PressItem> getAll() {
         return pressService.getAll();
     }
 
-    @Operation(summary = "Récupérer un article par son ID")
+    @Operation(summary = "Détails d'un article")
     @GetMapping("/get/{id}")
     public PressItem getById(@PathVariable long id) {
         return pressService.getPressItemById(id);
     }
 
-    @Operation(summary = "Récupérer les articles par type (ARTICLE, VIDEO, PHOTO, COMMUNIQUE)")
+    @Operation(summary = "Filtrer par type")
     @GetMapping("/getByType/{type}")
     public List<PressItem> getByType(@PathVariable PressType type) {
         return pressService.getByType(type);
     }
 
-    @Operation(summary = "Récupérer les articles par type et discipline")
-    @GetMapping("/getByTypeAndDiscipline/{type}/{discipline}")
-    public List<PressItem> getByTypeAndDiscipline(
-            @PathVariable PressType type,
-            @PathVariable String discipline) {
-        return pressService.getByTypeAndDiscipline(type, discipline);
+    @Operation(summary = "Stats globales du dashboard")
+    @GetMapping("/stats")
+    public PressStatsDTO getStats() {
+        return pressService.getStats();
     }
 
-    @Operation(summary = "Récupérer les médias enfants d'un article parent")
-    @GetMapping("/getMedia/{parentId}")
-    public List<PressItem> getMedia(@PathVariable long parentId) {
-        return pressService.getMediaByParent(parentId);
-    }
+    // =====================================================================
+    // ECRITURE & MODIFICATION (POST / PUT)
+    // =====================================================================
 
-    @Operation(summary = "Ajouter un nouvel article (statut DRAFT par défaut)")
+    @Operation(summary = "Ajouter un article")
     @PostMapping("/add")
     public PressItem add(@RequestBody PressItem pressItem) {
-        return pressService.addPressItem(pressItem);
+        return pressService.add(pressItem);
     }
 
-    @Operation(summary = "Modifier un article existant")
+    @Operation(summary = "Modifier un article")
     @PutMapping("/update/{id}")
     public PressItem update(@PathVariable long id, @RequestBody PressItem pressItem) {
-        pressItem.setIdPressItem(id); // On s'assure que l'ID est bien celui de l'URL
-        return pressService.updatePressItem(pressItem);
+        return pressService.update(id, pressItem);
     }
 
-    @Operation(summary = "Publier un article (statut → PUBLISHED)")
+    @Operation(summary = "Publier un article")
     @PutMapping("/publish/{id}")
-    public PressItem publish(@PathVariable long id) {
-        return pressService.publish(id);
+    public org.springframework.http.ResponseEntity<?> publish(@PathVariable long id) {
+        try {
+            return org.springframework.http.ResponseEntity.ok(pressService.publish(id));
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.internalServerError().body("Erreur Publication: " + e.getMessage());
+        }
     }
 
-    @Operation(summary = "Archiver un article (statut → ARCHIVED)")
+    @Operation(summary = "Archiver un article")
     @PutMapping("/archive/{id}")
-    public PressItem archive(@PathVariable long id) {
-        return pressService.archive(id);
+    public org.springframework.http.ResponseEntity<?> archive(@PathVariable long id) {
+        try {
+            return org.springframework.http.ResponseEntity.ok(pressService.archive(id));
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.internalServerError().body("Erreur Archive: " + e.getMessage());
+        }
     }
 
-    @Operation(summary = "Supprimer un article par son ID")
+    @Operation(summary = "Remettre en brouillon / Restaurer")
+    @PutMapping("/draft/{id}")
+    public PressItem draft(@PathVariable long id) {
+        return pressService.draft(id);
+    }
+
+    // =====================================================================
+    // SUPPRESSION (DELETE)
+    // =====================================================================
+
+    @Operation(summary = "Supprimer (Corbeille ou Définitif)")
     @DeleteMapping("/delete/{id}")
-    public void delete(@PathVariable long id) {
-        pressService.deletePressItem(id);
+    public org.springframework.http.ResponseEntity<?> delete(@PathVariable long id) {
+        try {
+            pressService.deletePressItem(id);
+            return org.springframework.http.ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.internalServerError().body("Erreur Delete: " + e.getMessage());
+        }
     }
 }

@@ -12,7 +12,11 @@ public interface IPressService {
     void deletePressItem(long id);
     PressItem publish(long id);
     PressItem archive(long id);
+    PressItem draft(long id);
     List<PressItem> getByType(PressType type);
     List<PressItem> getByTypeAndDiscipline(PressType type, String discipline);
-    List<PressItem> getMediaByParent(long parentId);
+
+    void deletePressItem(long id); // Méthode hybride (Soft/Hard delete)
+
+    tn.federation.backend.dto.press.PressStatsDTO getStats();
 }

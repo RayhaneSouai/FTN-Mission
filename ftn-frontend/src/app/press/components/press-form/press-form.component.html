@@ -28,7 +28,10 @@
 
         <div class="form-group">
           <label>Discipline *</label>
-          <input type="text" [(ngModel)]="item.discipline" name="discipline" placeholder="Ex: Natation" required>
+          <select [(ngModel)]="item.discipline" name="discipline" required>
+            <option value="" disabled selected>Choisir une discipline</option>
+            <option *ngFor="let d of disciplines" [value]="d">{{ d }}</option>
+          </select>
         </div>
 
         <div class="form-group" style="grid-column: span 2;">

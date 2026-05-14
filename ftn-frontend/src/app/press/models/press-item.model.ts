@@ -1,5 +1,5 @@
 export type PressType = 'ARTICLE' | 'VIDEO' | 'PHOTO' | 'COMMUNIQUE';
-export type PressStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+export type PressStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | 'DELETED';
 
 export interface PressItem {
   idPressItem?: number;

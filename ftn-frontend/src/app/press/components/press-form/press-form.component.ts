@@ -17,6 +17,7 @@ export class PressFormComponent implements OnInit {
   messageType: 'success' | 'error' = 'success';
 
   types: PressType[] = ['ARTICLE', 'VIDEO', 'PHOTO', 'COMMUNIQUE'];
+  disciplines: string[] = ['Natation', 'Water-Polo', 'Plongeon', 'Natation Artistique', 'Eau Libre', 'Général'];
 
   item: PressItem = {
     title: '',
@@ -40,7 +41,7 @@ export class PressFormComponent implements OnInit {
     }
 
     this.loading = true;
-    this.http.get<any>(`/api/press/extract?url=${encodeURIComponent(this.item.linkUrl)}`).subscribe({
+    this.http.get<any>(`/api/press/fetch-metadata?url=${encodeURIComponent(this.item.linkUrl)}`).subscribe({
       next: (data) => {
         if (data.error) {
           this.showMessage(data.error, 'error');
