@@ -3,6 +3,7 @@ package tn.federation.backend.dto;
 import tn.federation.backend.entities.Role;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class UserDTO {
     private Long id;
@@ -17,6 +18,15 @@ public class UserDTO {
     private String discipline;
     private Integer anciennete;
     private String registrationStatus;
+    private LocalDateTime createdAt;
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 
     public String getRegistrationStatus() {
         return registrationStatus;
