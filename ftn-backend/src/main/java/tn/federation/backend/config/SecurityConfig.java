@@ -28,8 +28,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .cors(org.springframework.security.config.Customizer.withDefaults())
+        http.cors(org.springframework.security.config.Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
@@ -40,12 +39,17 @@ public class SecurityConfig {
                                 "/api/press/fetch-metadata",
                                 "/api/press/upload",
                                 "/api/press/images/**",
-                                "/api/competitions/getAll",
-                                "/api/competitions/get/**",
-                                "/api/clubs/**",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**")
+                        .permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                "/api/clubs/**",
+                                "/api/competitions/**",
+                                "/api/licenses/**",
+                                "/api/users/**")
+                        .permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**")
                         .permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

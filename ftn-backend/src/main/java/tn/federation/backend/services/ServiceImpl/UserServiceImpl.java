@@ -192,6 +192,7 @@ public class UserServiceImpl implements IUserService {
         dto.setDiscipline(user.getDiscipline() != null ? user.getDiscipline().name() : null);
         dto.setAnciennete(user.getAnciennete());
         dto.setRegistrationStatus(user.getRegistrationStatus() != null ? user.getRegistrationStatus().name() : null);
+        dto.setCreatedAt(user.getCreatedAt());
         return dto;
     }
 

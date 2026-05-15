@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule, provideClientHydration } from '@angular/platform-browser';
-import { provideHttpClient, withFetch, withInterceptors,HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 
@@ -13,13 +13,9 @@ import { DashboardComponent } from './features/admin/dashboard/dashboard.compone
 import { ClubListComponent } from './features/clubs/components/club-list/club-list.component';
 import { HomeComponent } from './features/home/home.component';
 import { SharedModule } from './shared/shared.module';
-
 import { AppRoutingModule } from './app-routing.module';
-
 import { HeaderComponent } from './shared/components/header/header.component';
-
 import { MyPerformancesComponent } from './features/my-performance/my-performances.component';
-
 import { RankingComponent } from './features/ranking/ranking.component';
 
 @NgModule({
@@ -35,18 +31,17 @@ import { RankingComponent } from './features/ranking/ranking.component';
   ],
   imports: [
     BrowserModule,
-    HttpClientModule,
     FormsModule,
     AppRoutingModule,
+    SharedModule,
     HeaderComponent,
     MyPerformancesComponent,
-    RankingComponent,
-    SharedModule
+    RankingComponent
   ],
   providers: [
     provideClientHydration(),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor]))
   ],
-   bootstrap: [AppComponent]
+  bootstrap: [AppComponent]
 })
 export class AppModule {}
