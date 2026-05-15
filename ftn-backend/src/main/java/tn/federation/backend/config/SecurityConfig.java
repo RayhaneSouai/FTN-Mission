@@ -46,8 +46,10 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.GET,
                                 "/api/clubs/**",
                                 "/api/competitions/**",
-                                "/api/licenses/**",
-                                "/api/users/**")
+                                "/api/licenses/**")
+                        .permitAll()
+                        // Public swimmer list only; other /api/users/* need JWT + @PreAuthorize
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/swimmers")
                         .permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**")
                         .permitAll()

@@ -36,10 +36,14 @@ const routes: Routes = [
       {
         path: 'press',
         loadChildren: () => import('./features/press/press.module').then(m => m.PressModule)
-      }
-     ,
+      },
       {
-    path: 'performances',
+        path: 'clubs',
+        component: ClubListComponent,
+        data: { clubMode: 'admin' }
+      },
+      {
+        path: 'performances',
     component: MyPerformancesComponent
   },
   {
@@ -59,7 +63,7 @@ const routes: Routes = [
     component: PublicLayoutComponent,
     children: [
       { path: '', component: HomeComponent },
-      { path: 'clubs', component: ClubListComponent },
+      { path: 'clubs', component: ClubListComponent, data: { clubMode: 'public' } },
       {
         path: 'competitions',
         loadChildren: () =>
@@ -85,7 +89,11 @@ const routes: Routes = [
     path: 'auth',
     loadChildren: () => import('./features/auth/auth.module').then(m => m.AuthModule)
   },
-  
+
+  // Legacy paths (older links / login redirects from teammates)
+  { path: 'utilisateurs', redirectTo: 'admin/utilisateurs', pathMatch: 'full' },
+  { path: 'licences', redirectTo: 'admin/licences', pathMatch: 'full' },
+
   // Wildcard redirect
   { path: '**', redirectTo: '' }
 ];

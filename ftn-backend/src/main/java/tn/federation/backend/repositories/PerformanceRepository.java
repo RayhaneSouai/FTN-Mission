@@ -14,6 +14,7 @@ import java.util.List; import java.util.Optional;
 @Repository
 public interface PerformanceRepository extends JpaRepository<Performance, Long> {
      List<Performance> findBySwimmerIdOrderByDateDesc(Long swimmerId);
+     List<Performance> findBySwimmerIdOrderByDateAsc(Long swimmerId);
      List<Performance> findBySwimmerIdAndDistanceAndStrokeOrderByDateDesc( Long swimmerId, Integer distance, StrokeType stroke);
     @Query(" SELECT p FROM Performance p WHERE p.distance = :distance AND p.stroke = :stroke AND p.swimmer.gender = :gender ORDER BY p.time ASC LIMIT 1 ")
     Optional<Performance> findNationalRecord(@Param("distance") Integer distance, @Param("stroke") StrokeType stroke, @Param("gender") Gender gender);
