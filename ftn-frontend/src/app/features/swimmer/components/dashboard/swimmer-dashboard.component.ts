@@ -52,4 +52,8 @@ export class SwimmerDashboardComponent implements OnInit {
     if (this.profile) return `${this.profile.firstName} ${this.profile.lastName}`;
     return `${this.user.firstName || ''} ${this.user.lastName || ''}`.trim();
   }
+
+  openLink(url: string | undefined) {
+    if (url) window.open(url, '_blank');
+  }
 }

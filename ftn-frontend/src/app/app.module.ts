@@ -38,12 +38,9 @@ import { RankingComponent } from './features/ranking/ranking.component';
     HttpClientModule,
     FormsModule,
     AppRoutingModule,
-
     HeaderComponent,
     MyPerformancesComponent,
-    RankingComponent
-    AppRoutingModule,
-    FormsModule,
+    RankingComponent,
     SharedModule
   ],
   providers: [

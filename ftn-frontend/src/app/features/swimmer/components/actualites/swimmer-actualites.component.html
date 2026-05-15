@@ -1,51 +1,74 @@
-<div class="dashboard-container" style="border: 10px solid red !important;">
-  <!-- Header -->
-  <header class="dashboard-header">
-    <div class="header-titles">
-      <h1 class="welcome-text">Nos <span class="accent">Actualités</span> 📰</h1>
-      <p class="subtitle">Restez informé des dernières nouvelles de la fédération.</p>
+<div class="actualites-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Actualités <span class="accent">FTN</span></h1>
+      <p class="page-subtitle">Les dernières nouvelles de la natation tunisienne</p>
     </div>
-  </header>
+  </div>
+
+  <!-- Discipline Filters -->
+  <div class="filter-bar">
+    <button class="filter-btn" [class.active]="!selectedDiscipline" (click)="filterByDiscipline('')">
+      Toutes
+    </button>
+    <button *ngFor="let disc of disciplines" class="filter-btn" [class.active]="selectedDiscipline === disc" (click)="filterByDiscipline(disc)">
+      {{ disc }}
+    </button>
+  </div>
 
   <!-- Loading -->
-  <div *ngIf="loading" style="padding:60px; text-align:center;">
-    <p class="subtitle">Chargement des actualités...</p>
+  <div *ngIf="loading" class="loading-state">
+    <div class="loader"></div>
+    <p>Chargement des actualités...</p>
   </div>
 
   <!-- Empty State -->
-  <div *ngIf="!loading && news.length === 0" style="text-align: center; padding: 60px;">
-    <span style="font-size:48px">📰</span>
-    <h3 style="margin: 16px 0 8px; color: #1e293b; font-weight: 700;">Aucune actualité</h3>
-    <p style="color: #64748b; font-size: 0.9rem;">Aucune actualité publiée pour le moment.</p>
+  <div *ngIf="!loading && filteredItems.length === 0" class="empty-state">
+    <div class="empty-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/>
+        <path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/>
+      </svg>
+    </div>
+    <h3>Aucune actualité disponible</h3>
+    <p>Revenez bientôt pour les dernières nouvelles de la fédération.</p>
   </div>
 
   <!-- News Grid -->
-  <div class="news-grid" *ngIf="!loading && news.length > 0">
-    <div *ngFor="let item of news" class="news-card">
-      <div class="news-image-wrapper">
-        <img *ngIf="item.mediaUrl" [src]="item.mediaUrl" class="news-image" alt="Actualité">
-        <div *ngIf="!item.mediaUrl" class="placeholder-img">📰</div>
-        
-        <div class="year-badge">
-          <span class="label">Publié en</span>
-          <span class="year">{{ (item.createdAt || item.date || '2024') | date:'yyyy' }}</span>
+  <div *ngIf="!loading && filteredItems.length > 0" class="news-grid">
+    <article *ngFor="let item of filteredItems" class="news-card">
+
+      <!-- Card Image -->
+      <div class="card-image">
+        <img *ngIf="item.mediaUrl && item.type !== 'VIDEO'" [src]="item.mediaUrl" [alt]="item.title" (error)="item.mediaUrl = ''">
+        <img *ngIf="item.type === 'VIDEO'" [src]="pressService.getVideoThumbnail(item.mediaUrl || '')" [alt]="item.title">
+        <div *ngIf="!item.mediaUrl" class="card-image-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/>
+          </svg>
         </div>
+        <span class="type-chip" [class]="'type-' + item.type?.toLowerCase()">
+          {{ item.type === 'VIDEO' ? '▶ Vidéo' : item.type === 'PHOTO' ? '📷 Photo' : item.type === 'COMMUNIQUE' ? '📢' : '📰 Article' }}
+        </span>
       </div>
 
-      <div class="news-content">
-        <div class="news-category">{{ item.discipline || 'GÉNÉRAL' }}</div>
-        <h3 class="news-title">{{ item.title }}</h3>
-        <p class="news-description">
-          {{ item.content || 'Consultez les dernières informations de la fédération.' }}
-        </p>
-        
-        <div class="news-footer">
-          <button class="read-more-btn" (click)="openLink(item.linkUrl || item.mediaUrl)">
-            Lire la suite
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </button>
+      <!-- Card Body -->
+      <div class="card-body">
+        <div class="card-meta">
+          <span class="discipline-tag">{{ item.discipline || 'Général' }}</span>
+          <span class="card-date">{{ item.publishedAt | date:'dd/MM/yyyy' }}</span>
         </div>
+        <h3 class="card-title">{{ item.title }}</h3>
+        <p class="card-excerpt">{{ (item.content || '') | slice:0:130 }}{{ (item.content?.length || 0) > 130 ? '…' : '' }}</p>
+
+        <button class="btn-read" (click)="openLink(item.linkUrl || item.mediaUrl)">
+          {{ item.type === 'VIDEO' ? 'Regarder' : 'Lire la suite' }}
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
       </div>
-    </div>
+    </article>
   </div>
+
 </div>

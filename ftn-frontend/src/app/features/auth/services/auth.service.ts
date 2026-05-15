@@ -37,7 +37,7 @@ export class AuthService {
       localStorage.clear();
     }
     this.currentUserSubject.next(null);
-    this.router.navigate(['/auth/login']);
+    this.router.navigate(['/']);
   }
 
   login(credentials: any): Observable<any> {
