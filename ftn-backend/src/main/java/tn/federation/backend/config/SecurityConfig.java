@@ -29,9 +29,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.cors(org.springframework.security.config.Customizer.withDefaults())
-                .csrf().disable()
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        // Auth endpoints
+                        .requestMatchers("/api/auth/**").permitAll()
+                        // Swagger / OpenAPI
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**").permitAll()
+                        // Public read access to core data
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/clubs/**", "/api/competitions/**", "/api/licenses/**", "/api/users/**").permitAll()
+                        // CORS preflight
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+                        // Everything else requires JWT
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

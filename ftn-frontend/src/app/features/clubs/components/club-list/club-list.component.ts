@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Router } from '@angular/router';
 import { ClubService } from '../../services/club.service';
 import { Club } from '../../models/club.model';
 
@@ -18,6 +20,8 @@ export class ClubListComponent implements OnInit {
   selectedClub: Club | null = null;
   editingClub: Club | null = null;
   statistics: any = null;
+  /** True when a JWT is present — required for POST/PUT/DELETE on /api/clubs */
+  canManage = false;
 
   formData: Club = {
     name: '',
@@ -30,11 +34,43 @@ export class ClubListComponent implements OnInit {
     longitude: undefined
   };
 
-  constructor(private clubService: ClubService) {}
+  constructor(
+    private clubService: ClubService,
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
   ngOnInit(): void {
+    this.refreshAuthState();
     this.loadClubs();
     this.loadTopClubs();
+  }
+
+  private refreshAuthState(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      this.canManage = !!localStorage.getItem('token');
+    }
+  }
+
+  /** Backend rejects writes without JWT (403). Redirect to login when needed. */
+  private requireAuth(): boolean {
+    this.refreshAuthState();
+    if (this.canManage) {
+      return true;
+    }
+    alert('Connectez-vous pour gérer les clubs.');
+    this.router.navigate(['/auth/login'], { queryParams: { returnUrl: '/clubs' } });
+    return false;
+  }
+
+  private handleWriteError(err: any, action: string): void {
+    if (err?.status === 403 || err?.status === 401) {
+      alert('Session expirée ou accès refusé. Veuillez vous reconnecter.');
+      this.router.navigate(['/auth/login'], { queryParams: { returnUrl: '/clubs' } });
+      return;
+    }
+    console.error(`Erreur ${action}:`, err);
+    alert(`Erreur lors de ${action}. Vérifiez la console.`);
   }
 
   loadClubs(): void {
@@ -73,12 +109,14 @@ export class ClubListComponent implements OnInit {
   }
 
   openAddForm(): void {
+    if (!this.requireAuth()) return;
     this.editingClub = null;
     this.formData = { name: '', region: '', address: '', contact: '', manager: '', affiliationDate: '' };
     this.showForm = true;
   }
 
   openEditForm(club: Club): void {
+    if (!this.requireAuth()) return;
     this.editingClub = club;
     this.formData = { ...club };
     this.showForm = true;
@@ -90,7 +128,7 @@ export class ClubListComponent implements OnInit {
   }
 
   saveClub(): void {
-    console.log('Enregistrement du club:', this.formData);
+    if (!this.requireAuth()) return;
     if (this.editingClub && this.editingClub.id) {
       this.clubService.update(this.editingClub.id, this.formData).subscribe({
         next: () => {
@@ -98,10 +136,7 @@ export class ClubListComponent implements OnInit {
           this.loadClubs();
           this.closeForm();
         },
-        error: (err: any) => {
-          console.error('Erreur modification:', err);
-          alert('Erreur lors de la modification. Vérifiez la console.');
-        }
+        error: (err: any) => this.handleWriteError(err, 'la modification')
       });
     } else {
       this.clubService.create(this.formData).subscribe({
@@ -110,22 +145,20 @@ export class ClubListComponent implements OnInit {
           this.loadClubs();
           this.closeForm();
         },
-        error: (err: any) => {
-          console.error('Erreur création:', err);
-          alert('Erreur lors de l\'ajout. Vérifiez la console.');
-        }
+        error: (err: any) => this.handleWriteError(err, 'l\'ajout')
       });
     }
   }
 
   deleteClub(id: number): void {
+    if (!this.requireAuth()) return;
     if (confirm('Voulez-vous vraiment supprimer ce club ?')) {
       this.clubService.delete(id).subscribe({
         next: () => {
           this.loadClubs();
           this.loadTopClubs();
         },
-        error: (err: any) => console.error('Erreur suppression:', err)
+        error: (err: any) => this.handleWriteError(err, 'la suppression')
       });
     }
   }

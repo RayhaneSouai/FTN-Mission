@@ -1,7 +1,8 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule, provideClientHydration } from '@angular/platform-browser';
-import { provideHttpClient, withFetch } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { authInterceptor } from './core/interceptors/auth.interceptor';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -27,7 +28,7 @@ import { HomeComponent } from './features/home/home.component';
   ],
   providers: [
     provideClientHydration(),
-    provideHttpClient(withFetch())
+    provideHttpClient(withFetch(), withInterceptors([authInterceptor]))
   ],
   bootstrap: [AppComponent]
 })
