@@ -42,7 +42,7 @@ export class LoginComponent {
           if (returnUrl) {
             this.router.navigateByUrl(returnUrl);
           } else if (res.user.role === 'ADMIN' || res.user.role === 'ADMINISTRATEUR') {
-            this.router.navigate(['/utilisateurs']);
+            this.router.navigate(['/admin']);
           } else {
             this.router.navigate(['/']);
           }

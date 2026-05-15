@@ -9,4 +9,8 @@ import java.util.List;
 @Repository
 public interface LicenseRepository extends JpaRepository<License, Long> {
     List<License> findBySeason(String season);
+
+    List<License> findByClub_Id(Long clubId);
+
+    void deleteByClub_Id(Long clubId);
 }
