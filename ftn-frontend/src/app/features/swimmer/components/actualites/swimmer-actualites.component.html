@@ -1,0 +1,51 @@
+<div class="dashboard-container" style="border: 10px solid red !important;">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-titles">
+      <h1 class="welcome-text">Nos <span class="accent">Actualités</span> 📰</h1>
+      <p class="subtitle">Restez informé des dernières nouvelles de la fédération.</p>
+    </div>
+  </header>
+
+  <!-- Loading -->
+  <div *ngIf="loading" style="padding:60px; text-align:center;">
+    <p class="subtitle">Chargement des actualités...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && news.length === 0" style="text-align: center; padding: 60px;">
+    <span style="font-size:48px">📰</span>
+    <h3 style="margin: 16px 0 8px; color: #1e293b; font-weight: 700;">Aucune actualité</h3>
+    <p style="color: #64748b; font-size: 0.9rem;">Aucune actualité publiée pour le moment.</p>
+  </div>
+
+  <!-- News Grid -->
+  <div class="news-grid" *ngIf="!loading && news.length > 0">
+    <div *ngFor="let item of news" class="news-card">
+      <div class="news-image-wrapper">
+        <img *ngIf="item.mediaUrl" [src]="item.mediaUrl" class="news-image" alt="Actualité">
+        <div *ngIf="!item.mediaUrl" class="placeholder-img">📰</div>
+        
+        <div class="year-badge">
+          <span class="label">Publié en</span>
+          <span class="year">{{ (item.createdAt || item.date || '2024') | date:'yyyy' }}</span>
+        </div>
+      </div>
+
+      <div class="news-content">
+        <div class="news-category">{{ item.discipline || 'GÉNÉRAL' }}</div>
+        <h3 class="news-title">{{ item.title }}</h3>
+        <p class="news-description">
+          {{ item.content || 'Consultez les dernières informations de la fédération.' }}
+        </p>
+        
+        <div class="news-footer">
+          <button class="read-more-btn" (click)="openLink(item.linkUrl || item.mediaUrl)">
+            Lire la suite
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

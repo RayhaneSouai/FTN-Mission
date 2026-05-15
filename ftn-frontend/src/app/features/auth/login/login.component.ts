@@ -28,16 +28,19 @@ export class LoginComponent {
       next: (res) => {
         if (isPlatformBrowser(this.platformId)) {
           localStorage.setItem('token', res.token);
-          localStorage.setItem('user', JSON.stringify(res.user));
+          this.authService.setUser(res.user);
           
           // Check if the user is an admin based on the backend response
           if (res.user.role === 'ADMIN' || res.user.role === 'ADMINISTRATEUR') {
             localStorage.setItem('isAdmin', 'true');
             this.router.navigate(['/admin']);
-          } else {
-            // Normal user / Swimmer / Coach
+          } else if (res.user.role === 'SWIMMER' || res.user.role === 'NAGEUR') {
             localStorage.removeItem('isAdmin');
-            this.router.navigate(['/']); 
+            this.router.navigate(['/espace-nageur/dashboard']);
+          } else {
+            // COACH, VISITOR or other
+            localStorage.removeItem('isAdmin');
+            this.router.navigate(['/']);
           }
         }
       },

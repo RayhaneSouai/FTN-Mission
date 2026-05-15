@@ -1,0 +1,72 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-titles">
+      <h1 class="welcome-text">Mon <span class="accent">Club</span> 🏟️</h1>
+      <p class="subtitle">Informations sur votre club affilié et votre statut.</p>
+    </div>
+  </header>
+
+  <div *ngIf="loading" class="glass-card" style="padding:60px; text-align:center; color:#94a3b8;">
+    <div class="spinner" style="margin: 0 auto 16px;"></div>
+    <p>Chargement des informations...</p>
+  </div>
+
+  <div *ngIf="!loading && !profile?.clubId && !profile?.clubName" class="glass-card" style="text-align: center; padding: 60px;">
+    <span style="font-size:48px">🏊</span>
+    <h3 style="margin: 16px 0 8px; color: #1e293b;">Aucune affiliation</h3>
+    <p style="color: #64748b;">Vous n'êtes affilié à aucun club pour le moment.</p>
+  </div>
+
+  <div class="glass-card" *ngIf="!loading && (profile?.clubName)" style="background: linear-gradient(135deg, #003a80 0%, #004da3 100%); color: white; display: flex; align-items: center; gap: 24px; padding: 40px; border: none;">
+    <div style="width: 80px; height: 80px; background: rgba(255,255,255,0.2); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">🏟️</div>
+    <div>
+      <h2 style="margin: 0; font-size: 2rem; font-weight: 800;">{{ profile?.clubName }}</h2>
+      <p style="margin: 8px 0 0; opacity: 0.8; font-size: 1.1rem;">📍 {{ profile?.clubRegion || 'Tunisie' }}</p>
+    </div>
+  </div>
+
+  <div class="dashboard-main-grid" *ngIf="!loading && profile?.clubName">
+    <!-- General Info -->
+    <div class="glass-card">
+      <div class="card-header">
+        <h3>Informations Générales</h3>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; justify-content: space-between; padding: 12px; background: #f8fafc; border-radius: 12px;">
+          <span style="color: #64748b; font-size: 0.9rem;">Nom complet</span>
+          <span style="font-weight: 600; color: #1e293b;">{{ profile?.clubName || '—' }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px; background: #f8fafc; border-radius: 12px;">
+          <span style="color: #64748b; font-size: 0.9rem;">Région</span>
+          <span style="font-weight: 600; color: #1e293b;">{{ profile?.clubRegion || '—' }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px; background: #f8fafc; border-radius: 12px;">
+          <span style="color: #64748b; font-size: 0.9rem;">Manager</span>
+          <span style="font-weight: 600; color: #1e293b;">{{ profile?.clubManager || '—' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- My Status -->
+    <div class="glass-card">
+      <div class="card-header">
+        <h3>Mon Statut</h3>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="color: #64748b; font-size: 0.9rem;">Statut actuel</span>
+          <span style="background: #dcfce7; color: #166534; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;">{{ profile?.registrationStatus || 'Actif' }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px; background: #f8fafc; border-radius: 12px;">
+          <span style="color: #64748b; font-size: 0.9rem;">Niveau</span>
+          <span style="font-weight: 600; color: #1e293b;">{{ profile?.niveau || '—' }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px; background: #f8fafc; border-radius: 12px;">
+          <span style="color: #64748b; font-size: 0.9rem;">Affiliation depuis</span>
+          <span style="font-weight: 600; color: #1e293b;">{{ profile?.clubAffiliationDate | date:'dd/MM/yyyy' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

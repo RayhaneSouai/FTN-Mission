@@ -1,0 +1,33 @@
+.page { }
+.page-header { margin-bottom: 28px; }
+.page-title { font-size: 24px; font-weight: 700; color: #1a1a2e; margin: 0 0 4px; }
+.page-subtitle { font-size: 14px; color: #64748b; margin: 0; }
+
+.card { background:#fff; border-radius:16px; padding:24px; box-shadow:0 2px 12px rgba(0,0,0,0.05); margin-bottom:24px; }
+.card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+.card-header h2 { font-size:16px; font-weight:700; color:#1a1a2e; margin:0; }
+.empty-card { text-align:center; padding:60px 24px; color:#94a3b8; background:#f8fafc; border-radius:16px; border:2px dashed #e2e8f0; margin-bottom:24px; }
+.empty-card p { font-size:14px; margin-top:12px; }
+
+/* ─── Club Hero ───────────────────────────────────────────────── */
+.club-hero-card {
+  display: flex; align-items: center; gap: 24px;
+  background: linear-gradient(135deg, #0d47a1, #1976D2);
+  border-radius: 16px; padding: 32px; margin-bottom: 24px; color: #fff;
+}
+.club-logo { font-size: 56px; }
+.club-hero-info h2 { font-size: 22px; font-weight: 700; margin: 0 0 6px; color: #fff; }
+.club-hero-info p  { font-size: 14px; opacity: 0.85; margin: 0; color: #fff; }
+
+/* ─── Info List ───────────────────────────────────────────────── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.info-list { display: flex; flex-direction: column; gap: 14px; }
+.info-row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9; }
+.info-row:last-child { border-bottom: none; padding-bottom: 0; }
+.info-key { font-size: 13px; color: #64748b; }
+.info-val { font-size: 13px; font-weight: 600; color: #1a1a2e; }
+
+.chip { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+.chip-green { background: #dcfce7; color: #16a34a; }
+
+@media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }

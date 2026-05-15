@@ -18,7 +18,9 @@ export class PressVisitorComponent implements OnInit {
     this.loading = true;
     this.pressService.getAll().subscribe({
       next: (data) => {
-        this.items = data.filter(item => item.status === 'PUBLISHED');
+        this.items = data
+          .filter(item => item.status === 'PUBLISHED')
+          .sort((a, b) => (b.idPressItem || 0) - (a.idPressItem || 0));
         this.loading = false;
       },
       error: () => this.loading = false

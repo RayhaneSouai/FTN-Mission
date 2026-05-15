@@ -1,0 +1,181 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-titles">
+      <h1 class="welcome-text">Bonjour, <span class="accent">{{ displayName }}</span> 🌊</h1>
+      <p class="subtitle">Voici un aperçu de vos performances et compétitions.</p>
+    </div>
+    <div class="header-actions">
+      <div class="badge" style="background: #eef2ff; color: #4f46e5; padding: 8px 16px; font-size: 0.9rem;">
+        {{ user.discipline || 'Natation' }}
+      </div>
+    </div>
+  </header>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-grid">
+    <div class="skeleton-card" *ngFor="let i of [1,2,3,4]"></div>
+  </div>
+
+  <!-- Stats Grid -->
+  <section class="stats-grid" *ngIf="!loading">
+    <!-- Niveau -->
+    <div class="stat-card blue">
+      <div class="stat-content">
+        <div class="stat-main">
+          <span class="stat-label">Niveau</span>
+          <h2 class="stat-value">{{ profile?.niveau || user?.niveau || '—' }}</h2>
+        </div>
+        <div class="stat-icon-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
+      </div>
+      <div class="stat-footer">
+        <span class="trend-label">Statut: {{ profile?.registrationStatus || 'Actif' }}</span>
+      </div>
+    </div>
+
+    <!-- Performances -->
+    <div class="stat-card azure">
+      <div class="stat-content">
+        <div class="stat-main">
+          <span class="stat-label">Performances</span>
+          <h2 class="stat-value">{{ progress?.totalPerformances || '0' }}</h2>
+        </div>
+        <div class="stat-icon-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </div>
+      </div>
+      <div class="stat-footer">
+        <span class="trend-label">Données en temps réel</span>
+      </div>
+    </div>
+
+    <!-- Compétitions -->
+    <div class="stat-card orange">
+      <div class="stat-content">
+        <div class="stat-main">
+          <span class="stat-label">Compétitions</span>
+          <h2 class="stat-value">{{ competitions.length }}</h2>
+        </div>
+        <div class="stat-icon-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+        </div>
+      </div>
+      <div class="stat-footer">
+        <span class="trend-label">Inscrit à {{ competitions.length }} événements</span>
+      </div>
+    </div>
+
+    <!-- Records -->
+    <div class="stat-card indigo">
+      <div class="stat-content">
+        <div class="stat-main">
+          <span class="stat-label">Records Perso.</span>
+          <h2 class="stat-value">{{ progress?.personalRecords || '0' }}</h2>
+        </div>
+        <div class="stat-icon-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+        </div>
+      </div>
+      <div class="stat-footer">
+        <span class="trend-label">Meilleures performances</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Middle Section: Profile & Competitions -->
+  <div class="dashboard-main-grid" *ngIf="!loading">
+    
+    <!-- Profile Card (Glass Card style) -->
+    <div class="glass-card">
+      <div class="card-header">
+        <h3>Mon Profil</h3>
+        <button class="btn-text" routerLink="/espace-nageur/mon-club">Mon Club →</button>
+      </div>
+      
+      <div class="profile-summary" style="display: flex; align-items: center; gap: 20px; margin-bottom: 24px; padding: 16px; background: #f8fafc; border-radius: 16px;">
+        <div class="profile-avatar" style="width: 64px; height: 64px; border-radius: 50%; background: #004da3; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold;">
+          {{ (user.firstName || 'N')[0] }}{{ (user.lastName || 'A')[0] }}
+        </div>
+        <div>
+          <h4 style="margin: 0; font-size: 1.1rem; color: #1e293b;">{{ displayName }}</h4>
+          <p style="margin: 4px 0 0; font-size: 0.85rem; color: #64748b;">{{ profile?.email || user?.email }}</p>
+        </div>
+      </div>
+
+      <div class="info-list" style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+          <span style="color: #64748b;">Discipline</span>
+          <span style="font-weight: 600; color: #1e293b;">{{ profile?.discipline || user?.discipline || 'N/A' }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+          <span style="color: #64748b;">Date de naissance</span>
+          <span style="font-weight: 600; color: #1e293b;">{{ profile?.birthDate || '—' }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+          <span style="color: #64748b;">Club</span>
+          <span style="font-weight: 600; color: #1e293b;">{{ profile?.clubName || '—' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upcoming Competitions -->
+    <div class="glass-card">
+      <div class="card-header">
+        <h3>Compétitions à venir</h3>
+        <button class="btn-text" routerLink="/espace-nageur/competitions">Tout voir</button>
+      </div>
+      
+      <div *ngIf="competitions.length === 0" style="text-align: center; padding: 40px; color: #94a3b8;">
+        <p>Aucune compétition prévue</p>
+      </div>
+
+      <div class="activity-list">
+        <div *ngFor="let c of competitions" class="activity-item">
+          <div class="activity-icon system" style="background: #eff6ff; color: #3b82f6;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div class="activity-info">
+            <div class="activity-header">
+              <span class="activity-title">{{ c.name }}</span>
+              <span class="activity-time">{{ c.startDate | date:'dd MMM' }}</span>
+            </div>
+            <p class="activity-desc">📍 {{ c.location }} · {{ c.discipline }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- News Section (Bottom) -->
+  <section class="quick-links" *ngIf="!loading && news.length > 0">
+    <div class="glass-card" style="grid-column: 1 / -1;">
+      <div class="card-header">
+        <h3>Dernières Actualités</h3>
+        <button class="btn-text" routerLink="/espace-nageur/actualites">Voir tout</button>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px;">
+        <div *ngFor="let item of news | slice:0:3" class="news-card" style="border: 1px solid #f1f5f9; border-radius: 20px; overflow: hidden; background: white; display: flex; flex-direction: column;">
+          <div style="height: 160px; position: relative; overflow: hidden;">
+            <img *ngIf="item.mediaUrl" [src]="item.mediaUrl" style="width: 100%; height: 100%; object-fit: cover;" alt="News">
+            <div *ngIf="!item.mediaUrl" style="height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; background: #f8fafc;">📰</div>
+            <div style="position: absolute; bottom: 0; right: 0; background: white; padding: 8px 12px; border-top-left-radius: 15px; font-weight: 800; font-size: 1rem;">
+              {{ (item.createdAt || item.date || '2024') | date:'yyyy' }}
+            </div>
+          </div>
+          <div style="padding: 20px; flex: 1; display: flex; flex-direction: column;">
+            <span style="font-size: 0.7rem; font-weight: 800; color: #0056b3; text-transform: uppercase; margin-bottom: 8px;">{{ item.discipline || 'GÉNÉRAL' }}</span>
+            <h4 style="margin: 0 0 8px; font-size: 1rem; color: #1e293b; line-height: 1.3;">{{ item.title }}</h4>
+            <p style="margin: 0 0 16px; font-size: 0.85rem; color: #64748b; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+              {{ item.content || 'Détails de l\'actualité...' }}
+            </p>
+            <div style="margin-top: auto; display: flex; justify-content: flex-end;">
+              <button class="btn-text" (click)="openLink(item.linkUrl || item.mediaUrl)" style="font-size: 0.85rem; color: #1967d2; font-weight: 700;">Lire la suite →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

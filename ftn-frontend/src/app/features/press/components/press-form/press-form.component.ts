@@ -99,7 +99,7 @@ export class PressFormComponent implements OnInit {
     action$.subscribe({
       next: () => {
         this.submitting = false;
-        this.router.navigate(['/press']);
+        this.router.navigate(['/admin/press']);
       },
       error: () => {
         this.submitting = false;
@@ -130,7 +130,7 @@ export class PressFormComponent implements OnInit {
   }
 
   cancel(): void {
-    this.router.navigate(['/press']);
+    this.router.navigate(['/admin/press']);
   }
 
   showMessage(msg: string, type: 'success' | 'error'): void {
