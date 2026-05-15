@@ -8,12 +8,11 @@ import {
   PLATFORM_ID,
 } from '@angular/core';
 import { isPlatformBrowser, DatePipe, NgStyle } from '@angular/common';
+import { Router } from '@angular/router';
 import {
   Competition,
   Discipline,
-  CompetitionStatus,
   DISCIPLINE_LABELS,
-  STATUS_LABELS,
 } from '../../models/competition.model';
 import { CompetitionStateService } from '../../services/competition-state.service';
 import { CompetitionFormComponent } from '../competition-form/competition-form.component';
@@ -42,14 +41,6 @@ interface WeekEvent {
   row: number;
 }
 
-/** Maps competition status → CSS color class */
-const STATUS_COLOR_MAP: Record<CompetitionStatus, string> = {
-  [CompetitionStatus.EN_COURS]: 'state-active',
-  [CompetitionStatus.PLANIFIEE]: 'state-upcoming',
-  [CompetitionStatus.TERMINEE]: 'state-completed',
-  [CompetitionStatus.ANNULEE]: 'state-cancelled',
-};
-
 @Component({
   selector: 'app-competition-list',
   standalone: true,
@@ -61,6 +52,7 @@ const STATUS_COLOR_MAP: Record<CompetitionStatus, string> = {
 export class CompetitionListComponent implements OnInit, HasUnsavedChanges {
   protected readonly state = inject(CompetitionStateService);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly router = inject(Router);
 
   readonly currentView = signal<CalendarView>('month');
   readonly modalOpen = signal(false);
@@ -105,14 +97,26 @@ export class CompetitionListComponent implements OnInit, HasUnsavedChanges {
   });
 
   /* ─── Stats ─── */
-  readonly uniqueDisciplines = computed(() =>
-    [...new Set(this.state.competitions().map((c) => c.discipline))]
+  readonly uniqueRegions = computed(() =>
+    [...new Set(this.state.competitions().map((c) => c.region).filter(Boolean))]
   );
+
+  readonly thisMonthCount = computed(() => {
+    const now = new Date();
+    const y = now.getFullYear(), m = now.getMonth();
+    return this.state.competitions().filter((c) => {
+      const d = new Date(c.startDate);
+      return d.getFullYear() === y && d.getMonth() === m;
+    }).length;
+  });
+
+  readonly upcomingCount = computed(() => {
+    const today = this.todayIso;
+    return this.state.competitions().filter((c) => c.startDate > today).length;
+  });
 
   /* ─── Helpers ─── */
   disciplineLabel(d: Discipline): string { return DISCIPLINE_LABELS[d] ?? d; }
-  statusLabel(s: CompetitionStatus): string { return STATUS_LABELS[s] ?? s; }
-  stateColor(s: CompetitionStatus): string { return STATUS_COLOR_MAP[s] ?? 'state-upcoming'; }
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -157,6 +161,11 @@ export class CompetitionListComponent implements OnInit, HasUnsavedChanges {
   openEditModal(comp: Competition): void { this.editingCompetition.set(comp); this.modalOpen.set(true); }
   closeModal(): void { this.modalOpen.set(false); this.editingCompetition.set(null); }
 
+  /* ─── Navigate to details ─── */
+  navigateToDetails(comp: Competition): void {
+    this.router.navigate(['/competitions', comp.id]);
+  }
+
   /* ─── Delete ─── */
   requestDelete(id: number): void { this.pendingDeleteId = id; this.confirmDeleteOpen.set(true); }
   onDeleteConfirmed(): void {
@@ -171,7 +180,7 @@ export class CompetitionListComponent implements OnInit, HasUnsavedChanges {
     return {
       left: `${(ev.startCol - 1) * col}%`,
       width: `${ev.span * col}%`,
-      top: `${26 + ev.row * 24}px`,
+      top: `${33 + ev.row * 30}px`,
     };
   }
 

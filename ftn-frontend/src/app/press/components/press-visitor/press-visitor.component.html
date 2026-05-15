@@ -1,0 +1,50 @@
+<div style="padding: 2rem; max-width: 1200px; margin: 0 auto;">
+  
+  <div style="text-align: center; margin-bottom: 3rem;">
+    <h1 style="color: var(--ftn-blue); font-size: 2.2rem;">Espace Actualités FTN</h1>
+    <p style="color: #718096;">Toute l'actualité aquatique en Tunisie</p>
+  </div>
+
+  <div *ngIf="loading" style="text-align: center;">Chargement...</div>
+
+  <div *ngIf="!loading && items.length === 0" style="text-align: center; padding: 3rem; color: #718096;">
+    Aucune actualité publiée pour le moment.
+  </div>
+
+  <!-- REGROUPEMENT PAR TYPE POUR LE VISITEUR -->
+  <ng-container *ngFor="let type of types">
+    <div *ngIf="getItemsByType(type).length > 0" style="margin-bottom: 4rem;">
+      
+      <h2 style="color: var(--ftn-blue); margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #edf2f7; padding-bottom: 10px;">
+        {{ type === 'PHOTO' ? 'Galerie Photos' : type + 'S' }}
+      </h2>
+
+      <div class="news-grid">
+        <div *ngFor="let item of getItemsByType(type)" class="news-card">
+          <div class="card-media">
+            <iframe *ngIf="item.type === 'VIDEO' && item.mediaUrl?.includes('yout')" [src]="pressService.getEmbedUrl(item.mediaUrl || '') | safe" frameborder="0" allowfullscreen></iframe>
+            <img *ngIf="item.type !== 'VIDEO' && item.mediaUrl" [src]="item.mediaUrl">
+            <div *ngIf="!item.mediaUrl" style="display:flex; align-items:center; justify-content:center; height:100%; font-size:2rem; background:#edf2f7;">📰</div>
+          </div>
+
+          <div class="card-body">
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:0.5rem;">
+              <span style="font-weight:700; color:var(--ftn-blue);">{{ item.discipline }}</span>
+            </div>
+            <h3 class="card-title">{{ item.title }}</h3>
+            <p class="card-excerpt">{{ item.content }}</p>
+            
+            <div class="card-footer" style="border:none; display: flex; justify-content: flex-end;">
+              <button *ngIf="item.linkUrl" (click)="openLink(item.linkUrl)" 
+                      style="background: var(--ftn-blue); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                Lire la suite →
+              </button>
+              <span *ngIf="!item.linkUrl" style="color: var(--ftn-blue); font-weight: 600; font-size: 0.8rem;">Consulter →</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+</div>

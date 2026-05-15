@@ -30,7 +30,7 @@ export class LoginComponent {
         if (isPlatformBrowser(this.platformId)) {
           localStorage.setItem('token', res.token);
           localStorage.setItem('user', JSON.stringify(res.user));
-          
+
           const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
 
           if (res.user.role === 'ADMIN' || res.user.role === 'ADMINISTRATEUR') {
@@ -49,7 +49,8 @@ export class LoginComponent {
         }
       },
       error: (err) => {
-        this.errorMessage = 'Email ou mot de passe incorrect';
+        this.errorMessage =
+          err?.error?.message || 'Email ou mot de passe incorrect.';
         console.error(err);
       }
     });

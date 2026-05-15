@@ -119,9 +119,15 @@ export class RegisterComponent {
     }
 
     this.authService.register(dataToSend).subscribe({
-      next: () => {
-        this.successMessage =
-          'Inscription réussie ! Votre compte est en attente de validation par un administrateur.';
+      next: (res) => {
+        const status = res?.user?.registrationStatus;
+        if (status === 'EN_ATTENTE') {
+          this.successMessage =
+            'Inscription enregistrée. Votre compte est en attente de validation par un administrateur — vous pourrez vous connecter après approbation.';
+        } else {
+          this.successMessage =
+            'Inscription réussie ! Votre compte est en attente de validation par un administrateur.';
+        }
         setTimeout(() => this.router.navigate(['/auth/login']), 4000);
       },
       error: (err) => {

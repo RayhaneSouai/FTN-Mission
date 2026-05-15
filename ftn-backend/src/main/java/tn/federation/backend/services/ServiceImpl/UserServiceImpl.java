@@ -86,6 +86,10 @@ public class UserServiceImpl implements IUserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable avec id: " + id));
 
+        if (user.getRegistrationStatus() == RegistrationStatus.ANNULEE) {
+            throw new IllegalArgumentException("Modification interdite : cette inscription a été refusée.");
+        }
+
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
         user.setEmail(dto.getEmail());
@@ -98,6 +102,14 @@ public class UserServiceImpl implements IUserService {
         user.setNiveau(convertToNiveau(dto.getNiveau()));
         user.setDiscipline(convertToDiscipline(dto.getDiscipline()));
         user.setAnciennete(dto.getAnciennete());
+
+        if (dto.getRegistrationStatus() != null && !dto.getRegistrationStatus().isBlank()) {
+            try {
+                user.setRegistrationStatus(RegistrationStatus.valueOf(dto.getRegistrationStatus().trim().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Statut d'inscription invalide: " + dto.getRegistrationStatus());
+            }
+        }
 
         return mapToDTO(userRepository.save(user));
     }
@@ -180,6 +192,7 @@ public class UserServiceImpl implements IUserService {
         dto.setDiscipline(user.getDiscipline() != null ? user.getDiscipline().name() : null);
         dto.setAnciennete(user.getAnciennete());
         dto.setRegistrationStatus(user.getRegistrationStatus() != null ? user.getRegistrationStatus().name() : null);
+        dto.setCreatedAt(user.getCreatedAt());
         return dto;
     }
 

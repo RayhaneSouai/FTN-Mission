@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 export class NavbarComponent implements OnInit {
   user: any = null;
   isLoggedIn = false;
+  isAdmin = false;
 
   constructor(
     private router: Router,
@@ -28,9 +29,11 @@ export class NavbarComponent implements OnInit {
       if (userStr) {
         this.user = JSON.parse(userStr);
         this.isLoggedIn = true;
+        this.isAdmin = localStorage.getItem('isAdmin') === 'true';
       } else {
         this.user = null;
         this.isLoggedIn = false;
+        this.isAdmin = false;
       }
     }
   }

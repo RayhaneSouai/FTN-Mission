@@ -25,10 +25,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
+        /* enabled=true : la vérification « compte actif / inscription validée » est faite dans AuthServiceImpl.login */
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPasswordHash(),
-                user.getActive() != null ? user.getActive() : true,
+                true,
                 true,
                 true,
                 true,

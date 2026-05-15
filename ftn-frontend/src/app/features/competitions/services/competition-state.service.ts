@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { catchError, finalize, of, tap } from 'rxjs';
-import { Competition, CompetitionRequest, CompetitionStatus } from '../models/competition.model';
+import { Competition, CompetitionRequest } from '../models/competition.model';
 import { CompetitionApiService } from './competition-api.service';
 import { ToastService } from './toast.service';
 
@@ -27,7 +27,9 @@ export class CompetitionStateService {
     });
 
     /* ─── Selectors ─── */
-    readonly competitions = computed(() => this.state().items);
+    readonly competitions = computed(() =>
+        [...this.state().items].sort((a, b) => a.startDate.localeCompare(b.startDate))
+    );
     readonly isLoading = computed(() => this.state().loading);
     readonly error = computed(() => this.state().error);
 
@@ -58,7 +60,7 @@ export class CompetitionStateService {
 
         for (const comp of this.competitions()) {
             const startMs = new Date(comp.startDate + 'T00:00:00').getTime();
-            if (startMs >= todayMs) {
+            if (startMs > todayMs) {
                 const daysUntil = Math.ceil((startMs - todayMs) / 86400000);
                 if (!closest || daysUntil < closest.daysUntil) {
                     closest = { competition: comp, daysUntil };
@@ -142,6 +144,29 @@ export class CompetitionStateService {
             }),
             finalize(() => this.state.update((s) => ({ ...s, loading: false })))
         ).subscribe();
+    }
+
+    /* ─── Single Competition (Details Page) ─── */
+    private readonly _selectedCompetition = signal<Competition | null>(null);
+    readonly selectedCompetition = this._selectedCompetition.asReadonly();
+
+    loadCompetitionById(id: number): void {
+        this.state.update((s) => ({ ...s, loading: true, error: null }));
+        this._selectedCompetition.set(null);
+        this.api.getById(id).pipe(
+            tap((comp) => this._selectedCompetition.set(comp)),
+            catchError((err) => {
+                const msg = err?.message ?? 'Échec du chargement de la compétition';
+                this.state.update((s) => ({ ...s, error: msg }));
+                this.toast.showError(msg);
+                return of(null);
+            }),
+            finalize(() => this.state.update((s) => ({ ...s, loading: false })))
+        ).subscribe();
+    }
+
+    clearSelectedCompetition(): void {
+        this._selectedCompetition.set(null);
     }
 
     clearError(): void {

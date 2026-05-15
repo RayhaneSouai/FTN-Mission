@@ -1,3 +1,55 @@
+/* ─── Admin Bar (WordPress Style) ────────────────────────── */
+.admin-top-bar {
+  background: #1e293b;
+  color: white;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 500;
+  z-index: 110;
+  position: relative;
+}
+
+.admin-bar-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-bar-left, .admin-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.admin-bar-link {
+  color: #cbd5e1;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.2s;
+}
+
+.admin-bar-link:hover {
+  color: #ffffff;
+}
+
+.admin-badge {
+  background: #0ea5e9;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
 /* ─── Navbar Wrapper ─────────────────────────────────────── */
 .navbar-wrapper {
   position: sticky;

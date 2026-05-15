@@ -36,10 +36,10 @@ public class AuthServiceImpl implements IAuthService {
     private final Map<String, PasswordResetToken> resetTokens = new ConcurrentHashMap<>();
 
     public AuthServiceImpl(AuthenticationManager authenticationManager,
-                       UserRepository userRepository,
-                       JwtService jwtService,
-                       PasswordEncoder passwordEncoder,
-                       IEmailService emailService) {
+            UserRepository userRepository,
+            JwtService jwtService,
+            PasswordEncoder passwordEncoder,
+            IEmailService emailService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.jwtService = jwtService;
@@ -50,37 +50,40 @@ public class AuthServiceImpl implements IAuthService {
     public AuthResponseDTO login(LoginRequestDTO request) {
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-            );
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
         } catch (AuthenticationException ex) {
             throw new IllegalArgumentException("Email ou mot de passe incorrect");
         }
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable avec email: " + request.getEmail()));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Utilisateur introuvable avec email: " + request.getEmail()));
 
+        RegistrationStatus reg = user.getRegistrationStatus();
+        if (reg == RegistrationStatus.EN_ATTENTE) {
+            throw new IllegalArgumentException(
+                    "Votre compte est en attente de validation par un administrateur. Vous recevrez un accès après approbation.");
+        }
+        if (reg == RegistrationStatus.ANNULEE) {
+            throw new IllegalArgumentException(
+                    "Cette inscription a été refusée. Contactez l'administration pour plus d'informations.");
+        }
+        if (Boolean.FALSE.equals(user.getActive())) {
+            throw new IllegalArgumentException("Ce compte a été désactivé.");
+        }
+
+        boolean jwtEnabled = user.getActive() != null ? user.getActive() : true;
         String token = jwtService.generateToken(new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPasswordHash(),
-                user.getActive() != null ? user.getActive() : true,
+                jwtEnabled,
                 true,
                 true,
                 true,
-                List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
-        ));
+                List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority(
+                        "ROLE_" + user.getRole().name()))));
 
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(user.getId());
-        userDTO.setFirstName(user.getFirstName());
-        userDTO.setLastName(user.getLastName());
-        userDTO.setEmail(user.getEmail());
-        userDTO.setRole(user.getRole());
-        userDTO.setActive(user.getActive());
-        userDTO.setBirthDate(user.getBirthDate());
-        userDTO.setGender(user.getGender() != null ? user.getGender().name() : null);
-        userDTO.setNiveau(user.getNiveau() != null ? user.getNiveau().name() : null);
-        userDTO.setDiscipline(user.getDiscipline() != null ? user.getDiscipline().name() : null);
-        userDTO.setAnciennete(user.getAnciennete());
+        UserDTO userDTO = mapToDTO(user);
 
         return new AuthResponseDTO(token, userDTO);
     }
@@ -96,21 +99,35 @@ public class AuthServiceImpl implements IAuthService {
             user.setLastName(request.getLastName());
             user.setEmail(request.getEmail());
             user.setRole(request.getRole());
-            
+
             user.setActive(false);
             user.setRegistrationStatus(RegistrationStatus.EN_ATTENTE);
             user.setCreatedAt(LocalDateTime.now());
-            System.out.println("DEBUG: Setting user to INACTIVE and EN_ATTENTE");
-            
+            System.out.println("DEBUG: Setting user to En Attente ");
+
             user.setBirthDate(request.getBirthDate());
-            user.setGender(request.getGender() != null && !request.getGender().trim().isEmpty() ? tn.federation.backend.entities.Gender.valueOf(request.getGender().trim().toUpperCase()) : null);
-            user.setNiveau(request.getNiveau() != null && !request.getNiveau().trim().isEmpty() ? tn.federation.backend.entities.Niveau.valueOf(request.getNiveau().trim().toUpperCase()) : null);
-            user.setDiscipline(request.getDiscipline() != null && !request.getDiscipline().trim().isEmpty() ? tn.federation.backend.entities.Discipline.valueOf(request.getDiscipline().trim().toUpperCase()) : null);
+            user.setGender(request.getGender() != null && !request.getGender().trim().isEmpty()
+                    ? tn.federation.backend.entities.Gender.valueOf(request.getGender().trim().toUpperCase())
+                    : null);
+            user.setNiveau(request.getNiveau() != null && !request.getNiveau().trim().isEmpty()
+                    ? tn.federation.backend.entities.Niveau.valueOf(request.getNiveau().trim().toUpperCase())
+                    : null);
+            user.setDiscipline(request.getDiscipline() != null && !request.getDiscipline().trim().isEmpty()
+                    ? tn.federation.backend.entities.Discipline.valueOf(request.getDiscipline().trim().toUpperCase())
+                    : null);
             user.setAnciennete(request.getAnciennete());
             user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-            
+
             userRepository.save(user);
-            return new AuthResponseDTO(null, mapToDTO(user));
+
+            String token = jwtService.generateToken(new org.springframework.security.core.userdetails.User(
+                    user.getEmail(),
+                    user.getPasswordHash(),
+                    true, true, true, true,
+                    List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority(
+                            "ROLE_" + user.getRole().name()))));
+
+            return new AuthResponseDTO(token, mapToDTO(user));
         } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("Erreur d'inscription: " + e.getMessage());
@@ -136,7 +153,8 @@ public class AuthServiceImpl implements IAuthService {
 
     public void requestPasswordReset(PasswordResetRequestDTO request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable avec email: " + request.getEmail()));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Utilisateur introuvable avec email: " + request.getEmail()));
 
         String token = UUID.randomUUID().toString();
         resetTokens.put(token, new PasswordResetToken(user.getEmail(), Instant.now().plusSeconds(900)));
@@ -150,7 +168,8 @@ public class AuthServiceImpl implements IAuthService {
         }
 
         User user = userRepository.findByEmail(tokenData.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable avec email: " + tokenData.getEmail()));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Utilisateur introuvable avec email: " + tokenData.getEmail()));
 
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);

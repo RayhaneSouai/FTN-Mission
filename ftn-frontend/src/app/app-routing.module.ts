@@ -3,9 +3,57 @@ import { RouterModule, Routes } from '@angular/router';
 import { HomeComponent } from './features/home/home.component';
 import { ClubListComponent } from './features/clubs/components/club-list/club-list.component';
 import { PublicLayoutComponent } from './layout/public/public-layout.component';
+import { AdminLayoutComponent } from './layout/admin/admin-layout.component';
+import { DashboardComponent } from './features/admin/dashboard/dashboard.component';
+import { adminGuard } from './core/guards/admin.guard';
 
+import { MyPerformancesComponent } from './features/my-performance/my-performances.component';
+import { RankingComponent } from './features/ranking/ranking.component';
+
+
+  
 const routes: Routes = [
-  // Main Layout Space (Includes Navbar/Footer)
+  // Admin Space (Backoffice)
+  {
+    path: 'admin',
+    component: AdminLayoutComponent,
+    canActivate: [adminGuard],
+  
+    children: [
+      { path: '', component: DashboardComponent },
+      {
+        path: 'utilisateurs',
+        loadChildren: () => import('./features/users/users.module').then(m => m.UsersModule)
+      },
+      {
+        path: 'licences',
+        loadChildren: () => import('./features/licenses/licenses.module').then(m => m.LicensesModule)
+      },
+      {
+        path: 'mon-profil',
+        loadChildren: () => import('./features/profile/profile.module').then(m => m.ProfileModule)
+      },
+      {
+        path: 'press',
+        loadChildren: () => import('./features/press/press.module').then(m => m.PressModule)
+      }
+     ,
+      {
+    path: 'performances',
+    component: MyPerformancesComponent
+  },
+  {
+    path: 'ranking',
+    component: RankingComponent
+  },
+  {
+    path: '**',
+    redirectTo: 'performances'
+  }
+    ]
+  },
+
+  // Main Layout Space (Includes Navbar/Footer) - Frontoffice
   {
     path: '',
     component: PublicLayoutComponent,
@@ -19,15 +67,7 @@ const routes: Routes = [
             (m) => m.COMPETITION_ROUTES
           ),
       },
-      // Admin/Space management moved under the same layout
-      {
-        path: 'utilisateurs',
-        loadChildren: () => import('./features/users/users.module').then(m => m.UsersModule)
-      },
-      {
-        path: 'licences',
-        loadChildren: () => import('./features/licenses/licenses.module').then(m => m.LicensesModule)
-      },
+      // Keep Mon Profil for everyone in Frontoffice too
       {
         path: 'mon-profil',
         loadChildren: () => import('./features/profile/profile.module').then(m => m.ProfileModule)
@@ -39,11 +79,14 @@ const routes: Routes = [
   {
     path: 'auth',
     loadChildren: () => import('./features/auth/auth.module').then(m => m.AuthModule)
-  }
+  },
+  
+  // Wildcard redirect
+  { path: '**', redirectTo: '' }
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
+  imports: [RouterModule.forRoot(routes,{scrollPositionRestoration: 'top'})],
   exports: [RouterModule]
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}

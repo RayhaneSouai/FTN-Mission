@@ -25,7 +25,8 @@ public class UserController {
     }
 
     @GetMapping
-    @Operation(summary = "Récupérer tous les utilisateurs", description = "Liste tous les utilisateurs du système (utilisateurs authentifiés)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Récupérer tous les utilisateurs", description = "Liste tous les utilisateurs (y compris en attente de validation) — Admin uniquement")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
         return ResponseEntity.ok(userService.findAllUsers());
     }
