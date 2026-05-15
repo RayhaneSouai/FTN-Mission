@@ -8,7 +8,7 @@ import { PressStats } from '../models/press-stats.model';
   providedIn: 'root'
 })
 export class PressService {
-  private baseUrl = '/api/press';
+  private baseUrl = 'http://localhost:8083/ftn/api/press';
 
   constructor(private http: HttpClient) {}
 

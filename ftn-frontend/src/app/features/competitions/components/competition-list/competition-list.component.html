@@ -28,10 +28,16 @@
             <div class="stat-card stat-card--accent">
                 <span class="stat-label">Total Compétitions</span>
                 <span class="stat-value">{{ state.competitions().length }}</span>
+                <p class="stat-sub">{{ thisMonthCount() }} ce mois · {{ upcomingCount() }} à venir</p>
             </div>
             <div class="stat-card">
-                <span class="stat-label">Disciplines</span>
-                <span class="stat-value">{{ uniqueDisciplines().length }}</span>
+                <span class="stat-label">Régions actives</span>
+                <span class="stat-value">{{ uniqueRegions().length }}</span>
+                <div class="discipline-pills">
+                    @for (r of uniqueRegions(); track r) {
+                    <span class="discipline-pill">{{ r }}</span>
+                    }
+                </div>
             </div>
             <div class="stat-card stat-card--next">
                 @if (state.nextNearest(); as next) {
@@ -65,12 +71,12 @@
                     <button [class.active]="currentView() === 'month'" (click)="setView('month')">📅 Mois</button>
                     <button [class.active]="currentView() === 'week'" (click)="setView('week')">📆 Semaine</button>
                 </div>
+                <button class="nav-btn nav-btn--today" (click)="goToday()">Aujourd'hui</button>
                 <div class="nav-controls">
                     <button class="nav-btn" (click)="prevPeriod()">‹</button>
-                    <button class="nav-btn nav-btn--today" (click)="goToday()">Aujourd'hui</button>
+                                    <h2 class="toolbar__label">{{ currentView() === 'month' ? monthLabel() : weekLabel() }}</h2>
                     <button class="nav-btn" (click)="nextPeriod()">›</button>
                 </div>
-                <h2 class="toolbar__label">{{ currentView() === 'month' ? monthLabel() : weekLabel() }}</h2>
             </div>
 
             <!-- MONTH VIEW -->
@@ -88,8 +94,8 @@
                     </div>
                     }
                     @for (ev of week.events; track ev.competition.id) {
-                    <div class="event-bar {{ stateColor(ev.competition.status) }}" [ngStyle]="eventBarStyle(ev)"
-                        (click)="openEditModal(ev.competition)" [title]="ev.competition.name">{{ ev.competition.name }}
+                    <div class="event-bar" [ngStyle]="eventBarStyle(ev)"
+                        (click)="navigateToDetails(ev.competition)" [title]="ev.competition.name">{{ ev.competition.name }}
                     </div>
                     }
                 </div>
@@ -111,8 +117,8 @@
                             class="cal-cell__num">{{ day.label }}</span></div>
                     }
                     @for (ev of currentWeekData().events; track ev.competition.id) {
-                    <div class="event-bar event-bar--week {{ stateColor(ev.competition.status) }}"
-                        [ngStyle]="eventBarStyle(ev)" (click)="openEditModal(ev.competition)">
+                    <div class="event-bar event-bar--week"
+                        [ngStyle]="eventBarStyle(ev)" (click)="navigateToDetails(ev.competition)">
                         <strong>{{ ev.competition.name }}</strong>
                         <span>{{ disciplineLabel(ev.competition.discipline) }}</span>
                     </div>
@@ -163,7 +169,7 @@
             @if (state.competitions().length > 0) {
             <div class="comp-list">
                 @for (comp of state.paginatedCompetitions(); track comp.id) {
-                <article class="comp-card {{ stateColor(comp.status) }}">
+                <article class="comp-card">
                     <div class="comp-card__date">
                         <span>{{ comp.startDate | date:'dd' }}</span>
                         <small>{{ comp.startDate | date:'MMM' }}</small>
@@ -176,9 +182,8 @@
                         </div>
                         <div class="comp-card__detail">
                             <span class="detail-label">Lieu</span>
-                            <span>{{ comp.location }}</span>
+                            <span>{{ comp.secteur === 'NATIONAL' ? (comp.lieu ?? comp.region ?? '—') : ((comp.city ?? '') + ', ' + (comp.country ?? '')) }}</span>
                         </div>
-                        <span class="status-chip status-chip--{{ comp.status }}">{{ statusLabel(comp.status) }}</span>
                         <p class="comp-card__dates">{{ comp.startDate | date:'dd/MM' }} → {{ comp.endDate |
                             date:'dd/MM' }}</p>
                         <div class="comp-card__actions">

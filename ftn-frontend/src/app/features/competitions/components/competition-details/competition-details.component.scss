@@ -1,0 +1,121 @@
+@use '../../styles/competition-theme' as theme;
+
+:host {
+  @include theme.tokens;
+  display: block;
+  min-height: 100vh;
+  background: var(--bg-page);
+  font-family: var(--font-family);
+  color: var(--text-primary);
+}
+
+.details-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 48px;
+}
+
+// ═══════════ HEADER ═══════════
+.details-header {
+  margin-bottom: 24px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  text-decoration: none;
+  margin-bottom: 16px;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #1565C0;
+  }
+}
+
+.details-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #1a1a2e;
+  margin: 0 0 6px;
+  letter-spacing: -0.3px;
+}
+
+.details-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+  font-weight: 500;
+}
+
+// ═══════════ TABS NAV ═══════════
+.tabs-nav {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 24px;
+}
+
+.tab-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  border-radius: 8px 8px 0 0;
+
+  &:hover {
+    color: #374151;
+    background: rgba(21, 101, 192, 0.03);
+  }
+
+  &.is-active {
+    color: #1565C0;
+    border-bottom-color: #1565C0;
+    background: rgba(21, 101, 192, 0.04);
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+// ═══════════ TAB CONTENT ═══════════
+.tab-content {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  min-height: 300px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+// ═══════════ RESPONSIVE ═══════════
+@media (max-width: 768px) {
+  .details-page {
+    padding: 20px 16px;
+  }
+
+  .details-title {
+    font-size: 22px;
+  }
+
+  .tabs-nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-link {
+    padding: 10px 14px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+}
