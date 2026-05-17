@@ -5,6 +5,8 @@ import { ClubListComponent } from './features/clubs/components/club-list/club-li
 import { PublicLayoutComponent } from './layout/public/public-layout.component';
 import { AdminLayoutComponent } from './layout/admin/admin-layout.component';
 import { DashboardComponent } from './features/admin/dashboard/dashboard.component';
+import { AdminCompetitionsComponent } from './features/admin/admin-competitions/admin-competitions.component';
+import { AdminProgrammeComponent } from './features/admin/admin-programme/admin-programme.component';
 import { adminGuard } from './core/guards/admin.guard';
 
 const routes: Routes = [
@@ -31,7 +33,9 @@ const routes: Routes = [
       {
         path: 'press',
         loadChildren: () => import('./features/press/press.module').then(m => m.PressModule)
-      }
+      },
+      { path: 'competitions', component: AdminCompetitionsComponent },
+      { path: 'competitions/:id/programme', component: AdminProgrammeComponent }
     ]
   },
 

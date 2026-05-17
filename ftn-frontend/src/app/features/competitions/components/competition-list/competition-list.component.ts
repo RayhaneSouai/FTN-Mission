@@ -13,6 +13,8 @@ import {
   Competition,
   Discipline,
   DISCIPLINE_LABELS,
+  PISCINE_LABELS,
+  REGION_LABELS,
 } from '../../models/competition.model';
 import { CompetitionStateService } from '../../services/competition-state.service';
 import { CompetitionFormComponent } from '../competition-form/competition-form.component';
@@ -117,6 +119,8 @@ export class CompetitionListComponent implements OnInit, HasUnsavedChanges {
 
   /* ─── Helpers ─── */
   disciplineLabel(d: Discipline): string { return DISCIPLINE_LABELS[d] ?? d; }
+  piscineLabel(p: string): string { return (PISCINE_LABELS as Record<string, string>)[p] ?? p; }
+  regionLabel(r: string): string { return (REGION_LABELS as Record<string, string>)[r] ?? r; }
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {

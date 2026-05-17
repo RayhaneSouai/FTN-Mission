@@ -42,11 +42,15 @@ public class SecurityConfig {
                                 "/api/press/images/**",
                                 "/api/competitions/getAll",
                                 "/api/competitions/get/**",
+                                "/api/competitions/*/programme",
+                                "/api/competitions/*/programme/participants",
                                 "/api/clubs/**",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**")
                         .permitAll()
+                        // Admin programme endpoints require authentication
+                        .requestMatchers("/api/admin/**").authenticated()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())

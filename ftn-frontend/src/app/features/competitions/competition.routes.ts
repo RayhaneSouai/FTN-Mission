@@ -37,6 +37,7 @@ export const COMPETITION_ROUTES: Routes = [
                                 (m) => m.ResultatComponent
                             ),
                     },
+
                 ],
             },
         ],

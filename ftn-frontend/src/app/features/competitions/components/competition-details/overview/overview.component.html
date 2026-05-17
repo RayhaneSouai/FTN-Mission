@@ -6,10 +6,12 @@
             <span class="info-label">Discipline</span>
             <span class="info-value">{{ disciplineLabel(comp.discipline) }}</span>
         </div>
+        @if (comp.categorie) {
         <div class="info-row">
-            <span class="info-label">Secteur</span>
-            <span class="info-value">{{ comp.secteur === 'NATIONAL' ? '🇹🇳 National' : '🌍 International' }}</span>
+            <span class="info-label">Catégorie</span>
+            <span class="info-value badge-categorie">{{ categorieLabel(comp.categorie) }}</span>
         </div>
+        }
         <div class="info-row">
             <span class="info-label">Date de début</span>
             <span class="info-value">{{ comp.startDate | date:'dd MMMM yyyy' }}</span>
@@ -22,7 +24,6 @@
 
     <div class="info-card">
         <h3 class="info-card__title">Localisation</h3>
-        @if (comp.secteur === 'NATIONAL') {
         <div class="info-row">
             <span class="info-label">Région</span>
             <span class="info-value">{{ regionLabel(comp.region ?? '') }}</span>
@@ -31,20 +32,6 @@
             <span class="info-label">Piscine</span>
             <span class="info-value">{{ piscineLabel(comp.lieu ?? '') }}</span>
         </div>
-        } @else {
-        <div class="info-row">
-            <span class="info-label">Pays</span>
-            <span class="info-value">{{ comp.country }}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Ville</span>
-            <span class="info-value">{{ comp.city }}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Lieu</span>
-            <span class="info-value">{{ comp.venue }}</span>
-        </div>
-        }
     </div>
 
     @if (comp.description) {
@@ -54,6 +41,10 @@
     </div>
     }
 </div>
+
+<!-- Programme (read-only view of approved programme) -->
+<app-programme-readonly></app-programme-readonly>
+
 } @else if (state.isLoading()) {
 <div class="loading-container">
     <div class="spinner"></div>

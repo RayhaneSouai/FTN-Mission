@@ -182,7 +182,7 @@
                         </div>
                         <div class="comp-card__detail">
                             <span class="detail-label">Lieu</span>
-                            <span>{{ comp.secteur === 'NATIONAL' ? (comp.lieu ?? comp.region ?? '—') : ((comp.city ?? '') + ', ' + (comp.country ?? '')) }}</span>
+                            <span>{{ piscineLabel(comp.lieu ?? '') || regionLabel(comp.region ?? '') || '—' }}</span>
                         </div>
                         <p class="comp-card__dates">{{ comp.startDate | date:'dd/MM' }} → {{ comp.endDate |
                             date:'dd/MM' }}</p>

@@ -1,32 +1,59 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, OnInit, signal } from '@angular/core';
+import { NgFor, NgIf } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { CompetitionStateService } from '../../../services/competition-state.service';
+import { ProgrammeApiService } from '../../../services/programme-api.service';
+import { SeriesParticipant } from '../../../models/competition.model';
 
 @Component({
   selector: 'app-participants',
   standalone: true,
-  template: `
-    <div class="placeholder">
-      <h3>Participants</h3>
-      <p>La liste des participants sera affichée ici.</p>
-    </div>
-  `,
-  styles: [`
-    .placeholder {
-      text-align: center;
-      padding: 48px 24px;
-      color: #6b7280;
-
-      h3 {
-        font-size: 18px;
-        color: #374151;
-        margin: 0 0 8px;
-      }
-
-      p {
-        font-size: 14px;
-        margin: 0;
-      }
-    }
-  `],
+  imports: [NgFor, NgIf, FormsModule],
+  templateUrl: './participants.component.html',
+  styleUrl: './participants.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ParticipantsComponent {}
+export class ParticipantsComponent implements OnInit {
+  private readonly state = inject(CompetitionStateService);
+  private readonly programmeApi = inject(ProgrammeApiService);
+
+  participants = signal<SeriesParticipant[]>([]);
+  filteredParticipants = signal<SeriesParticipant[]>([]);
+  loading = signal(false);
+  searchTerm = '';
+
+  ngOnInit(): void {
+    const comp = this.state.selectedCompetition();
+    if (comp) {
+      this.loadParticipants(comp.id);
+    }
+  }
+
+  private loadParticipants(competitionId: number): void {
+    this.loading.set(true);
+    this.programmeApi.getParticipants(competitionId).subscribe({
+      next: (data) => {
+        this.participants.set(data);
+        this.filteredParticipants.set(data);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false),
+    });
+  }
+
+  onSearch(): void {
+    const term = this.searchTerm.toLowerCase().trim();
+    if (!term) {
+      this.filteredParticipants.set(this.participants());
+      return;
+    }
+    this.filteredParticipants.set(
+      this.participants().filter(
+        (p) =>
+          p.swimmerFirstName?.toLowerCase().includes(term) ||
+          p.swimmerLastName?.toLowerCase().includes(term) ||
+          p.club?.toLowerCase().includes(term)
+      )
+    );
+  }
+}

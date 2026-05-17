@@ -1,0 +1,57 @@
+<div class="programme-section">
+
+  @if (loading()) {
+    <div class="loading-spinner">Chargement du programme...</div>
+  }
+
+  @if (!programGenerated() && !loading()) {
+    <div class="programme-empty">
+      <p class="text-muted">Aucun programme approuvé pour cette compétition.</p>
+    </div>
+  }
+
+  @if (programGenerated() && !loading()) {
+    <div class="programme-content">
+      <h3 class="section-title">Programme</h3>
+
+      <!-- Day tabs -->
+      <div class="day-tabs">
+        @for (day of days(); track day.id) {
+          <button class="day-tab" [class.active]="selectedDayId() === day.id" (click)="selectDay(day)">
+            <span class="day-tab-number">Jour {{ day.dayNumber }}</span>
+            <span class="day-tab-date">{{ day.date }}</span>
+          </button>
+        }
+      </div>
+
+      <!-- Selected day timeline -->
+      @if (selectedDay()) {
+        <div class="day-content">
+          <h4 class="day-content-title">Jour {{ selectedDay()!.dayNumber }} — {{ selectedDay()!.date }}</h4>
+
+          @if (selectedDay()!.items.length === 0) {
+            <p class="text-muted">Aucun élément pour cette journée.</p>
+          } @else {
+            <div class="items-timeline">
+              @for (item of selectedDay()!.items; track item.id) {
+                <div class="timeline-item" [class.is-series]="item.type === 'SERIES'" [class.is-part]="item.type === 'PART'">
+                  <div class="timeline-time">{{ item.time }}</div>
+                  <div class="timeline-marker"></div>
+                  <div class="timeline-body">
+                    <span class="type-badge" [class.badge-series]="item.type === 'SERIES'" [class.badge-part]="item.type === 'PART'">
+                      {{ item.type === 'SERIES' ? 'SÉRIE' : 'PARTIE' }}
+                    </span>
+                    <strong>{{ item.label }}</strong>
+                    @if (item.type === 'SERIES' && item.numberOfParticipants) {
+                      <span class="participants-badge">{{ item.numberOfParticipants }} participants</span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

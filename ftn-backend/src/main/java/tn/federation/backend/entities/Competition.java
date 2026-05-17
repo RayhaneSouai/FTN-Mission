@@ -34,26 +34,32 @@ public class Competition {
     private LocalDate endDate;
 
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(255)")
     private Piscine lieu;
 
     @Enumerated(EnumType.STRING)
     private Region region;
 
     @Enumerated(EnumType.STRING)
-    private Secteur secteur;
-
-    // International fields
-    private String country;
-    private String city;
-    private String venue;
+    private Categorie categorie;
 
     @Enumerated(EnumType.STRING)
     @JsonSetter(nulls = Nulls.SKIP)
     private CompetitionStatus status = CompetitionStatus.PLANIFIEE;
 
+    /** Status of the competition programme (DRAFT / APPROVED) */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "programme_status")
+    @JsonSetter(nulls = Nulls.SKIP)
+    private ProgrammeStatus programmeStatus;
+
     @JsonIgnore
     @OneToMany(mappedBy = "competition")
     private List<Participation> participations;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "competition", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CompetitionDay> days;
 
     @JsonIgnore
     @OneToMany(mappedBy = "competition")

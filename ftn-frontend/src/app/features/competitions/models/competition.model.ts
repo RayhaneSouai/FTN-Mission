@@ -13,11 +13,6 @@ export enum CompetitionStatus {
   ANNULEE = 'ANNULEE',
 }
 
-export enum Secteur {
-  NATIONAL = 'NATIONAL',
-  INTERNATIONAL = 'INTERNATIONAL',
-}
-
 export enum Region {
   GRAND_TUNIS = 'GRAND_TUNIS',
   SAHEL = 'SAHEL',
@@ -39,6 +34,17 @@ export enum Piscine {
   SFAX_MUNICIPALE = 'SFAX_MUNICIPALE',
 }
 
+export enum Categorie {
+  TC = 'TC',
+  POUSSINS = 'POUSSINS',
+  BENJAMINS = 'BENJAMINS',
+  MIN_CAD_JS = 'MIN_CAD_JS',
+  MASTERS = 'MASTERS',
+  QUATORZE_ANS_ET_PLUS = 'QUATORZE_ANS_ET_PLUS',
+  NEUF_ANS = 'NEUF_ANS',
+  TREIZE_DIX_HUIT_ANS = 'TREIZE_DIX_HUIT_ANS',
+}
+
 export interface Competition {
   id: number;
   name: string;
@@ -46,16 +52,11 @@ export interface Competition {
   discipline: Discipline;
   startDate: string;
   endDate: string;
-  secteur: Secteur;
-  // National fields
+  categorie?: Categorie;
   region?: string;
   lieu?: string;
-  // International fields
-  country?: string;
-  city?: string;
-  venue?: string;
-  location?: string;
   status?: CompetitionStatus;
+  programmeStatus?: 'DRAFT' | 'APPROVED' | null;
 }
 
 export type CompetitionRequest = Omit<Competition, 'id' | 'status'>;
@@ -97,3 +98,101 @@ export const PISCINE_LABELS: Record<Piscine, string> = {
 
   [Piscine.SFAX_MUNICIPALE]: 'Sfax Municipale',
 };
+
+export const CATEGORIE_LABELS: Record<Categorie, string> = {
+  [Categorie.TC]: 'TC (Toutes Catégories)',
+  [Categorie.POUSSINS]: 'Poussins',
+  [Categorie.BENJAMINS]: 'Benjamins',
+  [Categorie.MIN_CAD_JS]: 'Min-Cad-J/S',
+  [Categorie.MASTERS]: 'Masters',
+  [Categorie.QUATORZE_ANS_ET_PLUS]: '14 ans et +',
+  [Categorie.NEUF_ANS]: '9 ans',
+  [Categorie.TREIZE_DIX_HUIT_ANS]: '13-18 ans',
+};
+
+/* ─── Programme Models (Legacy v1) ─── */
+
+export interface ProgrammeDay {
+  id: number;
+  dayNumber: number;
+  date: string;
+  session?: string;
+  events: ProgrammeEvent[];
+}
+
+export interface ProgrammeEvent {
+  id: number;
+  eventNumber: number;
+  eventName: string;
+  gender?: string;
+  distance?: string;
+  stroke?: string;
+  series: EventSeries[];
+}
+
+export interface EventSeries {
+  id: number;
+  seriesNumber: number;
+  startTime?: string;
+  participants: SeriesParticipant[];
+}
+
+export interface SeriesParticipant {
+  id: number;
+  lane: number;
+  swimmerId: number;
+  swimmerFirstName: string;
+  swimmerLastName: string;
+  birthDate?: string;
+  gender?: string;
+  club?: string;
+  entryTime: string;
+}
+
+/* ─── Programme Models (v2 - flat ProgramItem) ─── */
+
+export type ProgramItemType = 'PART' | 'SERIES';
+
+export type ProgrammeStatus = 'DRAFT' | 'APPROVED';
+
+export interface ProgrammeStatusResponse {
+  competitionId: number;
+  totalDaysRequired: number;
+  daysCreated: number;
+  programGenerated: boolean;
+  programmeStatus: ProgrammeStatus | null;
+  days: ProgrammeDayResponse[];
+}
+
+export interface ProgrammeDayResponse {
+  id: number;
+  dayNumber: number;
+  date: string;
+  items: ProgramItemResponse[];
+}
+
+export interface ProgramItemResponse {
+  id: number;
+  label: string;
+  time: string;
+  type: ProgramItemType;
+  numberOfParticipants?: number;
+}
+
+// Request DTOs
+export interface ProgramItemRequest {
+  label: string;
+  time: string;
+  type: ProgramItemType;
+  numberOfParticipants?: number;
+}
+
+/** Preset labels for program items */
+export const PROGRAM_ITEM_PRESETS: { label: string; type: ProgramItemType }[] = [
+  { label: 'Ouverture des portes', type: 'PART' },
+  { label: 'Échauffements', type: 'PART' },
+  { label: 'Évacuation du bassin', type: 'PART' },
+  { label: 'Début des épreuves', type: 'PART' },
+  { label: 'Pause', type: 'PART' },
+  { label: 'Remise des médailles', type: 'PART' },
+];
