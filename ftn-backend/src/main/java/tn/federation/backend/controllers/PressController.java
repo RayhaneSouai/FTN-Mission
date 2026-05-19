@@ -17,9 +17,11 @@ import java.nio.file.Paths;
 import java.util.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import tn.federation.backend.dto.PressInteractionDTO;
+
 @RestController
 @RequestMapping("/api/press")
-
+@CrossOrigin(origins = "*", maxAge = 3600)
 @Tag(name = "Press", description = "Gestion des articles de presse (CRUD + publication/archivage)")
 public class PressController {
 
@@ -235,6 +237,59 @@ public class PressController {
             return org.springframework.http.ResponseEntity.ok().build();
         } catch (Exception e) {
             return org.springframework.http.ResponseEntity.internalServerError().body("Erreur Delete: " + e.getMessage());
+        }
+    }
+
+    // =====================================================================
+    // INTERACTIONS (Commentaires, Réactions, Favoris)
+    // =====================================================================
+
+    @Operation(summary = "Obtenir les interactions (commentaires, réactions, favoris) d'un article")
+    @GetMapping("/{id}/interactions")
+    public org.springframework.http.ResponseEntity<PressInteractionDTO> getInteractions(
+            @PathVariable long id, 
+            @RequestParam(required = false) Long userId) {
+        return org.springframework.http.ResponseEntity.ok(pressService.getInteractions(id, userId));
+    }
+
+    @Operation(summary = "Ajouter un commentaire")
+    @PostMapping("/{id}/comment")
+    public org.springframework.http.ResponseEntity<?> addComment(
+            @PathVariable long id, 
+            @RequestParam Long userId, 
+            @RequestBody Map<String, String> payload) {
+        try {
+            pressService.addComment(id, userId, payload.get("text"));
+            return org.springframework.http.ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.internalServerError().body("Erreur Comment: " + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "Ajouter/Modifier/Supprimer une réaction")
+    @PostMapping("/{id}/react")
+    public org.springframework.http.ResponseEntity<?> toggleReaction(
+            @PathVariable long id, 
+            @RequestParam Long userId, 
+            @RequestParam String type) {
+        try {
+            pressService.toggleReaction(id, userId, type);
+            return org.springframework.http.ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.internalServerError().body("Erreur Reaction: " + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "Ajouter/Supprimer un favori")
+    @PostMapping("/{id}/favorite")
+    public org.springframework.http.ResponseEntity<?> toggleFavorite(
+            @PathVariable long id, 
+            @RequestParam Long userId) {
+        try {
+            pressService.toggleFavorite(id, userId);
+            return org.springframework.http.ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.internalServerError().body("Erreur Favorite: " + e.getMessage());
         }
     }
 }

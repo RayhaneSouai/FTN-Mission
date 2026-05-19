@@ -268,3 +268,42 @@
   color: white;
   gap: 12px;
 }
+
+/* ── Interaction Styles ── */
+.active-reaction {
+  border-color: #3b82f6 !important;
+  background: #eff6ff !important;
+  transform: scale(1.08);
+}
+
+button:focus-visible {
+  outline: 2px solid #004da3;
+  outline-offset: 2px;
+}
+
+/* Comment input */
+input[type="text"]:focus {
+  border-color: #004da3 !important;
+  box-shadow: 0 0 0 3px rgba(0, 77, 163, 0.1);
+}
+
+/* Scrollbar for comments list */
+div::-webkit-scrollbar {
+  width: 5px;
+}
+div::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+div::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+div::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Reaction button hover */
+button:hover {
+  transform: scale(1.04);
+}

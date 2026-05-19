@@ -24,4 +24,10 @@ public interface IPressService {
     List<PressItem> getByTypeAndDiscipline(PressType type, String discipline);
 
     PressStatsDTO getStats();
+
+    // Interaction methods
+    tn.federation.backend.dto.PressInteractionDTO getInteractions(long pressItemId, Long currentUserId);
+    void addComment(long pressItemId, Long userId, String text);
+    void toggleReaction(long pressItemId, Long userId, String reactionType);
+    void toggleFavorite(long pressItemId, Long userId);
 }

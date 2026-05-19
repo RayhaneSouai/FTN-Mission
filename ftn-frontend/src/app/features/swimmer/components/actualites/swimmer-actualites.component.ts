@@ -36,6 +36,18 @@ export class SwimmerActualitesComponent implements OnInit {
     'PHOTO': 'Album Photo'
   };
 
+  interactions: any = null;
+  newCommentText: string = '';
+  isSubmittingComment = false;
+
+  availableReactions = [
+    { type: 'LIKE', emoji: '👍' },
+    { type: 'DISLIKE', emoji: '👎' },
+    { type: 'SAD', emoji: '😢' },
+    { type: 'ANGRY', emoji: '😡' },
+    { type: 'HEART', emoji: '❤️' }
+  ];
+
   constructor(private svc: SwimmerService, public pressService: PressService) {}
 
   ngOnInit() {
@@ -59,26 +71,15 @@ export class SwimmerActualitesComponent implements OnInit {
     this.showIframe = false;
     this.showFullContent = false;
     document.body.style.overflow = 'hidden';
+    this.loadInteractions();
   }
 
   closeArticle() {
     this.selectedItem = null;
     this.translatedContent = null;
     this.aiRecap = null;
+    this.interactions = null;
     document.body.style.overflow = 'auto';
-  }
-
-  translateArticle() {
-    if (!this.selectedItem) return;
-    this.isTranslating = true;
-    const textToTranslate = this.selectedItem.content || this.selectedItem.summary || this.selectedItem.title;
-    this.pressService.translateText(textToTranslate, this.targetLang).subscribe({
-      next: (res) => {
-        this.translatedContent = res;
-        this.isTranslating = false;
-      },
-      error: () => this.isTranslating = false
-    });
   }
 
   generateRecap() {
@@ -104,6 +105,11 @@ export class SwimmerActualitesComponent implements OnInit {
     return docsStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
   }
 
+  // Alias used in the template
+  getDocuments(docsStr: string): string[] {
+    return this.getDocumentsList(docsStr);
+  }
+
   getFileName(url: string): string {
     try {
       const parts = url.split('/');
@@ -120,5 +126,83 @@ export class SwimmerActualitesComponent implements OnInit {
 
   openLink(url: string | undefined) {
     if (url) window.open(url, '_blank');
+  }
+
+  // --- INTERACTIONS METHODS ---
+
+  private getCurrentUserId(): number | null {
+    if (typeof localStorage !== 'undefined') {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          return user.id;
+        } catch (e) {
+          return null;
+        }
+      }
+    }
+    return null;
+  }
+
+  loadInteractions() {
+    if (!this.selectedItem) return;
+    const userId = this.getCurrentUserId();
+    this.pressService.getInteractions(this.selectedItem.idPressItem, userId).subscribe({
+      next: (res) => {
+        this.interactions = res;
+      },
+      error: (err) => console.error('Error loading interactions', err)
+    });
+  }
+
+  addComment() {
+    if (!this.newCommentText.trim() || this.isSubmittingComment || !this.selectedItem) return;
+    const userId = this.getCurrentUserId();
+    if (!userId) return;
+
+    this.isSubmittingComment = true;
+    this.pressService.addComment(this.selectedItem.idPressItem, userId, this.newCommentText).subscribe({
+      next: () => {
+        this.newCommentText = '';
+        this.isSubmittingComment = false;
+        this.loadInteractions(); // Reload to see the new comment
+      },
+      error: (err) => {
+        console.error('Error adding comment', err);
+        this.isSubmittingComment = false;
+      }
+    });
+  }
+
+  toggleReaction(type: string) {
+    if (!this.selectedItem) return;
+    const userId = this.getCurrentUserId();
+    if (!userId) return;
+
+    this.pressService.toggleReaction(this.selectedItem.idPressItem, userId, type).subscribe({
+      next: () => {
+        this.loadInteractions(); // Reload to see updated reactions
+      },
+      error: (err) => console.error('Error toggling reaction', err)
+    });
+  }
+
+  toggleFavorite() {
+    if (!this.selectedItem) return;
+    const userId = this.getCurrentUserId();
+    if (!userId) return;
+
+    this.pressService.toggleFavorite(this.selectedItem.idPressItem, userId).subscribe({
+      next: () => {
+        this.loadInteractions(); // Reload to see updated favorite status
+      },
+      error: (err) => console.error('Error toggling favorite', err)
+    });
+  }
+
+  getReactionCount(type: string): number {
+    if (!this.interactions || !this.interactions.reactionCounts) return 0;
+    return this.interactions.reactionCounts[type] || 0;
   }
 }

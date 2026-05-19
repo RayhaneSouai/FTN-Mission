@@ -171,4 +171,23 @@ export class PressService {
     formData.append('file', file);
     return this.http.post<{ url: string }>(`${this.baseUrl}/upload`, formData);
   }
+
+  // --- INTERACTIONS ---
+
+  getInteractions(pressItemId: number, userId: number | null): Observable<any> {
+    const params = userId ? `?userId=${userId}` : '';
+    return this.http.get<any>(`${this.baseUrl}/${pressItemId}/interactions${params}`);
+  }
+
+  addComment(pressItemId: number, userId: number, text: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/${pressItemId}/comment?userId=${userId}`, { text });
+  }
+
+  toggleReaction(pressItemId: number, userId: number, type: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/${pressItemId}/react?userId=${userId}&type=${type}`, {});
+  }
+
+  toggleFavorite(pressItemId: number, userId: number): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/${pressItemId}/favorite?userId=${userId}`, {});
+  }
 }

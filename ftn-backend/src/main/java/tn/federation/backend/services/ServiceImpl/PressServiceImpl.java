@@ -10,6 +10,17 @@ import tn.federation.backend.entities.PressStatus;
 import tn.federation.backend.entities.PressType;
 import tn.federation.backend.repositories.IPressItemRepository;
 
+import tn.federation.backend.entities.PressComment;
+import tn.federation.backend.entities.PressReaction;
+import tn.federation.backend.entities.PressFavorite;
+import tn.federation.backend.entities.User;
+import tn.federation.backend.repositories.PressCommentRepository;
+import tn.federation.backend.repositories.PressReactionRepository;
+import tn.federation.backend.repositories.PressFavoriteRepository;
+import tn.federation.backend.repositories.UserRepository;
+import tn.federation.backend.dto.PressInteractionDTO;
+import java.util.stream.Collectors;
+
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +43,18 @@ public class PressServiceImpl implements IPressService {
     // Injection automatique du repository pour l'accès à la base de données
     @Autowired
     private IPressItemRepository pressItemRepository;
+
+    @Autowired
+    private PressCommentRepository commentRepository;
+
+    @Autowired
+    private PressReactionRepository reactionRepository;
+
+    @Autowired
+    private PressFavoriteRepository favoriteRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     /**
      * Retourne tous les articles sans filtre.
@@ -231,5 +254,102 @@ public class PressServiceImpl implements IPressService {
                 .countByType(byType)
                 .countByDiscipline(byDiscipline)
                 .build();
+    }
+
+    @Override
+    public PressInteractionDTO getInteractions(long pressItemId, Long currentUserId) {
+        List<PressComment> comments = commentRepository.findByPressItemIdOrderByCreatedAtAsc(pressItemId);
+        List<PressInteractionDTO.CommentDTO> commentDTOs = comments.stream().map(c -> 
+            PressInteractionDTO.CommentDTO.builder()
+                .id(c.getId())
+                .text(c.getText())
+                .createdAt(c.getCreatedAt())
+                .userId(c.getUser().getId())
+                .userName(c.getUser().getFirstName() + " " + c.getUser().getLastName())
+                .build()
+        ).collect(Collectors.toList());
+
+        List<PressReaction> reactions = reactionRepository.findByPressItemId(pressItemId);
+        Map<String, Long> reactionCounts = reactions.stream()
+            .collect(Collectors.groupingBy(PressReaction::getType, Collectors.counting()));
+
+        String currentUserReaction = null;
+        boolean isFavorited = false;
+        
+        if (currentUserId != null) {
+            currentUserReaction = reactionRepository.findByPressItemIdAndUserId(pressItemId, currentUserId)
+                .map(PressReaction::getType)
+                .orElse(null);
+            
+            isFavorited = favoriteRepository.findByPressItemIdAndUserId(pressItemId, currentUserId).isPresent();
+        }
+
+        Long totalFavorites = (long) favoriteRepository.findByPressItemId(pressItemId).size();
+
+        return PressInteractionDTO.builder()
+                .comments(commentDTOs)
+                .reactionCounts(reactionCounts)
+                .currentUserReaction(currentUserReaction)
+                .isFavoritedByCurrentUser(isFavorited)
+                .totalFavorites(totalFavorites)
+                .build();
+    }
+
+    @Override
+    public void addComment(long pressItemId, Long userId, String text) {
+        PressItem item = getPressItemById(pressItemId);
+        User user = userRepository.findById(userId).orElse(null);
+        if (item != null && user != null) {
+            PressComment comment = new PressComment();
+            comment.setPressItem(item);
+            comment.setUser(user);
+            comment.setText(text);
+            commentRepository.save(comment);
+        }
+    }
+
+    @Override
+    public void toggleReaction(long pressItemId, Long userId, String reactionType) {
+        PressItem item = getPressItemById(pressItemId);
+        User user = userRepository.findById(userId).orElse(null);
+        if (item != null && user != null) {
+            PressReaction reaction = reactionRepository.findByPressItemIdAndUserId(pressItemId, userId).orElse(null);
+            if (reaction != null) {
+                if (reaction.getType().equals(reactionType)) {
+                    // Same reaction clicked again, remove it
+                    reactionRepository.delete(reaction);
+                } else {
+                    // Different reaction, update it
+                    reaction.setType(reactionType);
+                    reactionRepository.save(reaction);
+                }
+            } else {
+                // New reaction
+                PressReaction newReaction = new PressReaction();
+                newReaction.setPressItem(item);
+                newReaction.setUser(user);
+                newReaction.setType(reactionType);
+                reactionRepository.save(newReaction);
+            }
+        }
+    }
+
+    @Override
+    public void toggleFavorite(long pressItemId, Long userId) {
+        PressItem item = getPressItemById(pressItemId);
+        User user = userRepository.findById(userId).orElse(null);
+        if (item != null && user != null) {
+            PressFavorite favorite = favoriteRepository.findByPressItemIdAndUserId(pressItemId, userId).orElse(null);
+            if (favorite != null) {
+                // Remove favorite
+                favoriteRepository.delete(favorite);
+            } else {
+                // Add favorite
+                PressFavorite newFavorite = new PressFavorite();
+                newFavorite.setPressItem(item);
+                newFavorite.setUser(user);
+                favoriteRepository.save(newFavorite);
+            }
+        }
     }
 }

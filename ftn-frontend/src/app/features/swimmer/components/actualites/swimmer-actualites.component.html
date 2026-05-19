@@ -49,9 +49,6 @@
             <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/>
           </svg>
         </div>
-        <span class="type-chip" [class]="'type-' + item.type?.toLowerCase()">
-          {{ item.type === 'VIDEO' ? '▶ Vidéo' : item.type === 'PHOTO' ? '📷 Photo' : item.type === 'COMMUNIQUE' ? '📢' : '📰 Article' }}
-        </span>
       </div>
 
       <!-- Card Body -->
@@ -88,18 +85,6 @@
           </button>
         </div>
         
-        <div style="display: flex; gap: 8px; align-items: center;">
-          <select [(ngModel)]="targetLang" style="padding: 10px; border-radius: 12px; border: 1px solid #bae6fd; outline: none; background: white; font-weight: 600; color: #0284c7;">
-            <option value="fr">Français</option>
-            <option value="en">Anglais</option>
-            <option value="ar">Arabe</option>
-            <option value="it">Italien</option>
-          </select>
-          <button (click)="translateArticle()" [disabled]="isTranslating" style="background: white; color: #0284c7; border: 1px solid #bae6fd; padding: 10px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
-            <span *ngIf="!isTranslating">🌐 Traduire</span>
-            <span *ngIf="isTranslating">⏳ Traduction...</span>
-          </button>
-        </div>
       </div>
 
       <!-- AI Recap Box -->
@@ -109,9 +94,6 @@
 
       <!-- Category Label & Discipline -->
       <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px; margin-top: 10px;">
-        <span style="background: #e0f2fe; color: #0369a1; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase;">
-          {{ categoryLabels[selectedItem.type] || selectedItem.type }}
-        </span>
         <span style="color: #64748b; font-weight: 700; font-size: 0.85rem; text-transform: uppercase;">
           • {{ selectedItem.discipline }}
         </span>
@@ -159,28 +141,89 @@
         </div>
       </section>
 
-      <!-- External Source Website Viewer -->
-      <section *ngIf="selectedItem.linkUrl" style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #f1f5f9;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-          <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin: 0;">🔗 Source externe</h3>
-          <div style="display: flex; gap: 10px;">
-            <button (click)="showIframe = !showIframe" style="background: white; border: 2px solid #1565C0; color: #1565C0; padding: 10px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
-              <span *ngIf="!showIframe">Afficher la page intégrée</span>
-              <span *ngIf="showIframe">Masquer la page intégrée</span>
-            </button>
-            <button (click)="openLink(selectedItem.linkUrl)" style="background: #1565C0; border: 2px solid #1565C0; color: white; padding: 10px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
-              Ouvrir dans un nouvel onglet
-            </button>
-          </div>
+      <!-- Document / PDF Link -->
+      <section *ngIf="selectedItem.documents" style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #f1f5f9;">
+        <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 20px;">📄 Documents joints</h3>
+        <div *ngFor="let docUrl of getDocuments(selectedItem.documents)" style="margin-bottom: 10px;">
+          <a [href]="docUrl" target="_blank" style="background: #1565C0; color: white; padding: 10px 16px; border-radius: 12px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 3v5h5M16 13H8M16 17H8M10 9H8"/></svg>
+            Ouvrir le document PDF
+          </a>
         </div>
+      </section>
+
+      <!-- INTERACTIONS SECTION (Reactions, Favorites, Comments) -->
+      <section style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #f1f5f9;">
         
-        <div *ngIf="showIframe" style="width: 100%; height: 60vh; border-radius: 16px; overflow: hidden; border: 2px solid #e2e8f0; background: #f8fafc; position: relative;">
-          <!-- Fallback message in case X-Frame-Options blocks it -->
-          <div style="position: absolute; top: 0; left: 0; width: 100%; padding: 10px; background: #fffbeb; color: #b45309; text-align: center; font-size: 0.85rem; border-bottom: 1px solid #fde68a; z-index: 1;">
-            Info: Si la page reste vide ou affiche "Connexion refusée", c'est que le site source interdit l'intégration. Utilisez le bouton "Ouvrir dans un nouvel onglet".
+        <!-- Actions Bar (Reactions & Favorite) -->
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; background: #f8fafc; padding: 16px; border-radius: 16px; margin-bottom: 24px;">
+          
+          <!-- Reactions -->
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button *ngFor="let reaction of availableReactions" 
+                    (click)="toggleReaction(reaction.type)"
+                    [class.active-reaction]="interactions?.currentUserReaction === reaction.type"
+                    style="background: white; border: 1px solid #e2e8f0; border-radius: 20px; padding: 6px 12px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;"
+                    [style.border-color]="interactions?.currentUserReaction === reaction.type ? '#3b82f6' : '#e2e8f0'"
+                    [style.background]="interactions?.currentUserReaction === reaction.type ? '#eff6ff' : 'white'">
+              {{ reaction.emoji }} 
+              <span style="font-size: 0.9rem; font-weight: 600; color: #475569;">
+                {{ getReactionCount(reaction.type) }}
+              </span>
+            </button>
           </div>
-          <iframe [src]="selectedItem.linkUrl | safe" style="width: 100%; height: 100%; border: none; padding-top: 40px; position: relative; z-index: 2;"></iframe>
+
+          <!-- Favorite -->
+          <button (click)="toggleFavorite()" 
+                  [style.color]="interactions?.isFavoritedByCurrentUser ? '#eab308' : '#64748b'"
+                  [style.background]="interactions?.isFavoritedByCurrentUser ? '#fefce8' : 'white'"
+                  [style.border-color]="interactions?.isFavoritedByCurrentUser ? '#fef08a' : '#e2e8f0'"
+                  style="border: 1px solid #e2e8f0; border-radius: 20px; padding: 8px 16px; font-size: 1.1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
+            <span *ngIf="interactions?.isFavoritedByCurrentUser">⭐ Favori</span>
+            <span *ngIf="!interactions?.isFavoritedByCurrentUser">☆ Ajouter aux favoris</span>
+            <span style="background: #f1f5f9; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; color: #475569;">{{ interactions?.totalFavorites || 0 }}</span>
+          </button>
         </div>
+
+        <!-- Comments Section -->
+        <div>
+          <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+            💬 Commentaires ({{ interactions?.comments?.length || 0 }})
+          </h3>
+
+          <!-- Add Comment Input -->
+          <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0;">
+              Moi
+            </div>
+            <div style="flex-grow: 1; display: flex; gap: 8px;">
+              <input type="text" [(ngModel)]="newCommentText" (keyup.enter)="addComment()" placeholder="Ajouter un commentaire..." style="flex-grow: 1; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 12px; outline: none; font-size: 1rem; transition: border-color 0.2s;">
+              <button (click)="addComment()" [disabled]="!newCommentText.trim() || isSubmittingComment" style="background: #0284c7; color: white; border: none; padding: 0 20px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: background 0.2s;">
+                Envoyer
+              </button>
+            </div>
+          </div>
+
+          <!-- Comments List -->
+          <div style="display: flex; flex-direction: column; gap: 16px; max-height: 400px; overflow-y: auto; padding-right: 8px;">
+            <div *ngFor="let comment of interactions?.comments" style="display: flex; gap: 12px; background: #f8fafc; padding: 12px 16px; border-radius: 16px;">
+              <div style="width: 40px; height: 40px; border-radius: 50%; background: #cbd5e1; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; font-size: 1.2rem;">
+                {{ comment.userName.charAt(0) | uppercase }}
+              </div>
+              <div>
+                <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px;">
+                  <span style="font-weight: 700; color: #1e293b;">{{ comment.userName }}</span>
+                  <span style="font-size: 0.8rem; color: #94a3b8;">{{ comment.createdAt | date:'dd MMM à HH:mm' }}</span>
+                </div>
+                <p style="margin: 0; color: #334155; font-size: 1rem; line-height: 1.5; word-break: break-word;">{{ comment.text }}</p>
+              </div>
+            </div>
+            <div *ngIf="!interactions?.comments?.length" style="text-align: center; color: #94a3b8; padding: 20px 0;">
+              Soyez le premier à commenter !
+            </div>
+          </div>
+        </div>
+
       </section>
     </div>
   </div>
