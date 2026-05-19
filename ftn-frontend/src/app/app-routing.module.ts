@@ -56,10 +56,6 @@ const routes: Routes = [
   }
     ]
   },
-  {
-    path: 'espace-nageur',
-    loadChildren: () => import('./features/swimmer/swimmer.module').then(m => m.SwimmerModule)
-  },
 
   // Main Layout Space (Includes Navbar/Footer) - Frontoffice
   {

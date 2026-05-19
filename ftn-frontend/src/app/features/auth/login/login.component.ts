@@ -42,8 +42,6 @@ export class LoginComponent {
             this.router.navigateByUrl(returnUrl);
           } else if (res.user.role === 'ADMIN' || res.user.role === 'ADMINISTRATEUR') {
             this.router.navigate(['/admin']);
-          } else if (res.user.role === 'SWIMMER' || res.user.role === 'NAGEUR') {
-            this.router.navigate(['/espace-nageur/dashboard']);
           } else {
             this.router.navigate(['/']);
           }
