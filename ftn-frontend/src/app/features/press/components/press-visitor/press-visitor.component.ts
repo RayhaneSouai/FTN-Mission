@@ -10,11 +10,6 @@ import { PressService } from '../../services/press.service';
 export class PressVisitorComponent implements OnInit {
   items: PressItem[] = [];
   loading = false;
-  
-  types: PressType[] = [
-    'ARTICLE', 'VIDEO', 'PHOTO', 'COMMUNIQUE',
-    'COMPETITIONS', 'RESULTS', 'OFFICIAL_COMMUNICATIONS', 'NATIONAL_SELECTIONS', 'TRAININGS', 'FEDERAL_EVENTS'
-  ];
 
   categoryLabels: { [key: string]: string } = {
     'ARTICLE': 'Articles',
@@ -33,12 +28,19 @@ export class PressVisitorComponent implements OnInit {
   searchTerm = '';
   selectedItem: PressItem | null = null;
   showFullContent = false;
-  translatedContent: string | null = null;
-  aiRecap: string | null = null;
-  isTranslating = false;
-  isRecapping = false;
-  targetLang = 'fr';
-  showIframe = false;
+
+  // Interactions
+  interactions: any = null;
+  newCommentText = '';
+  isSubmittingComment = false;
+
+  availableReactions = [
+    { type: 'LIKE',    emoji: '👍' },
+    { type: 'DISLIKE', emoji: '👎' },
+    { type: 'SAD',     emoji: '😢' },
+    { type: 'ANGRY',   emoji: '😡' },
+    { type: 'HEART',   emoji: '❤️' }
+  ];
 
   constructor(public pressService: PressService) {}
 
@@ -50,7 +52,6 @@ export class PressVisitorComponent implements OnInit {
     this.loading = true;
     this.pressService.getAll().subscribe({
       next: (data) => {
-        // Only show PUBLISHED items
         this.items = data
           .filter(item => item.status === 'PUBLISHED')
           .sort((a, b) => (b.idPressItem || 0) - (a.idPressItem || 0));
@@ -62,23 +63,15 @@ export class PressVisitorComponent implements OnInit {
 
   getFilteredItems(): PressItem[] {
     let filtered = [...this.items];
-
-    // Filter by Type/Category
-    if (this.activeFilter !== 'ALL') {
-      filtered = filtered.filter(item => item.type === this.activeFilter);
-    }
-
-    // Search term filter
     if (this.searchTerm) {
       const term = this.searchTerm.toLowerCase();
-      filtered = filtered.filter(item => 
-        item.title.toLowerCase().includes(term) ||
+      filtered = filtered.filter(item =>
+        item.title?.toLowerCase().includes(term) ||
         (item.summary && item.summary.toLowerCase().includes(term)) ||
-        item.content.toLowerCase().includes(term) ||
-        item.discipline.toLowerCase().includes(term)
+        (item.content && item.content.toLowerCase().includes(term)) ||
+        (item.discipline && item.discipline.toLowerCase().includes(term))
       );
     }
-
     return filtered;
   }
 
@@ -93,98 +86,94 @@ export class PressVisitorComponent implements OnInit {
   openArticle(item: PressItem): void {
     this.selectedItem = item;
     this.showFullContent = false;
-    this.translatedContent = null;
-    this.aiRecap = null;
-    this.showIframe = false;
-    // Increment view count via service
+    this.interactions = null;
+    this.newCommentText = '';
+    document.body.style.overflow = 'hidden';
+
     if (item.idPressItem) {
       this.pressService.incrementViews(item.idPressItem).subscribe({
         next: () => {
-          // Increment locally for instant UI update
-          if (this.selectedItem) {
-            this.selectedItem.views = (this.selectedItem.views || 0) + 1;
-          }
-          const localItem = this.items.find(i => i.idPressItem === item.idPressItem);
-          if (localItem) {
-            localItem.views = (localItem.views || 0) + 1;
-          }
+          if (this.selectedItem) this.selectedItem.views = (this.selectedItem.views || 0) + 1;
+          const local = this.items.find(i => i.idPressItem === item.idPressItem);
+          if (local) local.views = (local.views || 0) + 1;
         }
       });
+      this.loadInteractions();
     }
   }
 
   closeArticle(): void {
     this.selectedItem = null;
-    this.translatedContent = null;
-    this.aiRecap = null;
-    this.showIframe = false;
+    this.interactions = null;
     this.showFullContent = false;
-  }
-
-  translateArticle(): void {
-    if (!this.selectedItem) return;
-    this.isTranslating = true;
-    const textToTranslate = this.selectedItem.content || this.selectedItem.summary || this.selectedItem.title;
-    this.pressService.translateText(textToTranslate, this.targetLang).subscribe({
-      next: (res) => {
-        this.translatedContent = res;
-        this.isTranslating = false;
-      },
-      error: () => this.isTranslating = false
-    });
-  }
-
-  generateRecap(): void {
-    if (!this.selectedItem) return;
-    this.isRecapping = true;
-    const textToRecap = this.selectedItem.content || this.selectedItem.summary || this.selectedItem.title;
-    this.pressService.generateAiRecap(textToRecap).subscribe({
-      next: (res) => {
-        this.aiRecap = res;
-        this.isRecapping = false;
-      },
-      error: () => this.isRecapping = false
-    });
-  }
-
-  downloadDocument(item: PressItem, docUrl: string): void {
-    if (item.idPressItem) {
-      this.pressService.incrementDownloads(item.idPressItem).subscribe({
-        next: () => {
-          // Increment locally
-          item.downloadsCount = (item.downloadsCount || 0) + 1;
-          if (this.selectedItem && this.selectedItem.idPressItem === item.idPressItem) {
-            this.selectedItem.downloadsCount = (this.selectedItem.downloadsCount || 0) + 1;
-          }
-        }
-      });
-    }
-    window.open(docUrl, '_blank');
+    document.body.style.overflow = 'auto';
   }
 
   getGalleryImages(galleryStr?: string): string[] {
     if (!galleryStr) return [];
-    return galleryStr
-      .split(',')
-      .map(url => url.trim())
-      .filter(url => url.length > 0);
+    return galleryStr.split(',').map(u => u.trim()).filter(u => u.length > 0);
   }
 
   getDocumentsList(docStr?: string): string[] {
     if (!docStr) return [];
-    return docStr
-      .split(',')
-      .map(url => url.trim())
-      .filter(url => url.length > 0);
+    return docStr.split(',').map(u => u.trim()).filter(u => u.length > 0);
   }
 
-  getFileName(url: string): string {
-    try {
-      const parts = url.split('/');
-      const fileName = parts[parts.length - 1];
-      return decodeURIComponent(fileName.split('?')[0]);
-    } catch {
-      return 'document.pdf';
+  // ─── Interactions ────────────────────────────────────
+
+  private getCurrentUserId(): number | null {
+    if (typeof localStorage !== 'undefined') {
+      try {
+        const u = localStorage.getItem('user');
+        return u ? JSON.parse(u).id : null;
+      } catch { return null; }
     }
+    return null;
+  }
+
+  loadInteractions(): void {
+    if (!this.selectedItem?.idPressItem) return;
+    const userId = this.getCurrentUserId();
+    this.pressService.getInteractions(this.selectedItem.idPressItem, userId).subscribe({
+      next: (res) => { this.interactions = res; },
+      error: (err) => console.error('Interactions error', err)
+    });
+  }
+
+  addComment(): void {
+    if (!this.newCommentText.trim() || this.isSubmittingComment || !this.selectedItem?.idPressItem) return;
+    const userId = this.getCurrentUserId();
+    if (!userId) { alert('Vous devez être connecté pour commenter.'); return; }
+    this.isSubmittingComment = true;
+    this.pressService.addComment(this.selectedItem.idPressItem, userId, this.newCommentText).subscribe({
+      next: () => {
+        this.newCommentText = '';
+        this.isSubmittingComment = false;
+        this.loadInteractions();
+      },
+      error: () => { this.isSubmittingComment = false; }
+    });
+  }
+
+  toggleReaction(type: string): void {
+    if (!this.selectedItem?.idPressItem) return;
+    const userId = this.getCurrentUserId();
+    if (!userId) { alert('Vous devez être connecté pour réagir.'); return; }
+    this.pressService.toggleReaction(this.selectedItem.idPressItem, userId, type).subscribe({
+      next: () => this.loadInteractions()
+    });
+  }
+
+  toggleFavorite(): void {
+    if (!this.selectedItem?.idPressItem) return;
+    const userId = this.getCurrentUserId();
+    if (!userId) { alert('Vous devez être connecté pour ajouter aux favoris.'); return; }
+    this.pressService.toggleFavorite(this.selectedItem.idPressItem, userId).subscribe({
+      next: () => this.loadInteractions()
+    });
+  }
+
+  getReactionCount(type: string): number {
+    return this.interactions?.reactionCounts?.[type] || 0;
   }
 }
