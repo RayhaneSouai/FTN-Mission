@@ -19,12 +19,6 @@ export class SwimmerActualitesComponent implements OnInit {
   }
 
   selectedItem: any = null;
-  translatedContent: string | null = null;
-  aiRecap: string | null = null;
-  isTranslating = false;
-  isRecapping = false;
-  targetLang = 'fr'; // default translation target
-  showIframe = false;
   showFullContent = false;
 
   categoryLabels: any = {
@@ -66,9 +60,6 @@ export class SwimmerActualitesComponent implements OnInit {
 
   openArticle(item: any) {
     this.selectedItem = item;
-    this.translatedContent = null;
-    this.aiRecap = null;
-    this.showIframe = false;
     this.showFullContent = false;
     document.body.style.overflow = 'hidden';
     this.loadInteractions();
@@ -76,24 +67,11 @@ export class SwimmerActualitesComponent implements OnInit {
 
   closeArticle() {
     this.selectedItem = null;
-    this.translatedContent = null;
-    this.aiRecap = null;
     this.interactions = null;
     document.body.style.overflow = 'auto';
   }
 
-  generateRecap() {
-    if (!this.selectedItem) return;
-    this.isRecapping = true;
-    const textToRecap = this.selectedItem.content || this.selectedItem.summary || this.selectedItem.title;
-    this.pressService.generateAiRecap(textToRecap).subscribe({
-      next: (res) => {
-        this.aiRecap = res;
-        this.isRecapping = false;
-      },
-      error: () => this.isRecapping = false
-    });
-  }
+
 
   getGalleryImages(galleryStr: string): string[] {
     if (!galleryStr) return [];

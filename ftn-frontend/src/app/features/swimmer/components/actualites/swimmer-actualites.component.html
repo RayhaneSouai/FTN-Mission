@@ -8,15 +8,7 @@
     </div>
   </div>
 
-  <!-- Discipline Filters -->
-  <div class="filter-bar">
-    <button class="filter-btn" [class.active]="!selectedDiscipline" (click)="filterByDiscipline('')">
-      Toutes
-    </button>
-    <button *ngFor="let disc of disciplines" class="filter-btn" [class.active]="selectedDiscipline === disc" (click)="filterByDiscipline(disc)">
-      {{ disc }}
-    </button>
-  </div>
+
 
   <!-- Loading -->
   <div *ngIf="loading" class="loading-state">
@@ -76,28 +68,9 @@
       <!-- Close Button -->
       <button class="modal-close" (click)="closeArticle()" style="position: absolute; top: 24px; right: 24px; width: 40px; height: 40px; border-radius: 50%; border: none; background: #f1f5f9; color: #64748b; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; transition: all 0.2s;">✕</button>
 
-      <!-- Smart Features Bar (AI Recap & Translation) -->
-      <div style="background: linear-gradient(135deg, #f8fafc, #e0f2fe); padding: 16px; border-radius: 16px; margin-bottom: 24px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; border: 1px solid #bae6fd;">
-        <div style="display: flex; gap: 12px; align-items: center;">
-          <button (click)="generateRecap()" [disabled]="isRecapping" style="background: #0284c7; color: white; border: none; padding: 10px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.3);">
-            <span *ngIf="!isRecapping">✨ Résumé IA</span>
-            <span *ngIf="isRecapping">⏳ Génération...</span>
-          </button>
-        </div>
-        
-      </div>
 
-      <!-- AI Recap Box -->
-      <div *ngIf="aiRecap" style="background: #fdfcdc; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 24px; font-size: 1.05rem; line-height: 1.6; color: #451a03; animation: fadeIn 0.5s;">
-        <div [innerHTML]="aiRecap | safe:'html'"></div>
-      </div>
 
-      <!-- Category Label & Discipline -->
-      <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px; margin-top: 10px;">
-        <span style="color: #64748b; font-weight: 700; font-size: 0.85rem; text-transform: uppercase;">
-          • {{ selectedItem.discipline }}
-        </span>
-      </div>
+
 
       <!-- Main Title -->
       <h1 style="font-size: 2.2rem; font-weight: 850; color: #1e293b; line-height: 1.25; margin-bottom: 16px; letter-spacing: -0.02em;">{{ selectedItem.title }}</h1>
@@ -113,20 +86,17 @@
         <img *ngIf="!(selectedItem.type === 'VIDEO' || selectedItem.mediaUrl?.includes('yout') || selectedItem.linkUrl?.includes('yout')) && selectedItem.mediaUrl" [src]="selectedItem.mediaUrl" alt="Illustration" style="width: 100%; height: 100%; max-height: 450px; object-fit: cover; display: block; margin: 0 auto;">
       </div>
 
-      <!-- Article Translated Content or Original Content (Truncated by default) -->
-      <article *ngIf="translatedContent" [innerHTML]="translatedContent | safe:'html'" style="font-size: 1.1rem; line-height: 1.8; color: #1e293b; margin-bottom: 20px; text-align: justify; word-break: break-word; background: #f0fdf4; padding: 20px; border-radius: 16px; border: 1px solid #bbf7d0;">
-      </article>
-
-      <article *ngIf="!translatedContent && !showFullContent" style="font-size: 1.1rem; line-height: 1.8; color: #1e293b; margin-bottom: 20px; text-align: justify; word-break: break-word;">
+      <!-- Article Content -->
+      <article *ngIf="!showFullContent" style="font-size: 1.1rem; line-height: 1.8; color: #1e293b; margin-bottom: 20px; text-align: justify; word-break: break-word;">
         {{ selectedItem.summary || (selectedItem.content ? (selectedItem.content | slice:0:300) + '...' : '') }}
       </article>
 
-      <article *ngIf="!translatedContent && showFullContent" [innerHTML]="selectedItem.content" style="font-size: 1.1rem; line-height: 1.8; color: #1e293b; margin-bottom: 20px; text-align: justify; word-break: break-word;">
+      <article *ngIf="showFullContent" [innerHTML]="selectedItem.content" style="font-size: 1.1rem; line-height: 1.8; color: #1e293b; margin-bottom: 20px; text-align: justify; word-break: break-word;">
       </article>
 
       <!-- Read More Button -->
-      <div style="text-align: center; margin-bottom: 40px;" *ngIf="!showFullContent && !translatedContent">
-        <button (click)="selectedItem.linkUrl ? openLink(selectedItem.linkUrl) : showFullContent = true" style="background: #1565C0; color: white; border: none; padding: 12px 24px; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+      <div style="text-align: center; margin-bottom: 40px;" *ngIf="!showFullContent">
+        <button (click)="showFullContent = true" style="background: #1565C0; color: white; border: none; padding: 12px 24px; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
           {{ selectedItem.type === 'VIDEO' ? '▶ Regarder la vidéo' : 'Lire la suite' }}
         </button>
       </div>
