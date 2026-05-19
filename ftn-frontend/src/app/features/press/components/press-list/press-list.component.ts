@@ -3,7 +3,6 @@ import { Router } from '@angular/router';
 import { PressItem, PressType } from '../../models/press-item.model';
 import { PressStats } from '../../models/press-stats.model';
 import { PressService } from '../../services/press.service';
-import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-press-list',
@@ -60,9 +59,8 @@ export class PressListComponent implements OnInit {
   showFullContent = false;
 
   constructor(
-    public pressService: PressService, 
-    private router: Router,
-    private http: HttpClient
+    public pressService: PressService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -377,7 +375,7 @@ export class PressListComponent implements OnInit {
 
     this.loading = true;
     this.pressService.fetchMetadata(this.formData.linkUrl).subscribe({
-      next: (data) => {
+      next: (data: any) => {
         if (data.error) {
           this.showMessage(data.error, 'error');
         } else {
@@ -411,10 +409,9 @@ export class PressListComponent implements OnInit {
       this.loading = true;
       this.pressService.uploadFile(file).subscribe({
         next: (res) => {
-          // Si le backend renvoie /api/press/images/..., on le complète avec le serveur distant
-          this.formData.mediaUrl = res.url.startsWith('/') 
-            ? 'http://localhost:8083/ftn' + res.url 
-            : res.url;
+          this.formData.mediaUrl = res.url.startsWith('http')
+            ? res.url
+            : `http://localhost:8083/ftn${res.url}`;
           this.loading = false;
           this.showMessage('🖼️ Image importée !', 'success');
         },

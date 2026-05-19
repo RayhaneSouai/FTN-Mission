@@ -10,6 +10,8 @@
     <div class="admin-bar-right">
       <a routerLink="/admin/utilisateurs" class="admin-bar-link">Utilisateurs</a>
       <a routerLink="/admin/licences" class="admin-bar-link">Licences</a>
+      <a routerLink="/admin/clubs" class="admin-bar-link">Clubs</a>
+      <a routerLink="/admin/press" class="admin-bar-link">Presse</a>
       <span class="admin-badge">MODE ADMIN</span>
     </div>
   </div>
@@ -41,6 +43,7 @@
       <div class="nav-links">
         <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" class="nav-link">ACCUEIL</a>
         <a routerLink="/competitions" routerLinkActive="active" class="nav-link">COMPÉTITIONS</a>
+        <a routerLink="/clubs" routerLinkActive="active" class="nav-link">CLUBS</a>
         <div class="nav-dropdown">
           <a class="nav-link has-dropdown">NATATION COURSE <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
         </div>
@@ -50,8 +53,16 @@
         <div class="nav-dropdown">
           <a class="nav-link has-dropdown">FORMATION <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
         </div>
+        <div class="nav-dropdown">
+          <a class="nav-link has-dropdown">MON ESPACE <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
+          <div class="dropdown-content">
+            <a routerLink="/clubs">Nos Clubs</a>
+            <a routerLink="/admin/clubs" *ngIf="isAdmin">Gestion Clubs</a>
+            <a routerLink="/admin/press" *ngIf="isAdmin">Gestion Presse</a>
+            <a routerLink="/mon-profil">Mon Profil</a>
+          </div>
+        </div>
         <a routerLink="/press/visitor" routerLinkActive="active" class="nav-link">ACTUALITÉS</a>
-        <a routerLink="/contact" routerLinkActive="active" class="nav-link">CONTACT</a>
       </div>
     </nav>
   </div>

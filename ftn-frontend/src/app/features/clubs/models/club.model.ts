@@ -6,7 +6,5 @@ export interface Club {
   contact: string;
   manager: string;
   affiliationDate?: string;
-  latitude?: number;
-  longitude?: number;
-  swimmers?: any[];
+  swimmers?: unknown[];
 }

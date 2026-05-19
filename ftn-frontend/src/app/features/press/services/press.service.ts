@@ -108,6 +108,7 @@ export class PressService {
     if (url) window.open(url, '_blank');
   }
 
+
   translateText(text: string, targetLang: string): Observable<string> {
     const langNames: any = { 'fr': 'Français', 'en': 'Anglais', 'ar': 'Arabe', 'it': 'Italien' };
     const cleanText = text ? text.replace(/<[^>]*>/g, '').substring(0, 500) : '';
@@ -158,13 +159,16 @@ export class PressService {
     });
   }
 
-  fetchMetadata(url: string): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/fetch-metadata?url=${encodeURIComponent(url)}`);
+  fetchMetadata(url: string): Observable<{ title?: string; description?: string; image?: string; videoUrl?: string; content?: string; error?: string }> {
+    return this.http.get<{ title?: string; description?: string; image?: string; videoUrl?: string; content?: string; error?: string }>(
+      `${this.baseUrl}/fetch-metadata`,
+      { params: { url } }
+    );
   }
 
-  uploadFile(file: File): Observable<any> {
+  uploadFile(file: File): Observable<{ url: string }> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<any>(`${this.baseUrl}/upload`, formData);
+    return this.http.post<{ url: string }>(`${this.baseUrl}/upload`, formData);
   }
 }

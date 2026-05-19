@@ -17,6 +17,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { MyPerformancesComponent } from './features/my-performance/my-performances.component';
 import { RankingComponent } from './features/ranking/ranking.component';
+import { ToastContainerComponent } from './features/competitions/components/toast-container/toast-container.component';
 
 @NgModule({
   declarations: [
@@ -36,7 +37,8 @@ import { RankingComponent } from './features/ranking/ranking.component';
     SharedModule,
     HeaderComponent,
     MyPerformancesComponent,
-    RankingComponent
+    RankingComponent,
+    ToastContainerComponent
   ],
   providers: [
     provideClientHydration(),
