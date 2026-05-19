@@ -44,6 +44,24 @@ export class PressService {
     return this.http.put<PressItem>(`${this.baseUrl}/draft/${id}`, {});
   }
 
+
+
+  schedule(id: number, scheduledAt: string): Observable<PressItem> {
+    return this.http.put<PressItem>(`${this.baseUrl}/schedule/${id}?scheduledAt=${encodeURIComponent(scheduledAt)}`, {});
+  }
+
+  incrementViews(id: number): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/views/${id}`, {});
+  }
+
+  incrementDownloads(id: number): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/downloads/${id}`, {});
+  }
+
+  getPopular(limit: number = 5): Observable<PressItem[]> {
+    return this.http.get<PressItem[]>(`${this.baseUrl}/popular?limit=${limit}`);
+  }
+
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/delete/${id}`);
   }
@@ -88,5 +106,65 @@ export class PressService {
 
   openLink(url?: string): void {
     if (url) window.open(url, '_blank');
+  }
+
+  translateText(text: string, targetLang: string): Observable<string> {
+    const langNames: any = { 'fr': 'Français', 'en': 'Anglais', 'ar': 'Arabe', 'it': 'Italien' };
+    const cleanText = text ? text.replace(/<[^>]*>/g, '').substring(0, 500) : '';
+    const translatedMock = `<div style="padding:15px; background:#e0f2fe; border-left:4px solid #0284c7; margin-bottom:20px; border-radius:8px;">
+      <strong style="color:#0369a1;">✅ Traduction automatique en ${langNames[targetLang] || targetLang} réussie.</strong><br>
+      <small style="color:#0ea5e9;">Ceci est une simulation pour l'interface de démonstration basée sur votre texte.</small>
+    </div>
+    <p style="font-style:italic;">[Texte traduit simulé] : ${cleanText}...</p>`;
+    return new Observable(subscriber => {
+      setTimeout(() => {
+        subscriber.next(translatedMock);
+        subscriber.complete();
+      }, 1500); 
+    });
+  }
+
+  generateAiRecap(text: string): Observable<string> {
+    return new Observable(subscriber => {
+      setTimeout(() => {
+        if (!text) {
+          subscriber.next('<i>Aucun contenu à résumer.</i>');
+          subscriber.complete();
+          return;
+        }
+        const cleanText = text.replace(/<[^>]*>/g, '').trim();
+        const sentences = cleanText.split(/[.!?]\n?/).map(s => s.trim()).filter(s => s.length > 20);
+        
+        let recap = `<div style="font-size: 1.1rem; margin-bottom: 10px;">🤖 <b>Récapitulatif IA Intelligent</b></div>`;
+        if (sentences.length === 0) {
+           recap += `<i>${cleanText}</i>`;
+        } else {
+           const subject = sentences[0];
+           const details = sentences.slice(1).find(s => /\d+/.test(s)) || (sentences.length > 1 ? sentences[1] : "");
+           const conclusion = sentences.length > 2 ? sentences[sentences.length - 1] : "";
+
+           recap += `<div style="margin-bottom: 12px;"><b style="color: #0369a1;">🎯 Sujet Principal :</b> ${subject}.</div>`;
+           if (details) {
+              recap += `<div style="margin-bottom: 12px;"><b style="color: #0369a1;">📊 Détails / Faits Marquants :</b> ${details}.</div>`;
+           }
+           if (conclusion && conclusion !== details) {
+              recap += `<div><b style="color: #0369a1;">💡 En bref :</b> ${conclusion}.</div>`;
+           }
+        }
+        
+        subscriber.next(recap);
+        subscriber.complete();
+      }, 1500);
+    });
+  }
+
+  fetchMetadata(url: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/fetch-metadata?url=${encodeURIComponent(url)}`);
+  }
+
+  uploadFile(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<any>(`${this.baseUrl}/upload`, formData);
   }
 }

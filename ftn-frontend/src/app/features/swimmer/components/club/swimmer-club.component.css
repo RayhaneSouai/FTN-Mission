@@ -1,33 +1,102 @@
-.page { }
-.page-header { margin-bottom: 28px; }
-.page-title { font-size: 24px; font-weight: 700; color: #1a1a2e; margin: 0 0 4px; }
-.page-subtitle { font-size: 14px; color: #64748b; margin: 0; }
-
-.card { background:#fff; border-radius:16px; padding:24px; box-shadow:0 2px 12px rgba(0,0,0,0.05); margin-bottom:24px; }
-.card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
-.card-header h2 { font-size:16px; font-weight:700; color:#1a1a2e; margin:0; }
-.empty-card { text-align:center; padding:60px 24px; color:#94a3b8; background:#f8fafc; border-radius:16px; border:2px dashed #e2e8f0; margin-bottom:24px; }
-.empty-card p { font-size:14px; margin-top:12px; }
-
-/* ─── Club Hero ───────────────────────────────────────────────── */
-.club-hero-card {
-  display: flex; align-items: center; gap: 24px;
-  background: linear-gradient(135deg, #0d47a1, #1976D2);
-  border-radius: 16px; padding: 32px; margin-bottom: 24px; color: #fff;
+/* Premium Club Styles */
+.club-hero-premium {
+  background: linear-gradient(135deg, #003a80 0%, #0056b3 100%);
+  color: white;
+  padding: 48px;
+  border: none;
+  margin-bottom: 24px;
 }
-.club-logo { font-size: 56px; }
-.club-hero-info h2 { font-size: 22px; font-weight: 700; margin: 0 0 6px; color: #fff; }
-.club-hero-info p  { font-size: 14px; opacity: 0.85; margin: 0; color: #fff; }
 
-/* ─── Info List ───────────────────────────────────────────────── */
-.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-.info-list { display: flex; flex-direction: column; gap: 14px; }
-.info-row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9; }
-.info-row:last-child { border-bottom: none; padding-bottom: 0; }
-.info-key { font-size: 13px; color: #64748b; }
-.info-val { font-size: 13px; font-weight: 600; color: #1a1a2e; }
+.club-hero-content {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
 
-.chip { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
-.chip-green { background: #dcfce7; color: #16a34a; }
+.club-logo-wrapper {
+  width: 100px;
+  height: 100px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
 
-@media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+.club-name-large {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.club-location-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 6px 16px;
+  border-radius: 30px;
+  font-size: 1rem;
+  margin-top: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.premium-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.p-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 16px;
+  transition: transform 0.2s;
+}
+
+.p-info-item:hover {
+  transform: translateX(4px);
+  background: #f1f5f9;
+}
+
+.p-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.p-value {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.badge-status {
+  padding: 6px 14px;
+  border-radius: 30px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.status-active {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-confirmed {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+/* Animations */
+.animate__animated {
+  animation-duration: 0.6s;
+}

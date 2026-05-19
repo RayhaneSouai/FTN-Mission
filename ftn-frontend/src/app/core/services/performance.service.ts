@@ -10,7 +10,7 @@ export class PerformanceService {
 
   private http = inject(HttpClient);
 
-  private apiUrl = 'http://localhost:8083/api/performances';
+  private apiUrl = 'http://localhost:8083/ftn/api/performances';
 
   getBySwimmer(swimmerId: number): Observable<PerformanceResponse[]> {
     return this.http.get<PerformanceResponse[]>(

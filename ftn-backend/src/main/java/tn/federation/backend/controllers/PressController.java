@@ -178,6 +178,35 @@ public class PressController {
         }
     }
 
+    @Operation(summary = "Programmer un article")
+    @PutMapping("/schedule/{id}")
+    public org.springframework.http.ResponseEntity<?> schedule(@PathVariable long id, @RequestParam("scheduledAt") String scheduledAtStr) {
+        try {
+            java.time.LocalDateTime scheduledAt = java.time.LocalDateTime.parse(scheduledAtStr);
+            return org.springframework.http.ResponseEntity.ok(pressService.schedule(id, scheduledAt));
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.internalServerError().body("Erreur Programmation: " + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "Incrémenter le compteur de vues")
+    @PutMapping("/views/{id}")
+    public void incrementViews(@PathVariable long id) {
+        pressService.incrementViews(id);
+    }
+
+    @Operation(summary = "Incrémenter le compteur de téléchargements")
+    @PutMapping("/downloads/{id}")
+    public void incrementDownloads(@PathVariable long id) {
+        pressService.incrementDownloads(id);
+    }
+
+    @Operation(summary = "Obtenir les articles les plus populaires")
+    @GetMapping("/popular")
+    public List<PressItem> getPopular(@RequestParam(defaultValue = "5") int limit) {
+        return pressService.getPopular(limit);
+    }
+
     @Operation(summary = "Archiver un article")
     @PutMapping("/archive/{id}")
     public org.springframework.http.ResponseEntity<?> archive(@PathVariable long id) {

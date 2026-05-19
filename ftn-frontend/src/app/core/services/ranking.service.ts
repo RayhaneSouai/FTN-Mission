@@ -10,7 +10,7 @@ export class RankingService {
 
   private http = inject(HttpClient);
 
-  private apiUrl = 'http://localhost:8083/api/rankings';
+  private apiUrl = 'http://localhost:8083/ftn/api/rankings';
 
   getNationalRanking(
     distance: number,

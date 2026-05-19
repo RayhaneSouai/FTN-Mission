@@ -252,104 +252,179 @@
   }
 }
 
-/* ─── News Content Styles (Synchronized with Visitor) ─── */
-.news-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 32px;
+/* ─── Premium News Section ─── */
+.premium-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+  gap: 30px;
 }
 
-.news-card {
-  background: #fff;
-  border-radius: 16px;
+.premium-card {
+  background: white;
+  border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f1f5f9;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
   display: flex;
   flex-direction: column;
-  border: 1px solid #f1f5f9;
+  height: 100%;
 }
 
-.news-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+.premium-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0, 77, 163, 0.12);
 }
 
-.card-media {
-  height: 200px;
-  background: #f8fafc;
+.premium-image-wrapper {
+  height: 220px;
+  position: relative;
   overflow: hidden;
 }
 
-.card-media img, .card-media iframe {
+.premium-image-wrapper img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border: none;
+  transition: transform 0.6s ease;
 }
 
-.card-body {
-  padding: 24px;
-  flex: 1;
+.premium-card:hover .premium-image-wrapper img {
+  transform: scale(1.1);
+}
+
+.video-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.play-icon {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.category-badge {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  padding: 6px 14px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  z-index: 3;
+  color: white;
+  backdrop-filter: blur(8px);
+}
+
+.cat-video { background: rgba(220, 38, 38, 0.85); }
+.cat-photo { background: rgba(5, 150, 105, 0.85); }
+.cat-article { background: rgba(0, 77, 163, 0.85); }
+
+.premium-content {
+  padding: 25px;
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
 
-.discipline-tag {
-  font-size: 11px;
-  font-weight: 700;
-  color: #1565C0;
+.card-top-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.discipline {
+  color: #004da3;
+  font-weight: 800;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  margin-bottom: 12px;
+  letter-spacing: 1px;
 }
 
-.card-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1a1a2e;
+.date {
+  color: #94a3b8;
+  font-size: 0.8rem;
+}
+
+.premium-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0 0 12px;
   line-height: 1.4;
-  margin-bottom: 12px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
-.card-excerpt {
-  font-size: 14px;
+.premium-excerpt {
   color: #64748b;
+  font-size: 0.9rem;
   line-height: 1.6;
-  margin-bottom: 24px;
+  margin-bottom: 25px;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.card-footer {
+.premium-footer {
   margin-top: auto;
   display: flex;
   justify-content: flex-end;
 }
 
-.btn-read-more {
-  background: #1565C0;
-  color: #fff;
+.premium-read-more {
+  background: #f1f5f9;
   border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
+  padding: 12px 20px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  font-weight: 700;
+  color: #004da3;
+  transition: all 0.3s;
+  cursor: pointer;
+  align-self: flex-end;
 }
 
-.btn-read-more:hover {
-  background: #0d47a1;
-  transform: translateX(4px);
+.premium-read-more:hover {
+  background: #004da3;
+  color: white;
+}
+
+.premium-read-more:hover svg {
+  transform: translateX(5px);
+}
+
+.premium-read-more svg {
+  transition: transform 0.3s;
+}
+
+.premium-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  background: #f8fafc;
 }
 
 .spinner {

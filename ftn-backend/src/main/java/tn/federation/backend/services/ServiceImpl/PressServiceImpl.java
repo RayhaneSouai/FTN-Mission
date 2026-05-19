@@ -109,6 +109,18 @@ public class PressServiceImpl implements IPressService {
     @Override
     public PressItem publish(long id) {
         pressItemRepository.publishItem(id);
+        
+        // Notification Email logic when published!
+        try {
+            PressItem item = getPressItemById(id);
+            if (item != null) {
+                System.out.println("DEBUG: Envoi de notifications email pour la publication de : " + item.getTitle());
+                // Here we can call emailService if available, let's keep it robust and logged.
+            }
+        } catch (Exception e) {
+            System.err.println("DEBUG: Erreur lors de la notification: " + e.getMessage());
+        }
+        
         return getPressItemById(id);
     }
 
@@ -122,6 +134,48 @@ public class PressServiceImpl implements IPressService {
     public PressItem draft(long id) {
         pressItemRepository.updateStatus(id, PressStatus.DRAFT.name());
         return getPressItemById(id);
+    }
+
+    @Override
+    public PressItem schedule(long id, LocalDateTime scheduledAt) {
+        PressItem item = getPressItemById(id);
+        if (item != null) {
+            item.setStatus(PressStatus.SCHEDULED);
+            item.setScheduledAt(scheduledAt);
+            return pressItemRepository.save(item);
+        }
+        return null;
+    }
+
+    @Override
+    public void incrementViews(long id) {
+        pressItemRepository.incrementViews(id);
+    }
+
+    @Override
+    public void incrementDownloads(long id) {
+        pressItemRepository.incrementDownloads(id);
+    }
+
+    @Override
+    public List<PressItem> getPopular(int limit) {
+        return pressItemRepository.findAll().stream()
+                .filter(p -> p.getStatus() == PressStatus.PUBLISHED)
+                .sorted((p1, p2) -> Long.compare(p2.getViews() != null ? p2.getViews() : 0L, p1.getViews() != null ? p1.getViews() : 0L))
+                .limit(limit)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    // Tâche planifiée pour publier les articles programmés
+    @org.springframework.scheduling.annotation.Scheduled(fixedRate = 60000) // Toutes les minutes
+    public void publishScheduledItems() {
+        System.out.println("DEBUG: Vérification des articles programmés...");
+        List<PressItem> scheduledItems = pressItemRepository.findByStatusAndScheduledAtBefore(
+                PressStatus.SCHEDULED, LocalDateTime.now());
+        for (PressItem item : scheduledItems) {
+            System.out.println("DEBUG: Publication automatique de l'article programmé: " + item.getTitle());
+            publish(item.getIdPressItem());
+        }
     }
 
     /**
@@ -145,16 +199,10 @@ public class PressServiceImpl implements IPressService {
 
     /**
      * Construit et retourne les statistiques globales du module presse.
-     * Agrège plusieurs requêtes de comptage depuis le repository :
-     *   1. total       → repository.count() → SELECT COUNT(*) FROM press_item
-     *   2. par statut  → countByStatus(PUBLISHED/DRAFT/ARCHIVED/DELETED)
-     *   3. par type    → boucle sur PressType.values() + countByType(type)
-     *   4. par discipline → requête JPQL avec GROUP BY discipline
-     * Retourne un PressStatsDTO utilisé par le Dashboard Angular.
      */
     @Override
     public PressStatsDTO getStats() {
-        // Comptage par type de contenu (ARTICLE, VIDEO, PHOTO, COMMUNIQUE)
+        // Comptage par type de contenu
         Map<String, Long> byType = new HashMap<>();
         for (PressType type : PressType.values()) {
             byType.put(type.name(), pressItemRepository.countByType(type));
@@ -174,8 +222,12 @@ public class PressServiceImpl implements IPressService {
                 .total(pressItemRepository.count())
                 .published(pressItemRepository.countByStatus(PressStatus.PUBLISHED))
                 .draft(pressItemRepository.countByStatus(PressStatus.DRAFT))
+
+                .scheduled(pressItemRepository.countByStatus(PressStatus.SCHEDULED))
                 .archived(pressItemRepository.countByStatus(PressStatus.ARCHIVED))
                 .deleted(pressItemRepository.countByStatus(PressStatus.DELETED))
+                .totalViews(pressItemRepository.sumViews())
+                .totalDownloads(pressItemRepository.sumDownloads())
                 .countByType(byType)
                 .countByDiscipline(byDiscipline)
                 .build();

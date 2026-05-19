@@ -11,6 +11,7 @@ import tn.federation.backend.entities.Performance;
 import tn.federation.backend.entities.Role;
 import tn.federation.backend.entities.User;
 import tn.federation.backend.entities.RegistrationStatus;
+import tn.federation.backend.repositories.ClubRepository;
 import tn.federation.backend.repositories.PerformanceRepository;
 import tn.federation.backend.repositories.UserRepository;
 import java.time.LocalDateTime;
@@ -22,11 +23,13 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements IUserService {
     private final UserRepository userRepository;
     private final PerformanceRepository performanceRepository;
+    private final ClubRepository clubRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository, PerformanceRepository performanceRepository, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, PerformanceRepository performanceRepository, ClubRepository clubRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.performanceRepository = performanceRepository;
+        this.clubRepository = clubRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -102,6 +105,13 @@ public class UserServiceImpl implements IUserService {
         user.setNiveau(convertToNiveau(dto.getNiveau()));
         user.setDiscipline(convertToDiscipline(dto.getDiscipline()));
         user.setAnciennete(dto.getAnciennete());
+
+        if (dto.getClubId() != null) {
+            user.setClub(clubRepository.findById(dto.getClubId()).orElse(null));
+        } else if (dto.getClubName() == null) {
+            // Only clear club if specifically requested (no clubId and no clubName info)
+            user.setClub(null);
+        }
 
         if (dto.getRegistrationStatus() != null && !dto.getRegistrationStatus().isBlank()) {
             try {
@@ -193,6 +203,17 @@ public class UserServiceImpl implements IUserService {
         dto.setAnciennete(user.getAnciennete());
         dto.setRegistrationStatus(user.getRegistrationStatus() != null ? user.getRegistrationStatus().name() : null);
         dto.setCreatedAt(user.getCreatedAt());
+
+        // Map club details
+        if (user.getClub() != null) {
+            dto.setClubId(user.getClub().getId());
+            dto.setClubName(user.getClub().getName());
+            dto.setClubRegion(user.getClub().getRegion());
+            dto.setClubManager(user.getClub().getManager());
+            dto.setClubContact(user.getClub().getContact());
+            dto.setClubAffiliationDate(user.getClub().getAffiliationDate());
+        }
+        
         return dto;
     }
 

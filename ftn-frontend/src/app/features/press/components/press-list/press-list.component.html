@@ -3,7 +3,7 @@
   <header class="dashboard-header">
     <div class="header-titles">
       <h1 class="welcome-text">Gestion <span class="accent">Presse</span> 📰</h1>
-      <p class="subtitle">Publiez et gérez les actualités de la fédération tunisienne.</p>
+      <p class="subtitle">Publiez, programmez et validez les actualités de la fédération tunisienne.</p>
     </div>
     <div class="header-actions">
       <button class="btn-add" (click)="goToAdd()">
@@ -29,18 +29,51 @@
         <div [style.width]="getPercentage(richStats?.published || 0, richStats?.total || 1)" style="height: 100%; background: #22c55e;"></div>
       </div>
     </div>
+
     <div class="stat-card">
-      <span class="stat-label">Brouillons</span>
-      <h2 class="stat-value" style="color: #854d0e;">{{ richStats?.draft || 0 }}</h2>
-      <div style="height: 6px; background: #fef9c3; border-radius: 3px; overflow: hidden;">
-        <div [style.width]="getPercentage(richStats?.draft || 0, richStats?.total || 1)" style="height: 100%; background: #eab308;"></div>
+      <span class="stat-label">Programmés</span>
+      <h2 class="stat-value" style="color: #6b21a8;">{{ richStats?.scheduled || 0 }}</h2>
+      <div style="height: 6px; background: #faf5ff; border-radius: 3px; overflow: hidden;">
+        <div [style.width]="getPercentage(richStats?.scheduled || 0, richStats?.total || 1)" style="height: 100%; background: #a855f7;"></div>
       </div>
     </div>
     <div class="stat-card">
-      <span class="stat-label">Corbeille</span>
-      <h2 class="stat-value" style="color: #991b1b;">{{ richStats?.deleted || 0 }}</h2>
-      <div style="height: 6px; background: #fee2e2; border-radius: 3px; overflow: hidden;">
-        <div [style.width]="getPercentage(richStats?.deleted || 0, richStats?.total || 1)" style="height: 100%; background: #ef4444;"></div>
+      <span class="stat-label">Vues Totales</span>
+      <h2 class="stat-value" style="color: #f59e0b;">👁️ {{ richStats?.totalViews || 0 }}</h2>
+      <div style="height: 6px; background: #fef3c7; border-radius: 3px; overflow: hidden;">
+        <div [style.width]="'100%'" style="height: 100%; background: #f59e0b;"></div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Téléchargements</span>
+      <h2 class="stat-value" style="color: #ec4899;">📥 {{ richStats?.totalDownloads || 0 }}</h2>
+      <div style="height: 6px; background: #fce7f3; border-radius: 3px; overflow: hidden;">
+        <div [style.width]="'100%'" style="height: 100%; background: #ec4899;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Engagement Analytics & Popular Articles -->
+  <section class="analytics-panel" *ngIf="!loading && items.length > 0">
+    <h3 class="analytics-title">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Tableau de bord analytique - Articles Populaires
+    </h3>
+    <div class="popular-articles-list">
+      <div *ngFor="let item of getPopularArticles(); let idx = index" class="popular-item">
+        <div style="display: flex; align-items: center; gap: 12px; max-width: 70%;">
+          <span style="font-weight: 900; color: #1565C0; font-size: 1.1rem;">#{{ idx + 1 }}</span>
+          <span class="popular-title">{{ item.title }}</span>
+        </div>
+        <div class="popular-meta">
+          <span title="Nombre de vues">👁️ {{ item.views || 0 }} vues</span>
+          <span title="Temps de lecture estimé">⏳ {{ item.readTime || 1 }} min de lecture</span>
+          <span title="Téléchargements de documents PDF" *ngIf="item.downloadsCount">📥 {{ item.downloadsCount }} DL</span>
+          <span class="badge" [ngClass]="getStatusClass(item.status)">{{ item.status }}</span>
+        </div>
+      </div>
+      <div *ngIf="getPopularArticles().length === 0" style="text-align: center; color: #64748b; padding: 12px; font-style: italic;">
+        Aucun article n'a encore été consulté par le public.
       </div>
     </div>
   </section>
@@ -49,12 +82,14 @@
   <section class="controls-section">
     <div class="search-box">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" placeholder="Rechercher un titre ou une discipline..." (input)="onSearch($any($event.target).value)"/>
+      <input type="text" placeholder="Rechercher un titre, une catégorie ou une discipline..." (input)="onSearch($any($event.target).value)"/>
     </div>
 
     <div class="filter-chips">
       <button class="filter-chip" [class.active]="filterStatus === 'ALL'" (click)="onStatusFilterChange('ALL')">Tous</button>
       <button class="filter-chip" [class.active]="filterStatus === 'PUBLISHED'" (click)="onStatusFilterChange('PUBLISHED')">Publiés</button>
+
+      <button class="filter-chip" [class.active]="filterStatus === 'SCHEDULED'" (click)="onStatusFilterChange('SCHEDULED')">Programmés</button>
       <button class="filter-chip" [class.active]="filterStatus === 'DRAFT'" (click)="onStatusFilterChange('DRAFT')">Brouillons</button>
       <button class="filter-chip" [class.active]="filterStatus === 'ARCHIVED'" (click)="onStatusFilterChange('ARCHIVED')">Archivés</button>
       <button class="filter-chip" [class.active]="filterStatus === 'DELETED'" (click)="onStatusFilterChange('DELETED')" style="color: #ef4444;">Corbeille</button>
@@ -77,40 +112,58 @@
 
   <!-- News Grid -->
   <div class="news-grid" *ngIf="!loading && getFilteredItems().length > 0">
-    <div *ngFor="let item of getFilteredItems()" class="news-card">
+    <div *ngFor="let item of getFilteredItems()" class="news-card" 
+         [class.importance-a-la-une]="item.importance === 'A_LA_UNE'"
+         [class.importance-urgent]="item.importance === 'URGENT'"
+         [class.importance-important]="item.importance === 'IMPORTANT'">
+      
       <div class="card-media">
+        <!-- Importance Banner -->
+        <span *ngIf="item.importance && item.importance !== 'NORMAL'" class="importance-banner" 
+              [ngClass]="'banner-' + item.importance.toLowerCase().replace('_', '-')">
+          {{ item.importance.replace('_', ' ') }}
+        </span>
+
         <img *ngIf="item.type !== 'VIDEO' && item.mediaUrl" [src]="item.mediaUrl" alt="Media">
         <img *ngIf="item.type === 'VIDEO'" [src]="pressService.getVideoThumbnail(item.mediaUrl || '')" alt="Video">
         <div *ngIf="!item.mediaUrl" style="height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3rem; background: #f1f5f9;">📰</div>
         
-        <div class="type-badge" [style.background]="item.type === 'VIDEO' ? '#ef4444' : '#3b82f6'">
-          {{ item.type }}
+        <div class="type-badge" [style.background]="item.type === 'VIDEO' ? '#ef4444' : '#1565C0'">
+          {{ categoryLabels[item.type] || item.type }}
         </div>
       </div>
 
       <div class="card-body">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
           <span style="font-size: 0.75rem; font-weight: 900; color: #1565C0; text-transform: uppercase; letter-spacing: 0.05em;">{{ item.discipline || 'Général' }}</span>
-          <span class="badge" [ngClass]="'status-' + (item.status || 'draft').toLowerCase()">{{ item.status }}</span>
+          <span class="badge" [ngClass]="getStatusClass(item.status)">{{ item.status }}</span>
         </div>
         
         <h3 class="card-title">{{ item.title }}</h3>
-        <p class="card-excerpt">{{ item.content }}</p>
+        <p class="card-excerpt" *ngIf="item.summary">{{ item.summary }}</p>
+        <p class="card-excerpt" *ngIf="!item.summary && item.content" [innerHTML]="item.content.slice(0, 100) + '...'"></p>
+
+        <div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600; margin-bottom: 15px; display: flex; gap: 15px;">
+          <span>✍️ {{ item.author || 'Admin' }}</span>
+          <span>👁️ {{ item.views || 0 }} vues</span>
+          <span>⏳ {{ item.readTime || 1 }} min</span>
+        </div>
 
         <div class="card-actions">
           <ng-container *ngIf="item.status !== 'DELETED'">
             <!-- DRAFT state -->
-            <button class="action-btn btn-publish" title="Publier" *ngIf="item.status === 'DRAFT'" (click)="publish(item, $event)">🚀</button>
+            <button class="action-btn" title="Publier directement" *ngIf="item.status === 'DRAFT' || item.status === 'SCHEDULED'" (click)="publish(item, $event)">🚀</button>
 
             <!-- PUBLISHED state -->
             <button class="action-btn btn-archive" title="Archiver" *ngIf="item.status === 'PUBLISHED'" (click)="archive(item, $event)">📁</button>
-            <button class="action-btn btn-draft"   title="Mettre en brouillon" *ngIf="item.status === 'PUBLISHED'" (click)="setDraft(item, $event)">📝</button>
+            <button class="action-btn btn-draft"   title="Remettre en brouillon" *ngIf="item.status === 'PUBLISHED'" (click)="setDraft(item, $event)">📝</button>
 
             <!-- ARCHIVED state -->
             <button class="action-btn btn-publish" title="Re-publier" *ngIf="item.status === 'ARCHIVED'" (click)="publish(item, $event)">🚀</button>
             <button class="action-btn btn-draft"   title="Mettre en brouillon" *ngIf="item.status === 'ARCHIVED'" (click)="setDraft(item, $event)">📝</button>
 
             <!-- Always visible -->
+            <button class="action-btn btn-read-more" title="Aperçu / Traduction / Recap IA" (click)="openArticle(item)">👁️</button>
             <button class="action-btn btn-edit"  title="Modifier" (click)="goToEdit(item.idPressItem!)">✏️</button>
             <button class="action-btn btn-trash" title="Mettre en corbeille" (click)="openTrashModal(item, $event)">🗑️</button>
           </ng-container>
@@ -139,72 +192,326 @@
     </div>
   </div>
 
-  <!-- MODAL FORM - GLASSMORPHISM -->
-  <div class="modal-overlay" *ngIf="showForm" (click)="closeForm()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
+  <!-- MODAL FORM - PREMIUM REDESIGN -->
+  <div class="modal-overlay premium-modal" *ngIf="showForm" (click)="closeForm()">
+    <div class="modal-content premium-content" style="max-width: 1200px;" (click)="$event.stopPropagation()">
       <button class="modal-close" (click)="closeForm()">✕</button>
       
-      <h2 class="form-title">{{ editingItem ? 'Modifier' : 'Nouveau' }} <span class="accent">Contenu</span> ✨</h2>
-      <p style="color: #64748b; margin-bottom: 32px;">Remplissez les informations pour publier sur le portail.</p>
+      <div class="modal-header-premium">
+        <h2 class="form-title" style="margin-top: 0; font-size: 1.8rem;">
+          {{ editingItem ? 'Modifier le' : 'Nouveau' }} <span class="accent">Contenu</span> ✨
+        </h2>
+        <p class="subtitle" style="margin: 0; font-size: 0.95rem;">Structurez et publiez vos informations rapidement sur la plateforme FTN.</p>
+      </div>
+      
+      <!-- MODE SELECTION SCREEN -->
+      <div *ngIf="creationMode === 'CHOICE'" style="text-align: center; padding: 60px 20px;">
+        <h3 style="font-size: 1.4rem; color: #1e293b; margin-bottom: 40px; font-weight: 800;">Comment souhaitez-vous procéder ?</h3>
+        <div style="display: flex; gap: 30px; justify-content: center; flex-wrap: wrap;">
+          
+          <!-- Mode Extraction -->
+          <div class="premium-choice-card" (click)="setCreationMode('EXTRACTION')">
+            <div class="choice-icon extraction-icon">🔗</div>
+            <h4 class="choice-title">Extraction Automatique</h4>
+            <p class="choice-desc">Collez un lien (YouTube, Article externe) et l'IA extraira automatiquement les informations clés pour vous.</p>
+          </div>
 
-      <div class="form-group">
-        <label>Lien Source (YouTube ou Article)</label>
-        <div style="display: flex; gap: 10px;">
-          <input type="text" class="form-control" [(ngModel)]="formData.linkUrl" placeholder="https://..."/>
-          <button class="btn-extract" (click)="fetchFromUrl()">
-            <span>✨ Extraire</span>
-          </button>
+          <!-- Mode Manuel -->
+          <div class="premium-choice-card" (click)="setCreationMode('MANUAL')">
+            <div class="choice-icon manual-icon">✍️</div>
+            <h4 class="choice-title">Création Manuelle</h4>
+            <p class="choice-desc">Rédigez votre article de zéro avec l'éditeur riche, importez vos photos et structurez votre contenu librement.</p>
+          </div>
+
         </div>
       </div>
 
-      <div class="form-group">
-        <label>Titre de l'Actualité *</label>
-        <input type="text" class="form-control" [(ngModel)]="formData.title" placeholder="Ex: Championnat de Tunisie 2024"/>
-      </div>
+      <ng-container *ngIf="creationMode !== 'CHOICE'">
+      <div class="premium-form-body two-columns">
+        
+        <!-- ====== LEFT COLUMN: METADATA & WORKFLOW ====== -->
+        <div class="premium-form-left">
+          
+          <!-- SECTION 1: INFORMATIONS GÉNÉRALES -->
+          <div class="premium-section general-section">
+            <div class="section-badge">1</div>
+            <div class="section-content">
+              <h4 class="section-title">Informations Générales</h4>
+              
+              <div class="form-group full-width">
+                <label>Titre de l'Actualité <span class="required">*</span></label>
+                <input type="text" class="form-control premium-input" [(ngModel)]="formData.title" placeholder="Ex: Championnat de Tunisie d'Hiver 2026"/>
+              </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-        <div class="form-group">
-          <label>Type de Contenu</label>
-          <select class="form-control" [(ngModel)]="formData.type">
-            <option *ngFor="let t of types" [value]="t">{{ t }}</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Discipline</label>
-          <select class="form-control" [(ngModel)]="formData.discipline">
-            <option *ngFor="let d of disciplines" [value]="d">{{ d }}</option>
-          </select>
-        </div>
-      </div>
+              <div class="form-group full-width">
+                <label>Description courte (Affichée sur la carte)</label>
+                <textarea class="form-control premium-input" [(ngModel)]="formData.summary" rows="2" placeholder="Brève description..."></textarea>
+              </div>
 
-      <div class="form-group">
-        <label>Image d'illustration (URL)</label>
-        <div style="display: flex; gap: 10px;">
-          <input type="text" class="form-control" [(ngModel)]="formData.mediaUrl" placeholder="https://image-url.com/..."/>
-          <label class="btn-extract" style="margin-top: 0; border-color: #e2e8f0; background: #f8fafc; color: #475569; cursor: pointer;">
-            📁 Upload
-            <input type="file" style="display: none;" (change)="onFileSelected($event)"/>
-          </label>
-        </div>
-      </div>
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label>Type <span class="required">*</span></label>
+                  <select class="form-control premium-input highlight-select" [(ngModel)]="formData.type">
+                    <option *ngFor="let t of types" [value]="t">{{ categoryLabels[t] || t }}</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Discipline</label>
+                  <select class="form-control premium-input" [(ngModel)]="formData.discipline">
+                    <option *ngFor="let d of disciplines" [value]="d">{{ d }}</option>
+                  </select>
+                </div>
+              </div>
 
-      <div class="form-group">
-        <label>Contenu / Résumé *</label>
-        <textarea class="form-control" [(ngModel)]="formData.content" rows="4" placeholder="Décrivez l'actualité en quelques lignes..."></textarea>
-      </div>
+              <div class="form-group full-width">
+                <label>Mise en avant (Affichage)</label>
+                <select class="form-control premium-input" [(ngModel)]="formData.importance">
+                  <option value="NORMAL">Standard (Normal)</option>
+                  <option value="A_LA_UNE">À la une (Haut de page)</option>
+                  <option value="IMPORTANT">Importante (Surbrillance Bleue)</option>
+                  <option value="URGENT">Urgente (Bannière Rouge)</option>
+                </select>
+              </div>
+            </div>
+          </div>
 
-      <div class="modal-footer">
-        <button class="btn-cancel" (click)="closeForm()">Annuler</button>
-        <button class="btn-save" [disabled]="submitting" (click)="saveItem()">
-          <span *ngIf="!submitting">{{ editingItem ? 'Enregistrer les modifications' : 'Publier maintenant' }}</span>
-          <div *ngIf="submitting" class="spinner"></div>
+          <!-- FINAL SECTION: WORKFLOW -->
+          <div class="premium-section workflow-section">
+            <div class="section-badge workflow-badge">⚙️</div>
+            <div class="section-content">
+              <h4 class="section-title">Publication</h4>
+              <div class="form-group full-width">
+                <label>Statut de base</label>
+                <select class="form-control premium-input workflow-select" [(ngModel)]="formData.status">
+                  <option value="DRAFT">Brouillon (Non visible)</option>
+                  <option value="PUBLISHED">Publié immédiatement</option>
+                  <option value="ARCHIVED">Archivé</option>
+                </select>
+              </div>
+              <div class="form-group full-width">
+                <label>Publication Programmée</label>
+                <input type="datetime-local" class="form-control premium-input workflow-date" [(ngModel)]="formData.scheduledAt"/>
+              </div>
+            </div>
+          </div>
+
+        </div> <!-- End Left Column -->
+
+        <!-- ====== RIGHT COLUMN: CONTENT & MEDIA ====== -->
+        <div class="premium-form-right">
+
+          <!-- EXTRACTION MODE URL LINK -->
+          <div class="premium-section extraction-section" *ngIf="creationMode === 'EXTRACTION'">
+            <div class="section-badge ai-badge">✨</div>
+            <div class="section-content">
+              <h4 class="section-title text-success">Lien Source à Extraire</h4>
+              <div class="form-group full-width">
+                <div class="extract-input-wrapper">
+                  <input type="text" class="form-control premium-input extract-input" [(ngModel)]="formData.linkUrl" placeholder="Collez l'URL ici (https://...)"/>
+                  <button class="btn-premium-extract" (click)="fetchFromUrl()">
+                    Lancer l'extraction
+                  </button>
+                </div>
+                <small class="help-text success-text">L'IA remplira le titre, le résumé, l'image ou la vidéo pour vous.</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 2: MÉDIAS (VIDÉO / PHOTO) -->
+          <div class="premium-section media-section" *ngIf="formData.type === 'VIDEO' || formData.type === 'PHOTO'">
+            <div class="section-badge">2</div>
+            <div class="section-content">
+              <h4 class="section-title">
+                <span *ngIf="formData.type === 'VIDEO'">Média : Vidéo Principale</span>
+                <span *ngIf="formData.type === 'PHOTO'">Média : Image Principale</span>
+              </h4>
+              <div class="form-group full-width">
+                <label>Lien direct (URL) ou importation d'un fichier local</label>
+                <div class="upload-wrapper">
+                  <div class="input-with-icon flex-grow">
+                    <span class="input-icon">🔗</span>
+                    <input type="text" class="form-control premium-input pl-10" [(ngModel)]="formData.mediaUrl" [placeholder]="formData.type === 'VIDEO' ? 'Lien YouTube (https://youtu.be/...)' : 'Lien image (https://...)'"/>
+                  </div>
+                  <div class="divider-text">OU</div>
+                  <label class="btn-premium-upload">
+                    📁 Parcourir mon PC
+                    <input type="file" style="display: none;" (change)="onFileSelected($event)"/>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 2/3: RÉDACTION & ILLUSTRATION (ARTICLE / COMMUNIQUE) -->
+          <div class="premium-section writing-section" *ngIf="formData.type === 'ARTICLE' || formData.type === 'COMMUNIQUE'">
+            <div class="section-badge" *ngIf="creationMode === 'MANUAL'">2</div>
+            <div class="section-badge" *ngIf="creationMode === 'EXTRACTION'">3</div>
+            <div class="section-content">
+              <h4 class="section-title">Rédaction & Illustration</h4>
+              
+              <div class="form-group full-width">
+                <label>Image d'illustration (Optionnelle)</label>
+                <div class="upload-wrapper compact-wrapper">
+                  <input type="text" class="form-control premium-input flex-grow" [(ngModel)]="formData.mediaUrl" placeholder="Coller une URL d'image..."/>
+                  <label class="btn-premium-upload small-upload">
+                    📁 Parcourir
+                    <input type="file" style="display: none;" (change)="onFileSelected($event)"/>
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group full-width">
+                <label>Contenu de l'article <span class="required">*</span></label>
+                <div class="wysiwyg-editor premium-editor">
+                  <div class="wysiwyg-toolbar premium-toolbar">
+                    <div class="toolbar-group">
+                      <button type="button" (click)="execEditorCommand('bold')" title="Gras"><b style="font-family: serif;">B</b></button>
+                      <button type="button" (click)="execEditorCommand('italic')" title="Italique"><i style="font-family: serif;">I</i></button>
+                      <button type="button" (click)="execEditorCommand('underline')" title="Souligné"><u style="font-family: serif;">U</u></button>
+                    </div>
+                    <div class="toolbar-separator"></div>
+                    <div class="toolbar-group">
+                      <button type="button" (click)="execEditorCommand('formatBlock', 'h2')" title="Titre principal">T1</button>
+                      <button type="button" (click)="execEditorCommand('formatBlock', 'h3')" title="Sous-titre">T2</button>
+                    </div>
+                    <div class="toolbar-separator"></div>
+                    <div class="toolbar-group">
+                      <button type="button" (click)="execEditorCommand('insertUnorderedList')" title="Liste à puces">☰</button>
+                      <button type="button" (click)="execEditorCommand('insertOrderedList')" title="Liste numérotée">1.</button>
+                      <button type="button" (click)="insertTable()" title="Insérer un tableau">⊞</button>
+                    </div>
+                    <div class="toolbar-separator"></div>
+                    <div class="toolbar-group">
+                      <button type="button" (click)="insertLink()" title="Ajouter un lien">🔗</button>
+                      <button type="button" (click)="execEditorCommand('formatBlock', 'blockquote')" title="Citation">❝</button>
+                      <button type="button" (click)="execEditorCommand('removeFormat')" title="Effacer le formatage">🧹</button>
+                    </div>
+                  </div>
+                  <div #editorDiv contenteditable="true" class="wysiwyg-content premium-content-area" 
+                       [innerHTML]="formData.content" (input)="onEditorInput($event)" 
+                       placeholder="Écrivez votre article détaillé ici..."></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 3: PIÈCES JOINTES (COMMUNIQUE) -->
+          <div class="premium-section pdf-section" *ngIf="formData.type === 'COMMUNIQUE'">
+            <div class="section-badge pdf-badge">📎</div>
+            <div class="section-content">
+              <h4 class="section-title">Pièces Jointes & PDF</h4>
+              <div class="form-group full-width">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <label style="margin: 0;">Documents PDF (URLs ou fichiers)</label>
+                  <label style="cursor: pointer; background: #e0f2fe; color: #0284c7; padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                    📁 Depuis mon PC
+                    <input type="file" accept="application/pdf" style="display: none;" (change)="onPdfSelected($event)">
+                  </label>
+                </div>
+                <textarea class="form-control premium-input" [(ngModel)]="formData.documents" rows="2" placeholder="Ex: https://site.com/reglement.pdf"></textarea>
+                <small class="help-text">Les visiteurs verront des boutons de téléchargement pour chaque document.</small>
+              </div>
+            </div>
+          </div>
+
+        </div> <!-- End Right Column -->
+
+      </div> <!-- End premium-form-body two-columns -->
+
+      <div class="premium-modal-footer">
+        <button class="btn-premium-outline" (click)="creationMode === 'CHOICE' ? closeForm() : creationMode = 'CHOICE'" *ngIf="!editingItem">
+          {{ creationMode === 'CHOICE' ? 'Annuler' : 'Retour au choix' }}
+        </button>
+        <button class="btn-premium-outline" (click)="closeForm()" *ngIf="editingItem">Annuler</button>
+        
+        <button class="btn-premium-solid" [disabled]="submitting" (click)="saveItem()" *ngIf="creationMode !== 'CHOICE'">
+          <span *ngIf="!submitting" style="display: flex; align-items: center; gap: 8px;">
+            {{ editingItem ? 'Enregistrer les modifications' : 'Confirmer et Créer' }}
+            <svg *ngIf="!editingItem" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </span>
+          <div *ngIf="submitting" class="spinner" style="margin: 0 auto; border-top-color: white;"></div>
         </button>
       </div>
+      </ng-container>
     </div>
   </div>
 
   <!-- Notification Message -->
   <div *ngIf="message" class="toast-container" [class]="messageType">
     {{ message }}
+  </div>
+
+  <!-- ARTICLE DETAILS DIALOG MODAL (INLINE VIEW) -->
+  <div class="modal-overlay" *ngIf="selectedItem" (click)="closeArticle()" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.3s ease-out;">
+    <div class="modal-content" (click)="$event.stopPropagation()" style="background: white; border-radius: 24px; padding: 32px; width: 100%; max-width: 900px; max-height: 90vh; overflow-y: auto; position: relative; border: 1px solid #f1f5f9; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
+      <!-- Close Button -->
+      <button class="modal-close" (click)="closeArticle()" style="position: absolute; top: 24px; right: 24px; width: 40px; height: 40px; border-radius: 50%; border: none; background: #f1f5f9; color: #64748b; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; transition: all 0.2s;">✕</button>
+
+      <!-- Smart Features Bar (AI Recap) -->
+      <div style="background: linear-gradient(135deg, #f8fafc, #e0f2fe); padding: 16px; border-radius: 16px; margin-bottom: 24px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; border: 1px solid #bae6fd;">
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <button (click)="generateRecap()" [disabled]="isRecapping" style="background: #0284c7; color: white; border: none; padding: 10px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.3);">
+            <span *ngIf="!isRecapping">✨ Résumé IA</span>
+            <span *ngIf="isRecapping">⏳ Génération...</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- AI Recap Box -->
+      <div *ngIf="aiRecap" style="background: #fdfcdc; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 24px; font-size: 1.05rem; line-height: 1.6; color: #451a03; animation: fadeIn 0.5s;">
+        <div [innerHTML]="aiRecap | safe:'html'"></div>
+      </div>
+
+      <!-- Category Label & Discipline -->
+      <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px; margin-top: 10px;">
+        <span style="background: #e0f2fe; color: #0369a1; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase;">
+          {{ categoryLabels[selectedItem.type] || selectedItem.type }}
+        </span>
+        <span style="color: #64748b; font-weight: 700; font-size: 0.85rem; text-transform: uppercase;">
+          • {{ selectedItem.discipline }}
+        </span>
+      </div>
+
+      <!-- Main Title -->
+      <h1 style="font-size: 2.2rem; font-weight: 850; color: #1e293b; line-height: 1.25; margin-bottom: 16px; letter-spacing: -0.02em;">{{ selectedItem.title }}</h1>
+
+      <!-- Meta Info -->
+      <div style="display: flex; flex-wrap: wrap; gap: 20px; font-size: 0.9rem; color: #94a3b8; font-weight: 700; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #f1f5f9;">
+        <span>📅 Publié le : <b style="color: #475569;">{{ selectedItem.publishedAt || selectedItem.createdAt | date:'dd MMMM yyyy HH:mm' }}</b></span>
+      </div>
+
+      <!-- Main Media Banner -->
+      <div style="border-radius: 16px; overflow: hidden; margin-bottom: 30px; max-height: 450px; background: #f8fafc; border: 1px solid #f1f5f9;">
+        <iframe *ngIf="(selectedItem.type === 'VIDEO' || selectedItem.mediaUrl?.includes('yout') || selectedItem.linkUrl?.includes('yout'))" [src]="pressService.getEmbedUrl(selectedItem.mediaUrl || selectedItem.linkUrl || '') | safe" frameborder="0" allowfullscreen style="width: 100%; height: 450px; border: none;"></iframe>
+        <img *ngIf="!(selectedItem.type === 'VIDEO' || selectedItem.mediaUrl?.includes('yout') || selectedItem.linkUrl?.includes('yout')) && selectedItem.mediaUrl" [src]="selectedItem.mediaUrl" alt="Illustration" style="width: 100%; height: 100%; max-height: 450px; object-fit: cover; display: block; margin: 0 auto;">
+      </div>
+
+      <!-- Article Original Content (Truncated by default) -->
+      <article *ngIf="!showFullContent" style="font-size: 1.1rem; line-height: 1.8; color: #1e293b; margin-bottom: 20px; text-align: justify; word-break: break-word;">
+        {{ selectedItem.summary || (selectedItem.content ? (selectedItem.content | slice:0:300) + '...' : '') }}
+      </article>
+
+      <article *ngIf="showFullContent" [innerHTML]="selectedItem.content" style="font-size: 1.1rem; line-height: 1.8; color: #1e293b; margin-bottom: 20px; text-align: justify; word-break: break-word;">
+      </article>
+
+      <!-- Read More Button -->
+      <div style="text-align: center; margin-bottom: 40px;" *ngIf="!showFullContent">
+        <button (click)="selectedItem.documents ? openLink(selectedItem.documents.split(',')[0]) : (selectedItem.linkUrl ? openLink(selectedItem.linkUrl) : showFullContent = true)" style="background: #1565C0; color: white; border: none; padding: 12px 24px; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+          {{ selectedItem.type === 'VIDEO' ? '▶ Regarder la vidéo' : (selectedItem.documents ? '📄 Ouvrir le PDF' : 'Lire la suite') }}
+        </button>
+      </div>
+
+      <!-- MULTIPLE IMAGES GALLERY -->
+      <section *ngIf="getGalleryImages(selectedItem.gallery).length > 0" style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #f1f5f9;">
+        <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">📸 Galerie Photos</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
+          <div *ngFor="let imgUrl of getGalleryImages(selectedItem.gallery)" style="border-radius: 12px; overflow: hidden; height: 150px; border: 1px solid #e2e8f0; cursor: pointer;">
+            <img [src]="imgUrl" alt="Photo galerie" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+        </div>
+      </section>
+
+
+    </div>
   </div>
 </div>

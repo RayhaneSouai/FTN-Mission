@@ -32,4 +32,16 @@ export class NavbarComponent implements OnInit {
   logout() {
     this.authService.logout();
   }
+
+  handleConnexion() {
+    if (this.isLoggedIn) {
+      if (this.isAdmin) {
+        this.router.navigate(['/admin']);
+      } else {
+        this.router.navigate(['/espace-nageur/dashboard']);
+      }
+    } else {
+      this.router.navigate(['/auth/login']);
+    }
+  }
 }

@@ -17,7 +17,11 @@ const routes: Routes = [
       { path: 'performances', component: SwimmerPerformancesComponent },
       { path: 'competitions', component: SwimmerCompetitionsComponent },
       { path: 'actualites', component: SwimmerActualitesComponent },
-      { path: 'mon-club', component: SwimmerClubComponent }
+      { path: 'mon-club', component: SwimmerClubComponent },
+      { 
+        path: 'mon-profil', 
+        loadChildren: () => import('../profile/profile.module').then(m => m.ProfileModule) 
+      }
     ]
   }
 ];

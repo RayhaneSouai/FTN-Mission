@@ -63,7 +63,7 @@
         <h3 class="card-title">{{ item.title }}</h3>
         <p class="card-excerpt">{{ (item.content || '') | slice:0:130 }}{{ (item.content?.length || 0) > 130 ? '…' : '' }}</p>
 
-        <button class="btn-read" (click)="openLink(item.linkUrl || item.mediaUrl)">
+        <button class="btn-read" (click)="openArticle(item)">
           {{ item.type === 'VIDEO' ? 'Regarder' : 'Lire la suite' }}
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </button>
@@ -72,3 +72,115 @@
   </div>
 
 </div>
+
+  <!-- ARTICLE DETAILS DIALOG MODAL (INLINE VIEW) -->
+  <div class="modal-overlay" *ngIf="selectedItem" (click)="closeArticle()" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.3s ease-out;">
+    <div class="modal-content" (click)="$event.stopPropagation()" style="background: white; border-radius: 24px; padding: 32px; width: 100%; max-width: 900px; max-height: 90vh; overflow-y: auto; position: relative; border: 1px solid #f1f5f9; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
+      <!-- Close Button -->
+      <button class="modal-close" (click)="closeArticle()" style="position: absolute; top: 24px; right: 24px; width: 40px; height: 40px; border-radius: 50%; border: none; background: #f1f5f9; color: #64748b; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; transition: all 0.2s;">✕</button>
+
+      <!-- Smart Features Bar (AI Recap & Translation) -->
+      <div style="background: linear-gradient(135deg, #f8fafc, #e0f2fe); padding: 16px; border-radius: 16px; margin-bottom: 24px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; border: 1px solid #bae6fd;">
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <button (click)="generateRecap()" [disabled]="isRecapping" style="background: #0284c7; color: white; border: none; padding: 10px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.3);">
+            <span *ngIf="!isRecapping">✨ Résumé IA</span>
+            <span *ngIf="isRecapping">⏳ Génération...</span>
+          </button>
+        </div>
+        
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <select [(ngModel)]="targetLang" style="padding: 10px; border-radius: 12px; border: 1px solid #bae6fd; outline: none; background: white; font-weight: 600; color: #0284c7;">
+            <option value="fr">Français</option>
+            <option value="en">Anglais</option>
+            <option value="ar">Arabe</option>
+            <option value="it">Italien</option>
+          </select>
+          <button (click)="translateArticle()" [disabled]="isTranslating" style="background: white; color: #0284c7; border: 1px solid #bae6fd; padding: 10px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
+            <span *ngIf="!isTranslating">🌐 Traduire</span>
+            <span *ngIf="isTranslating">⏳ Traduction...</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- AI Recap Box -->
+      <div *ngIf="aiRecap" style="background: #fdfcdc; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 24px; font-size: 1.05rem; line-height: 1.6; color: #451a03; animation: fadeIn 0.5s;">
+        <div [innerHTML]="aiRecap | safe:'html'"></div>
+      </div>
+
+      <!-- Category Label & Discipline -->
+      <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px; margin-top: 10px;">
+        <span style="background: #e0f2fe; color: #0369a1; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase;">
+          {{ categoryLabels[selectedItem.type] || selectedItem.type }}
+        </span>
+        <span style="color: #64748b; font-weight: 700; font-size: 0.85rem; text-transform: uppercase;">
+          • {{ selectedItem.discipline }}
+        </span>
+      </div>
+
+      <!-- Main Title -->
+      <h1 style="font-size: 2.2rem; font-weight: 850; color: #1e293b; line-height: 1.25; margin-bottom: 16px; letter-spacing: -0.02em;">{{ selectedItem.title }}</h1>
+
+      <!-- Meta Info -->
+      <div style="display: flex; flex-wrap: wrap; gap: 20px; font-size: 0.9rem; color: #94a3b8; font-weight: 700; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #f1f5f9;">
+        <span>📅 Publié le : <b style="color: #475569;">{{ selectedItem.publishedAt || selectedItem.createdAt | date:'dd MMMM yyyy HH:mm' }}</b></span>
+      </div>
+
+      <!-- Main Media Banner -->
+      <div style="border-radius: 16px; overflow: hidden; margin-bottom: 30px; max-height: 450px; background: #f8fafc; border: 1px solid #f1f5f9;">
+        <iframe *ngIf="(selectedItem.type === 'VIDEO' || selectedItem.mediaUrl?.includes('yout') || selectedItem.linkUrl?.includes('yout'))" [src]="pressService.getEmbedUrl(selectedItem.mediaUrl || selectedItem.linkUrl || '') | safe" frameborder="0" allowfullscreen style="width: 100%; height: 450px; border: none;"></iframe>
+        <img *ngIf="!(selectedItem.type === 'VIDEO' || selectedItem.mediaUrl?.includes('yout') || selectedItem.linkUrl?.includes('yout')) && selectedItem.mediaUrl" [src]="selectedItem.mediaUrl" alt="Illustration" style="width: 100%; height: 100%; max-height: 450px; object-fit: cover; display: block; margin: 0 auto;">
+      </div>
+
+      <!-- Article Translated Content or Original Content (Truncated by default) -->
+      <article *ngIf="translatedContent" [innerHTML]="translatedContent | safe:'html'" style="font-size: 1.1rem; line-height: 1.8; color: #1e293b; margin-bottom: 20px; text-align: justify; word-break: break-word; background: #f0fdf4; padding: 20px; border-radius: 16px; border: 1px solid #bbf7d0;">
+      </article>
+
+      <article *ngIf="!translatedContent && !showFullContent" style="font-size: 1.1rem; line-height: 1.8; color: #1e293b; margin-bottom: 20px; text-align: justify; word-break: break-word;">
+        {{ selectedItem.summary || (selectedItem.content ? (selectedItem.content | slice:0:300) + '...' : '') }}
+      </article>
+
+      <article *ngIf="!translatedContent && showFullContent" [innerHTML]="selectedItem.content" style="font-size: 1.1rem; line-height: 1.8; color: #1e293b; margin-bottom: 20px; text-align: justify; word-break: break-word;">
+      </article>
+
+      <!-- Read More Button -->
+      <div style="text-align: center; margin-bottom: 40px;" *ngIf="!showFullContent && !translatedContent">
+        <button (click)="selectedItem.linkUrl ? openLink(selectedItem.linkUrl) : showFullContent = true" style="background: #1565C0; color: white; border: none; padding: 12px 24px; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+          {{ selectedItem.type === 'VIDEO' ? '▶ Regarder la vidéo' : 'Lire la suite' }}
+        </button>
+      </div>
+
+      <!-- MULTIPLE IMAGES GALLERY -->
+      <section *ngIf="getGalleryImages(selectedItem.gallery).length > 0" style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #f1f5f9;">
+        <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">📸 Galerie Photos</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
+          <div *ngFor="let imgUrl of getGalleryImages(selectedItem.gallery)" style="border-radius: 12px; overflow: hidden; height: 150px; border: 1px solid #e2e8f0; cursor: pointer;">
+            <img [src]="imgUrl" alt="Photo galerie" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+        </div>
+      </section>
+
+      <!-- External Source Website Viewer -->
+      <section *ngIf="selectedItem.linkUrl" style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #f1f5f9;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin: 0;">🔗 Source externe</h3>
+          <div style="display: flex; gap: 10px;">
+            <button (click)="showIframe = !showIframe" style="background: white; border: 2px solid #1565C0; color: #1565C0; padding: 10px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
+              <span *ngIf="!showIframe">Afficher la page intégrée</span>
+              <span *ngIf="showIframe">Masquer la page intégrée</span>
+            </button>
+            <button (click)="openLink(selectedItem.linkUrl)" style="background: #1565C0; border: 2px solid #1565C0; color: white; padding: 10px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
+              Ouvrir dans un nouvel onglet
+            </button>
+          </div>
+        </div>
+        
+        <div *ngIf="showIframe" style="width: 100%; height: 60vh; border-radius: 16px; overflow: hidden; border: 2px solid #e2e8f0; background: #f8fafc; position: relative;">
+          <!-- Fallback message in case X-Frame-Options blocks it -->
+          <div style="position: absolute; top: 0; left: 0; width: 100%; padding: 10px; background: #fffbeb; color: #b45309; text-align: center; font-size: 0.85rem; border-bottom: 1px solid #fde68a; z-index: 1;">
+            Info: Si la page reste vide ou affiche "Connexion refusée", c'est que le site source interdit l'intégration. Utilisez le bouton "Ouvrir dans un nouvel onglet".
+          </div>
+          <iframe [src]="selectedItem.linkUrl | safe" style="width: 100%; height: 100%; border: none; padding-top: 40px; position: relative; z-index: 2;"></iframe>
+        </div>
+      </section>
+    </div>
+  </div>

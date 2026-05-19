@@ -34,7 +34,6 @@ public class User {
 
     @ManyToOne
     @JoinColumn(name = "club_id")
-    @JsonIgnore
     private Club club;
 
     private Boolean active;
