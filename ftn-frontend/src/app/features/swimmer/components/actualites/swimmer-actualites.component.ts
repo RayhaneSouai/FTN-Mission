@@ -108,6 +108,10 @@ export class SwimmerActualitesComponent implements OnInit {
 
   // --- INTERACTIONS METHODS ---
 
+  get currentUserId(): number | null {
+    return this.getCurrentUserId();
+  }
+
   private getCurrentUserId(): number | null {
     if (typeof localStorage !== 'undefined') {
       const userStr = localStorage.getItem('user');
