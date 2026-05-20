@@ -121,6 +121,10 @@ export class PressVisitorComponent implements OnInit {
 
   // ─── Interactions ────────────────────────────────────
 
+  get currentUserId(): number | null {
+    return this.getCurrentUserId();
+  }
+
   private getCurrentUserId(): number | null {
     if (typeof localStorage !== 'undefined') {
       try {
