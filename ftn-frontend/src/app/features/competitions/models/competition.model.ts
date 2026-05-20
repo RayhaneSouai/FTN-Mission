@@ -35,14 +35,12 @@ export enum Piscine {
 }
 
 export enum Categorie {
-  TC = 'TC',
+  AVENIRS = 'AVENIRS',
   POUSSINS = 'POUSSINS',
   BENJAMINS = 'BENJAMINS',
-  MIN_CAD_JS = 'MIN_CAD_JS',
-  MASTERS = 'MASTERS',
-  QUATORZE_ANS_ET_PLUS = 'QUATORZE_ANS_ET_PLUS',
-  NEUF_ANS = 'NEUF_ANS',
-  TREIZE_DIX_HUIT_ANS = 'TREIZE_DIX_HUIT_ANS',
+  MINIMES = 'MINIMES',
+  CADETS = 'CADETS',
+  JUNIORS_SENIORS = 'JUNIORS_SENIORS',
 }
 
 export interface Competition {
@@ -52,11 +50,24 @@ export interface Competition {
   discipline: Discipline;
   startDate: string;
   endDate: string;
-  categorie?: Categorie;
+  allowedCategories?: Categorie[];
   region?: string;
   lieu?: string;
   status?: CompetitionStatus;
   programmeStatus?: 'DRAFT' | 'APPROVED' | null;
+  /* ─── Participation Conditions ─── */
+  participationDeadline?: string | null;
+  allowedGender?: 'HOMME' | 'FEMME' | null;
+  minAge?: number | null;
+  maxAge?: number | null;
+  maxEvents?: number | null;
+  customConditions?: string | null;
+}
+
+/** Backend response for GET /api/competitions/get/:id */
+export interface CompetitionDetailResponse {
+  competition: Competition;
+  participationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'NONE';
 }
 
 export type CompetitionRequest = Omit<Competition, 'id' | 'status'>;
@@ -100,15 +111,30 @@ export const PISCINE_LABELS: Record<Piscine, string> = {
 };
 
 export const CATEGORIE_LABELS: Record<Categorie, string> = {
-  [Categorie.TC]: 'TC (Toutes Catégories)',
-  [Categorie.POUSSINS]: 'Poussins',
-  [Categorie.BENJAMINS]: 'Benjamins',
-  [Categorie.MIN_CAD_JS]: 'Min-Cad-J/S',
-  [Categorie.MASTERS]: 'Masters',
-  [Categorie.QUATORZE_ANS_ET_PLUS]: '14 ans et +',
-  [Categorie.NEUF_ANS]: '9 ans',
-  [Categorie.TREIZE_DIX_HUIT_ANS]: '13-18 ans',
+  [Categorie.AVENIRS]: 'Avenirs (≤9 ans)',
+  [Categorie.POUSSINS]: 'Poussins (10-11 ans)',
+  [Categorie.BENJAMINS]: 'Benjamins (12-13 ans)',
+  [Categorie.MINIMES]: 'Minimes (14-15 ans)',
+  [Categorie.CADETS]: 'Cadets (16-17 ans)',
+  [Categorie.JUNIORS_SENIORS]: 'Juniors/Seniors (18+ ans)',
 };
+
+/* ─── Age Category Utility ─── */
+
+export function determineAgeCategory(birthDate: string, referenceDate: string): Categorie {
+  const birth = new Date(birthDate);
+  const ref = new Date(referenceDate);
+  let age = ref.getFullYear() - birth.getFullYear();
+  const m = ref.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && ref.getDate() < birth.getDate())) age--;
+
+  if (age <= 9) return Categorie.AVENIRS;
+  if (age <= 11) return Categorie.POUSSINS;
+  if (age <= 13) return Categorie.BENJAMINS;
+  if (age <= 15) return Categorie.MINIMES;
+  if (age <= 17) return Categorie.CADETS;
+  return Categorie.JUNIORS_SENIORS;
+}
 
 /* ─── Programme Models (Legacy v1) ─── */
 
@@ -196,3 +222,49 @@ export const PROGRAM_ITEM_PRESETS: { label: string; type: ProgramItemType }[] = 
   { label: 'Pause', type: 'PART' },
   { label: 'Remise des médailles', type: 'PART' },
 ];
+
+/* ─── FTN Age Categories ─── */
+
+export enum AgeCategory {
+  AVENIRS_POUSSINS = 'AVENIRS_POUSSINS',
+  BENJAMINS = 'BENJAMINS',
+  MINIMES = 'MINIMES',
+  CADETS = 'CADETS',
+  JUNIORS_SENIORS = 'JUNIORS_SENIORS',
+  TC = 'TC',
+}
+
+export const AGE_CATEGORY_LABELS: Record<AgeCategory, string> = {
+  [AgeCategory.AVENIRS_POUSSINS]: 'Avenirs/Poussins (9–11)',
+  [AgeCategory.BENJAMINS]: 'Benjamins (12–13)',
+  [AgeCategory.MINIMES]: 'Minimes (14–15)',
+  [AgeCategory.CADETS]: 'Cadets (16–17)',
+  [AgeCategory.JUNIORS_SENIORS]: 'Juniors/Seniors (18+)',
+  [AgeCategory.TC]: 'Toutes Catégories',
+};
+
+/* ─── Participation Request ─── */
+
+export enum ParticipationStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
+
+export const PARTICIPATION_STATUS_LABELS: Record<ParticipationStatus, string> = {
+  [ParticipationStatus.PENDING]: 'Pending Manual Review',
+  [ParticipationStatus.APPROVED]: 'Approved',
+  [ParticipationStatus.REJECTED]: 'Rejected',
+};
+
+export interface ParticipationResponseDTO {
+  id: number;
+  swimmerId: number;
+  swimmerFirstName: string;
+  swimmerLastName: string;
+  competitionId: number;
+  competitionName: string;
+  status: string;
+  requestedAt: string | null;
+  customConditions: string | null;
+}

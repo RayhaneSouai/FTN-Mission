@@ -109,9 +109,9 @@ export class AdminProgrammeComponent implements OnInit {
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (id) {
-      this.competitionApi.getById(id).subscribe(comp => {
-        this.competition.set(comp);
-        this.programmeStatus.set(comp.programmeStatus ?? null);
+      this.competitionApi.getById(id).subscribe(res => {
+        this.competition.set(res.competition);
+        this.programmeStatus.set(res.competition.programmeStatus ?? null);
       });
     }
   }

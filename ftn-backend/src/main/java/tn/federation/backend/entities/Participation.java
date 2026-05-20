@@ -17,7 +17,8 @@ public class Participation {
     private Long id;
     private LocalDateTime registeredAt;
     @Enumerated(EnumType.STRING)
-    private RegistrationStatus status;
+    @Column(columnDefinition = "varchar(20)")
+    private ParticipationRequestStatus status;
     private Double officialTime;
     private Integer rank;
     private LocalDateTime recordedAt;

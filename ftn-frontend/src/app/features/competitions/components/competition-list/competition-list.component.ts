@@ -17,10 +17,7 @@ import {
   REGION_LABELS,
 } from '../../models/competition.model';
 import { CompetitionStateService } from '../../services/competition-state.service';
-import { CompetitionFormComponent } from '../competition-form/competition-form.component';
-import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { ToastContainerComponent } from '../toast-container/toast-container.component';
-import { HasUnsavedChanges } from '../../guards/unsaved-changes.guard';
 
 type CalendarView = 'month' | 'week';
 
@@ -46,21 +43,17 @@ interface WeekEvent {
 @Component({
   selector: 'app-competition-list',
   standalone: true,
-  imports: [DatePipe, NgStyle, CompetitionFormComponent, ConfirmDialogComponent, ToastContainerComponent],
+  imports: [DatePipe, NgStyle, ToastContainerComponent],
   templateUrl: './competition-list.component.html',
   styleUrl: './competition-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CompetitionListComponent implements OnInit, HasUnsavedChanges {
+export class CompetitionListComponent implements OnInit {
   protected readonly state = inject(CompetitionStateService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly router = inject(Router);
 
   readonly currentView = signal<CalendarView>('month');
-  readonly modalOpen = signal(false);
-  readonly editingCompetition = signal<Competition | null>(null);
-  readonly confirmDeleteOpen = signal(false);
-  private pendingDeleteId: number | null = null;
 
   /* ─── Date navigation ─── */
   readonly viewYear = signal(new Date().getFullYear());
@@ -127,7 +120,6 @@ export class CompetitionListComponent implements OnInit, HasUnsavedChanges {
       this.state.loadCompetitions();
     }
   }
-  hasUnsavedChanges(): boolean { return this.modalOpen(); }
 
   /* ─── View switching ─── */
   setView(v: CalendarView): void { this.currentView.set(v); }
@@ -160,23 +152,10 @@ export class CompetitionListComponent implements OnInit, HasUnsavedChanges {
     this.viewWeekStart.set(this.getMonday(now));
   }
 
-  /* ─── Modal ─── */
-  openCreateModal(): void { this.editingCompetition.set(null); this.modalOpen.set(true); }
-  openEditModal(comp: Competition): void { this.editingCompetition.set(comp); this.modalOpen.set(true); }
-  closeModal(): void { this.modalOpen.set(false); this.editingCompetition.set(null); }
-
   /* ─── Navigate to details ─── */
   navigateToDetails(comp: Competition): void {
     this.router.navigate(['/competitions', comp.id]);
   }
-
-  /* ─── Delete ─── */
-  requestDelete(id: number): void { this.pendingDeleteId = id; this.confirmDeleteOpen.set(true); }
-  onDeleteConfirmed(): void {
-    if (this.pendingDeleteId !== null) this.state.deleteCompetition(this.pendingDeleteId);
-    this.confirmDeleteOpen.set(false); this.pendingDeleteId = null;
-  }
-  onDeleteCancelled(): void { this.confirmDeleteOpen.set(false); this.pendingDeleteId = null; }
 
   /* ─── Event bar style (absolute positioning inside week row) ─── */
   eventBarStyle(ev: WeekEvent): Record<string, string> {

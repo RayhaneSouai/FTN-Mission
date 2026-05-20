@@ -1,0 +1,119 @@
+<div class="epreuves-container">
+    <h2 class="section-title">Épreuves</h2>
+    <p class="section-subtitle">Liste des épreuves de cette compétition avec les critères d'éligibilité FTN.</p>
+
+    <!-- Success/Error messages -->
+    @if (successMsg()) {
+        <div class="alert alert-success">
+            <span>✓</span> {{ successMsg() }}
+            <button class="alert-close" (click)="successMsg.set(null)">×</button>
+        </div>
+    }
+    @if (errorMsg()) {
+        <div class="alert alert-error">
+            <span>✕</span> {{ errorMsg() }}
+            <button class="alert-close" (click)="errorMsg.set(null)">×</button>
+        </div>
+    }
+
+    @if (loading()) {
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Chargement des épreuves...</p>
+        </div>
+    }
+
+    @if (!loading() && sortedEvents().length === 0) {
+        <div class="empty-state">
+            <p>Aucune épreuve définie pour cette compétition.</p>
+        </div>
+    }
+
+    @if (!loading() && sortedEvents().length > 0) {
+        <div class="events-grid">
+            @for (event of sortedEvents(); track event.id) {
+                <div class="event-card" [class.event-eligible]="isSwimmer() && isEligible(event.id)" [class.event-engaged]="isSwimmer() && isEngaged(event.id)">
+                    <!-- Header -->
+                    <div class="event-header">
+                        <span class="event-number">#{{ event.eventNumber }}</span>
+                        <h3 class="event-name">{{ event.eventName }}</h3>
+                    </div>
+
+                    <!-- Criteria badges -->
+                    <div class="event-badges">
+                        <!-- Gender -->
+                        @if (event.gender) {
+                            <span class="badge badge-gender" [class.badge-male]="event.gender === 'HOMME'" [class.badge-female]="event.gender === 'FEMME'">
+                                {{ genderIcon(event.gender) }} {{ genderLabel(event.gender) }}
+                            </span>
+                        }
+                        <!-- Age Category -->
+                        @if (event.ageCategoryLabel) {
+                            <span class="badge badge-age">
+                                🏊 {{ event.ageCategoryLabel }}
+                            </span>
+                        }
+                        <!-- Distance + Stroke -->
+                        @if (event.distance) {
+                            <span class="badge badge-distance">
+                                {{ event.distance }}
+                            </span>
+                        }
+                        @if (event.stroke) {
+                            <span class="badge badge-stroke">
+                                {{ event.stroke }}
+                            </span>
+                        }
+                        <!-- Minima -->
+                        @if (event.minimaTime != null) {
+                            <span class="badge badge-minima" [title]="'Temps minima requis : ' + formatTime(event.minimaTime)">
+                                ⏱ Minima : {{ formatTime(event.minimaTime) }}
+                            </span>
+                        }
+                    </div>
+
+                    <!-- Footer: engagement info -->
+                    <div class="event-footer">
+                        <span class="engagement-count">
+                            {{ event.currentEngagements }} engagé{{ event.currentEngagements !== 1 ? 's' : '' }}
+                            @if (event.maxParticipants != null) {
+                                / {{ event.maxParticipants }} max
+                            }
+                        </span>
+
+                        <!-- Swimmer action area -->
+                        @if (isSwimmer()) {
+                            @if (isEngaged(event.id)) {
+                                <!-- Already engaged -->
+                                <span class="engagement-status" [class]="statusClass(getEngagement(event.id)!.status)" [title]="getTooltip(event.id)">
+                                    {{ statusLabel(getEngagement(event.id)!.status) }}
+                                </span>
+                            } @else if (isEligible(event.id)) {
+                                <!-- Eligible: show engagement button -->
+                                <button class="btn-engage" (click)="requestEngagement(event)" [disabled]="engagingEventId() === event.id">
+                                    @if (engagingEventId() === event.id) {
+                                        <span class="btn-spinner"></span> Envoi...
+                                    } @else {
+                                        Demander l'engagement
+                                    }
+                                </button>
+                            } @else {
+                                <!-- Not eligible: disabled button with tooltip -->
+                                <button class="btn-engage btn-engage--disabled" disabled [title]="getTooltip(event.id)">
+                                    Non éligible
+                                </button>
+                                <div class="ineligible-reasons">
+                                    @for (reason of getRejectionReasons(event.id); track reason) {
+                                        <span class="reason-tag">{{ reason }}</span>
+                                    }
+                                </div>
+                            }
+                        } @else if (!isLoggedIn()) {
+                            <span class="login-hint">Connectez-vous pour vous engager</span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

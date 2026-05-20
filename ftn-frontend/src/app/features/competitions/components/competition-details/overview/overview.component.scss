@@ -2,6 +2,29 @@
   display: block;
 }
 
+/* ─── 3-Column Grid (row 1) ─── */
+.overview-grid-3col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+
+  @media (max-width: 992px) {
+    grid-template-columns: 1fr 1fr;
+  }
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Conditions Card (row 2, full width) ─── */
+.conditions-card {
+  margin-top: 20px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 20px;
+}
+
 .overview-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -19,6 +42,9 @@
   }
 
   &__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-size: 14px;
     font-weight: 700;
     color: #1565C0;
@@ -26,6 +52,28 @@
     letter-spacing: 0.04em;
     margin: 0 0 16px;
   }
+}
+
+/* ─── Title Icons (circle badge) ─── */
+.title-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &--info { background: #e3f2fd; color: #1565C0; }
+  &--loc { background: #e3f2fd; color: #1565C0; }
+  &--desc { background: #e3f2fd; color: #1565C0; }
+  &--cond { background: #e8f5e9; color: #2e7d32; }
+}
+
+/* ─── Row Icons ─── */
+.row-icon {
+  color: #9e9e9e;
+  flex-shrink: 0;
 }
 
 .info-row {
@@ -41,6 +89,9 @@
 }
 
 .info-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 13px;
   font-weight: 600;
   color: #6b7280;
@@ -92,6 +143,244 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ─── Conditions Section ─── */
+
+.conditions-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.condition-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #e3f2fd;
+  color: #1565C0;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+
+  svg { flex-shrink: 0; }
+
+  &--expired {
+    background: #fce4ec;
+    color: #c62828;
+  }
+
+  &--categories {
+    flex-wrap: wrap;
+  }
+}
+
+.expired-badge {
+  background: #c62828;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+.category-badge {
+  background: #bbdefb;
+  color: #0d47a1;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.custom-conditions {
+  margin-top: 12px;
+  padding: 14px 16px;
+  background: #fffde7;
+  border: 1px solid #fff9c4;
+  border-radius: 8px;
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #5d4037;
+    white-space: pre-wrap;
+  }
+}
+
+.no-conditions-text {
+  color: #9e9e9e;
+  font-size: 13px;
+  font-style: italic;
+  margin: 0;
+}
+
+/* ─── Participation Section ─── */
+
+.participation-section {
+  margin-top: 32px;
+  padding: 24px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.participation-hint {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 0;
+  text-align: center;
+}
+
+.btn-participate {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 24px;
+  background: #1565C0;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  width: 100%;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(21, 101, 192, 0.15);
+
+  &:hover:not(:disabled) {
+    background: #0d47a1;
+    box-shadow: 0 4px 12px rgba(21, 101, 192, 0.25);
+  }
+
+  &:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
+
+  &--disabled {
+    background: #9e9e9e;
+    box-shadow: none;
+  }
+}
+
+.spinner-sm {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* ─── No Programme Notice ─── */
+.no-programme-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #fff3e0;
+  border: 1px solid #ffe0b2;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #e65100;
+  margin-bottom: 12px;
+  line-height: 1.5;
+
+  svg { flex-shrink: 0; margin-top: 1px; }
+}
+
+/* ─── Manual Review Notice ─── */
+.manual-review-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #e3f2fd;
+  border: 1px solid #90caf9;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #0d47a1;
+  margin-bottom: 12px;
+  line-height: 1.5;
+
+  svg { flex-shrink: 0; margin-top: 1px; }
+}
+
+/* ─── Status Banner ─── */
+.participation-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 10px;
+  border: 1px solid;
+
+  .banner-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  .banner-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .banner-title {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+
+  .banner-desc {
+    font-size: 13px;
+    opacity: 0.85;
+    line-height: 1.4;
+  }
+
+  &.banner-PENDING {
+    background: #e3f2fd;
+    border-color: #90caf9;
+    color: #0d47a1;
+
+    .banner-icon { background: rgba(13, 71, 161, 0.1); }
+  }
+
+  &.banner-APPROVED {
+    background: #e8f5e9;
+    border-color: #a5d6a7;
+    color: #1b5e20;
+
+    .banner-icon { background: rgba(27, 94, 32, 0.1); }
+  }
+
+  &.banner-REJECTED {
+    background: #fce4ec;
+    border-color: #ef9a9a;
+    color: #b71c1c;
+
+    .banner-icon { background: rgba(183, 28, 28, 0.1); }
+  }
+}
+
+.alert {
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.alert-success { background: #d1e7dd; color: #0f5132; }
+.alert-error { background: #f8d7da; color: #842029; }
 
 /* ─── Programme Section ─── */
 

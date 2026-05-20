@@ -40,6 +40,7 @@ public class SecurityConfig {
                                 "/api/press/fetch-metadata",
                                 "/api/press/upload",
                                 "/api/press/images/**",
+                                // Public competition endpoints (read-only)
                                 "/api/competitions/getAll",
                                 "/api/competitions/get/**",
                                 "/api/competitions/*/programme",
@@ -49,8 +50,11 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**")
                         .permitAll()
-                        // Admin programme endpoints require authentication
+                        // Admin endpoints require authentication
                         .requestMatchers("/api/admin/**").authenticated()
+                        // Participation request endpoints require authentication
+                        .requestMatchers("/api/competitions/*/participate").authenticated()
+                        .requestMatchers("/api/competitions/*/my-participation").authenticated()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())

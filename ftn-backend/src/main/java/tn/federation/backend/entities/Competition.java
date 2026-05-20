@@ -7,7 +7,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -40,8 +42,12 @@ public class Competition {
     @Enumerated(EnumType.STRING)
     private Region region;
 
+    /** Allowed age categories (multiple). Empty = all categories allowed. */
+    @ElementCollection(targetClass = Categorie.class, fetch = FetchType.EAGER)
+    @CollectionTable(name = "competition_categories", joinColumns = @JoinColumn(name = "competition_id"))
     @Enumerated(EnumType.STRING)
-    private Categorie categorie;
+    @Column(name = "categorie", columnDefinition = "VARCHAR(50)")
+    private Set<Categorie> allowedCategories = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     @JsonSetter(nulls = Nulls.SKIP)
@@ -64,4 +70,27 @@ public class Competition {
     @JsonIgnore
     @OneToMany(mappedBy = "competition")
     private List<MediaItem> mediaItems;
+
+    /* ─── Participation Conditions ─── */
+
+    /** Deadline for participation requests (null = no deadline) */
+    private LocalDate participationDeadline;
+
+    /** Allowed gender (null = both genders allowed) */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "allowed_gender")
+    private Gender allowedGender;
+
+    /** Minimum age to participate (null = no min) */
+    private Integer minAge;
+
+    /** Maximum age to participate (null = no max) */
+    private Integer maxAge;
+
+    /** Maximum events per swimmer (null = unlimited) */
+    private Integer maxEvents;
+
+    /** Free-text conditions defined by admin (manually reviewed) */
+    @Column(name = "custom_conditions", columnDefinition = "TEXT")
+    private String customConditions;
 }

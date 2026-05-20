@@ -28,6 +28,21 @@ public class CompetitionEvent {
 
     private String stroke; // e.g. "DOS", "NAGE LIBRE", "PAPILLON", "BRASSE", "4 NAGES"
 
+    // ── Critères d'éligibilité FTN ──
+
+    /** Catégorie d'âge requise pour cette épreuve */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "required_age_category")
+    private AgeCategory requiredAgeCategory;
+
+    /** Temps minima requis pour s'engager (en secondes), null = pas de minima */
+    @Column(name = "minima_time")
+    private Double minimaTime;
+
+    /** Nombre maximum de participants pour cette épreuve */
+    @Column(name = "max_participants")
+    private Integer maxParticipants;
+
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "day_id")
@@ -35,4 +50,8 @@ public class CompetitionEvent {
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EventSeries> series;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
+    private List<Engagement> engagements;
 }
