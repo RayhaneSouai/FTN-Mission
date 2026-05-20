@@ -66,6 +66,10 @@ export class PressService {
     return this.http.delete<void>(`${this.baseUrl}/delete/${id}`);
   }
 
+  getFavoritesByUserId(userId: number): Observable<PressItem[]> {
+    return this.http.get<PressItem[]>(`${this.baseUrl}/favorites/${userId}`);
+  }
+
   getEmbedUrl(url: string): string {
     if (!url) return '';
     let videoId = '';

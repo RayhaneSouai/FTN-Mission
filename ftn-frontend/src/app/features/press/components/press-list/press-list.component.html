@@ -511,6 +511,54 @@
         </div>
       </section>
 
+      <!-- INTERACTIONS ADMIN VIEW -->
+      <section *ngIf="interactions" style="border-top:2px solid #f1f5f9;padding-top:24px;margin-top:24px;">
+        <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">📊 Interactions des Nageurs</h3>
+        
+        <!-- Reactions + Favorite -->
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;background:#f8fafc;padding:14px 18px;border-radius:14px;margin-bottom:24px;gap:10px;">
+          <!-- Emoji buttons (read-only) -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <div *ngFor="let r of availableReactions"
+                    style="background:white; border:2px solid #e2e8f0;border-radius:50px;padding:7px 14px;font-size:1.1rem;display:flex;align-items:center;gap:6px;font-weight:700;color:#475569;">
+              {{ r.emoji }} <span style="font-size:0.85rem;">{{ getReactionCount(r.type) }}</span>
+            </div>
+          </div>
+          <!-- Favorite Count -->
+          <div style="background:white; border:2px solid #e2e8f0;border-radius:50px;padding:8px 18px;font-size:1rem;font-weight:700;display:flex;align-items:center;gap:8px;">
+            <span>⭐ Favoris</span>
+            <span style="background:#e2e8f0;color:#475569;font-size:0.78rem;padding:2px 8px;border-radius:20px;">{{ interactions?.totalFavorites || 0 }}</span>
+          </div>
+        </div>
+
+        <!-- Comments -->
+        <h3 style="font-size:1.1rem;font-weight:800;color:#1e293b;margin-bottom:18px;display:flex;align-items:center;gap:8px;">
+          💬 Tous les Commentaires
+          <span style="background:#e0f2fe;color:#0284c7;font-size:0.78rem;padding:2px 10px;border-radius:20px;font-weight:700;">{{ interactions?.comments?.length || 0 }}</span>
+        </h3>
+
+        <!-- Comment list -->
+        <div style="display:flex;flex-direction:column;gap:12px;max-height:380px;overflow-y:auto;padding-right:4px;">
+          <div *ngFor="let comment of interactions?.comments"
+               style="display:flex;gap:12px;background:#f8fafc;padding:14px 16px;border-radius:14px;border:1px solid #e2e8f0;">
+            <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;font-size:1rem;text-transform:uppercase;">
+              {{ (comment.userName || '?')[0] }}
+            </div>
+            <div style="flex:1;">
+              <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:5px;">
+                <span style="font-weight:700;color:#1e293b;">{{ comment.userName }}</span>
+                <span style="font-size:0.78rem;color:#94a3b8;">{{ comment.createdAt | date:'dd MMM yyyy à HH:mm' }}</span>
+              </div>
+              <p style="margin:0;color:#334155;font-size:0.95rem;line-height:1.6;word-break:break-word;">{{ comment.text }}</p>
+            </div>
+          </div>
+
+          <div *ngIf="!interactions?.comments?.length"
+               style="text-align:center;color:#94a3b8;padding:28px 0;font-size:0.95rem;">
+            Aucun commentaire pour le moment.
+          </div>
+        </div>
+      </section>
 
     </div>
   </div>

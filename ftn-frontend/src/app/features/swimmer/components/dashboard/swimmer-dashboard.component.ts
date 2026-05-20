@@ -23,12 +23,23 @@ export class SwimmerDashboardComponent implements OnInit {
     this.loadData();
   }
 
+  dashboardStats: any = null;
+
   loadData() {
     this.loading = true;
-    this.swimmerService.getProfile().subscribe({
-      next: (p) => { this.profile = p; this.loading = false; },
-      error: () => { this.loading = false; this.error = true; }
-    });
+    
+    // Fallback: If getProfile doesn't exist on athlete/profile, we'll use user from localStorage
+    this.profile = this.user; 
+
+    // We fetch the new dashboard stats API
+    if (this.user && this.user.id) {
+      this.swimmerService.getDashboardStats(this.user.id).subscribe({
+        next: (stats) => { this.dashboardStats = stats; this.loading = false; },
+        error: () => { this.loading = false; this.error = true; }
+      });
+    } else {
+      this.loading = false;
+    }
 
     this.swimmerService.getCompetitions().subscribe({
       next: (c) => { this.competitions = (c || []).slice(0, 3); },
@@ -39,11 +50,6 @@ export class SwimmerDashboardComponent implements OnInit {
       next: (n) => {
         this.news = (n || []).filter((i: any) => i.status === 'PUBLISHED').slice(0, 3);
       },
-      error: () => {}
-    });
-
-    this.swimmerService.getProgress().subscribe({
-      next: (pr) => { this.progress = pr; },
       error: () => {}
     });
   }

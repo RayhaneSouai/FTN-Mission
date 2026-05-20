@@ -189,6 +189,13 @@ public class PressServiceImpl implements IPressService {
                 .collect(java.util.stream.Collectors.toList());
     }
 
+    public List<PressItem> getFavoritesByUserId(Long userId) {
+        return favoriteRepository.findAll().stream()
+            .filter(f -> f.getUser().getId().equals(userId))
+            .map(tn.federation.backend.entities.PressFavorite::getPressItem)
+            .collect(Collectors.toList());
+    }
+
     // Tâche planifiée pour publier les articles programmés
     @org.springframework.scheduling.annotation.Scheduled(fixedRate = 60000) // Toutes les minutes
     public void publishScheduledItems() {

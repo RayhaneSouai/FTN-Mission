@@ -56,13 +56,31 @@ export class PressVisitorComponent implements OnInit {
           .filter(item => item.status === 'PUBLISHED')
           .sort((a, b) => (b.idPressItem || 0) - (a.idPressItem || 0));
         this.loading = false;
+        this.loadFavorites();
       },
       error: () => this.loading = false
     });
   }
 
+  favoriteItems: PressItem[] = [];
+
+  loadFavorites(): void {
+    const userId = this.getCurrentUserId();
+    if (!userId) return;
+    this.pressService.getFavoritesByUserId(userId).subscribe({
+      next: (res) => this.favoriteItems = res,
+      error: (err) => console.error('Erreur chargement favoris', err)
+    });
+  }
+
   getFilteredItems(): PressItem[] {
-    let filtered = [...this.items];
+    let sourceItems = this.activeFilter === 'FAVORITES' ? this.favoriteItems : this.items;
+    let filtered = [...sourceItems];
+
+    if (this.activeFilter !== 'ALL' && this.activeFilter !== 'FAVORITES') {
+      filtered = filtered.filter(item => item.type === this.activeFilter);
+    }
+
     if (this.searchTerm) {
       const term = this.searchTerm.toLowerCase();
       filtered = filtered.filter(item =>
@@ -173,7 +191,10 @@ export class PressVisitorComponent implements OnInit {
     const userId = this.getCurrentUserId();
     if (!userId) { alert('Vous devez être connecté pour ajouter aux favoris.'); return; }
     this.pressService.toggleFavorite(this.selectedItem.idPressItem, userId).subscribe({
-      next: () => this.loadInteractions()
+      next: () => {
+        this.loadInteractions();
+        this.loadFavorites(); // Reload favorites list in background
+      }
     });
   }
 

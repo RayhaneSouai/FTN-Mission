@@ -5,208 +5,231 @@
 </section>
 
 <div class="section-container">
-  
-  <!-- Search Box Only -->
-  <section class="visitor-controls" style="margin-bottom: 40px;">
-    <div class="search-box" style="display: flex; align-items: center; gap: 12px; background: #f1f5f9; border-radius: 16px; padding: 14px 20px; border: 2px solid transparent; transition: all 0.2s;">
+
+  <!-- Filters -->
+  <section style="margin-bottom: 24px; display: flex; flex-wrap: wrap; gap: 12px;">
+    <button (click)="onFilterChange('ALL')" [ngStyle]="{'background': activeFilter === 'ALL' ? '#1565C0' : '#f1f5f9', 'color': activeFilter === 'ALL' ? 'white' : '#475569', 'border': 'none', 'padding': '10px 20px', 'border-radius': '50px', 'font-weight': '700', 'cursor': 'pointer', 'transition': 'all 0.2s'}">Tous</button>
+    <button (click)="onFilterChange('ARTICLE')" [ngStyle]="{'background': activeFilter === 'ARTICLE' ? '#1565C0' : '#f1f5f9', 'color': activeFilter === 'ARTICLE' ? 'white' : '#475569', 'border': 'none', 'padding': '10px 20px', 'border-radius': '50px', 'font-weight': '700', 'cursor': 'pointer', 'transition': 'all 0.2s'}">Articles</button>
+    <button (click)="onFilterChange('VIDEO')" [ngStyle]="{'background': activeFilter === 'VIDEO' ? '#1565C0' : '#f1f5f9', 'color': activeFilter === 'VIDEO' ? 'white' : '#475569', 'border': 'none', 'padding': '10px 20px', 'border-radius': '50px', 'font-weight': '700', 'cursor': 'pointer', 'transition': 'all 0.2s'}">Vidéos</button>
+    <button (click)="onFilterChange('PHOTO')" [ngStyle]="{'background': activeFilter === 'PHOTO' ? '#1565C0' : '#f1f5f9', 'color': activeFilter === 'PHOTO' ? 'white' : '#475569', 'border': 'none', 'padding': '10px 20px', 'border-radius': '50px', 'font-weight': '700', 'cursor': 'pointer', 'transition': 'all 0.2s'}">Photos</button>
+    <button (click)="onFilterChange('COMMUNIQUE')" [ngStyle]="{'background': activeFilter === 'COMMUNIQUE' ? '#1565C0' : '#f1f5f9', 'color': activeFilter === 'COMMUNIQUE' ? 'white' : '#475569', 'border': 'none', 'padding': '10px 20px', 'border-radius': '50px', 'font-weight': '700', 'cursor': 'pointer', 'transition': 'all 0.2s'}">Communiqués</button>
+    <button *ngIf="currentUserId" (click)="onFilterChange('FAVORITES')" [ngStyle]="{'background': activeFilter === 'FAVORITES' ? '#f59e0b' : '#fef3c7', 'color': activeFilter === 'FAVORITES' ? 'white' : '#b45309', 'border': 'none', 'padding': '10px 20px', 'border-radius': '50px', 'font-weight': '800', 'cursor': 'pointer', 'transition': 'all 0.2s'}">⭐ Mes Favoris</button>
+  </section>
+
+  <!-- Search Box -->
+  <section style="margin-bottom: 40px;">
+    <div style="display: flex; align-items: center; gap: 12px; background: #f1f5f9; border-radius: 16px; padding: 14px 20px; border: 2px solid transparent; transition: all 0.2s;">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="text" placeholder="Rechercher une actualité..." style="border: none; background: transparent; width: 100%; font-size: 1rem; color: #1e293b; outline: none;" (input)="onSearch($any($event.target).value)"/>
     </div>
   </section>
 
-  <!-- Loading State -->
-  <div class="loading-container" *ngIf="loading" style="text-align: center; padding: 60px;">
-    <div class="spinner" style="margin: 0 auto 16px; width: 36px; height: 36px; border: 4px solid rgba(21, 101, 192, 0.2); border-top-color: #1565C0; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-    <p style="color: #64748b; font-weight: 600;">Récupération des actualités...</p>
+  <!-- Loading -->
+  <div *ngIf="loading" style="text-align: center; padding: 60px;">
+    <div style="margin: 0 auto 16px; width: 36px; height: 36px; border: 4px solid rgba(21,101,192,0.2); border-top-color: #1565C0; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+    <p style="color: #64748b; font-weight: 600;">Chargement des actualités...</p>
   </div>
 
   <!-- Empty State -->
-  <div class="empty-state" *ngIf="!loading && getFilteredItems().length === 0" style="text-align: center; padding: 60px; background: white; border-radius: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;">
-    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 16px;">
-      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
-    </svg>
+  <div *ngIf="!loading && getFilteredItems().length === 0" style="text-align: center; padding: 60px; background: white; border-radius: 24px; border: 1px solid #f1f5f9;">
     <h3 style="font-weight: 800; color: #1e293b; margin-bottom: 8px;">Aucune actualité trouvée</h3>
-    <p style="color: #94a3b8;">Revenez bientôt ou essayez un autre filtre.</p>
+    <p style="color: #94a3b8;">Revenez bientôt !</p>
   </div>
 
   <!-- News Grid -->
-  <div class="news-grid" *ngIf="!loading && getFilteredItems().length > 0" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 32px;">
-    <div *ngFor="let item of getFilteredItems()" class="news-card"
-         [class.importance-a-la-une]="item.importance === 'A_LA_UNE'"
-         [class.importance-urgent]="item.importance === 'URGENT'"
-         [class.importance-important]="item.importance === 'IMPORTANT'"
-         style="background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; transition: all 0.3s ease; display: flex; flex-direction: column; cursor: pointer; position: relative;"
+  <div *ngIf="!loading && getFilteredItems().length > 0"
+       style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 32px;">
+    <div *ngFor="let item of getFilteredItems()"
+         style="background:#fff; border-radius:20px; overflow:hidden; box-shadow:0 10px 15px -3px rgba(0,0,0,0.05); border:1px solid #f1f5f9; transition:all 0.3s ease; display:flex; flex-direction:column; cursor:pointer;"
          (click)="openArticle(item)">
 
-      <!-- Special Highlight Banner -->
-      <span *ngIf="item.importance && item.importance !== 'NORMAL'" class="importance-banner"
-            [ngClass]="'banner-' + item.importance.toLowerCase().replace('_', '-')">
-        {{ item.importance.replace('_', ' ') }}
-      </span>
-
-      <div class="card-media" style="height: 220px; position: relative; overflow: hidden;">
-        <iframe *ngIf="item.type === 'VIDEO' && item.mediaUrl?.includes('yout')" [src]="pressService.getEmbedUrl(item.mediaUrl || '') | safe" frameborder="0" allowfullscreen style="width: 100%; height: 100%; border: none;"></iframe>
-        <img *ngIf="item.type !== 'VIDEO' && item.mediaUrl" [src]="item.mediaUrl" alt="Actualité" style="width: 100%; height: 100%; object-fit: cover;">
-        <div *ngIf="!item.mediaUrl && item.type !== 'VIDEO'" style="display:flex; align-items:center; justify-content:center; height:100%; font-size:3rem; background:#f1f5f9;">📰</div>
+      <!-- Media thumbnail -->
+      <div style="height:220px; overflow:hidden; background:#f1f5f9; position:relative;">
+        <!-- Video YouTube thumbnail -->
+        <img *ngIf="item.type === 'VIDEO' && item.mediaUrl" [src]="pressService.getVideoThumbnail(item.mediaUrl)" alt="Video" style="width:100%;height:100%;object-fit:cover;">
+        <div *ngIf="item.type === 'VIDEO'" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.6);border-radius:50%;width:54px;height:54px;display:flex;align-items:center;justify-content:center;">
+          <span style="color:white;font-size:1.5rem;">▶</span>
+        </div>
+        <!-- Image -->
+        <img *ngIf="item.type !== 'VIDEO' && item.mediaUrl" [src]="item.mediaUrl" alt="Actualité" style="width:100%;height:100%;object-fit:cover;">
+        <!-- No image -->
+        <div *ngIf="!item.mediaUrl" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:3rem;">📰</div>
       </div>
 
-      <div class="card-body" style="padding: 24px; flex: 1; display: flex; flex-direction: column;">
-        <div class="discipline-tag" style="font-size: 11px; font-weight: 800; color: #1565C0; text-transform: uppercase; margin-bottom: 12px;">{{ item.discipline }}</div>
-        <h3 class="card-title" style="font-size: 19px; font-weight: 800; color: #1a1a2e; line-height: 1.4; margin-bottom: 12px;">{{ item.title }}</h3>
-
-        <p class="card-excerpt" style="font-size: 15px; color: #64748b; line-height: 1.6; margin-bottom: 20px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;" *ngIf="item.summary">{{ item.summary }}</p>
-        <p class="card-excerpt" style="font-size: 15px; color: #64748b; line-height: 1.6; margin-bottom: 20px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;" *ngIf="!item.summary && item.content" [innerHTML]="item.content"></p>
-
-        <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid #f1f5f9; font-size: 0.8rem; color: #94a3b8; font-weight: 700;">
-          <div style="display: flex; gap: 12px; align-items: center;">
-            <span>👁️ {{ item.views || 0 }}</span>
-            <span>⏳ {{ item.readTime || 1 }} min</span>
-          </div>
-          <button class="btn-read-more" style="background: none; border: none; color: #1565C0; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 0;">
-            {{ item.type === 'VIDEO' ? 'Regarder' : 'Lire' }}
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </button>
+      <!-- Card body -->
+      <div style="padding:24px; flex:1; display:flex; flex-direction:column;">
+        <div style="font-size:11px;font-weight:800;color:#1565C0;text-transform:uppercase;margin-bottom:12px;">{{ item.discipline }}</div>
+        <h3 style="font-size:19px;font-weight:800;color:#1a1a2e;line-height:1.4;margin-bottom:12px;">{{ item.title }}</h3>
+        <p style="font-size:15px;color:#64748b;line-height:1.6;margin-bottom:20px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">
+          {{ item.summary || (item.content | slice:0:150) }}
+        </p>
+        <div style="margin-top:auto;display:flex;justify-content:space-between;align-items:center;padding-top:16px;border-top:1px solid #f1f5f9;font-size:0.8rem;color:#94a3b8;font-weight:700;">
+          <span>👁️ {{ item.views || 0 }}</span>
+          <span style="color:#1565C0;font-weight:800;">
+            {{ item.type === 'VIDEO' ? 'Regarder ▶' : item.type === 'PHOTO' ? 'Voir 🖼️' : 'Lire →' }}
+          </span>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ARTICLE DETAILS DIALOG MODAL -->
-  <div class="modal-overlay" *ngIf="selectedItem" (click)="closeArticle()" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(8px); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.3s ease-out;">
-    <div class="modal-content" (click)="$event.stopPropagation()" style="background: white; border-radius: 24px; padding: 32px; width: 100%; max-width: 900px; max-height: 90vh; overflow-y: auto; position: relative; border: 1px solid #f1f5f9; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
-      <!-- Close Button -->
-      <button class="modal-close" (click)="closeArticle()" style="position: absolute; top: 24px; right: 24px; width: 40px; height: 40px; border-radius: 50%; border: none; background: #f1f5f9; color: #64748b; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; transition: all 0.2s;">✕</button>
+  <!-- ═══════ MODAL ═══════ -->
+  <div *ngIf="selectedItem" (click)="closeArticle()"
+       style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);backdrop-filter:blur(8px);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn 0.3s ease-out;">
+    <div (click)="$event.stopPropagation()"
+         style="background:white;border-radius:24px;padding:32px;width:100%;max-width:900px;max-height:92vh;overflow-y:auto;position:relative;border:1px solid #f1f5f9;box-shadow:0 25px 50px -12px rgba(0,0,0,0.3);">
 
-      <!-- Main Title -->
-      <h1 style="font-size: 2rem; font-weight: 850; color: #1e293b; line-height: 1.25; margin-bottom: 16px; letter-spacing: -0.02em; padding-right: 50px;">{{ selectedItem.title }}</h1>
+      <!-- Close -->
+      <button (click)="closeArticle()"
+              style="position:absolute;top:20px;right:20px;width:40px;height:40px;border-radius:50%;border:none;background:#f1f5f9;color:#64748b;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
 
-      <!-- Meta Info -->
-      <div style="display: flex; flex-wrap: wrap; gap: 20px; font-size: 0.9rem; color: #94a3b8; font-weight: 700; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #f1f5f9;">
-        <span>📅 Publié le : <b style="color: #475569;">{{ selectedItem.publishedAt || selectedItem.createdAt | date:'dd MMMM yyyy' }}</b></span>
+      <!-- Title -->
+      <h1 style="font-size:1.9rem;font-weight:800;color:#1e293b;line-height:1.3;margin-bottom:14px;padding-right:50px;">{{ selectedItem.title }}</h1>
+
+      <!-- Meta -->
+      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:0.85rem;color:#94a3b8;font-weight:600;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #f1f5f9;">
+        <span>📅 {{ selectedItem.publishedAt || selectedItem.createdAt | date:'dd MMMM yyyy' }}</span>
         <span *ngIf="selectedItem.discipline">🏊 {{ selectedItem.discipline }}</span>
       </div>
 
-      <!-- Main Media Banner -->
-      <div style="border-radius: 16px; overflow: hidden; margin-bottom: 30px; max-height: 450px; background: #f8fafc; border: 1px solid #f1f5f9;" *ngIf="selectedItem.mediaUrl || selectedItem.linkUrl">
-        <iframe *ngIf="(selectedItem.type === 'VIDEO' || selectedItem.mediaUrl?.includes('yout') || selectedItem.linkUrl?.includes('yout'))" [src]="pressService.getEmbedUrl(selectedItem.mediaUrl || selectedItem.linkUrl || '') | safe" frameborder="0" allowfullscreen style="width: 100%; height: 450px; border: none;"></iframe>
-        <img *ngIf="!(selectedItem.type === 'VIDEO' || selectedItem.mediaUrl?.includes('yout') || selectedItem.linkUrl?.includes('yout')) && selectedItem.mediaUrl" [src]="selectedItem.mediaUrl" alt="Illustration" style="width: 100%; height: 100%; max-height: 450px; object-fit: cover; display: block;">
+      <!-- ══ MEDIA selon le type ══ -->
+
+      <!-- VIDEO → player YouTube embedé directement -->
+      <div *ngIf="selectedItem.type === 'VIDEO' || selectedItem.mediaUrl?.includes('yout') || selectedItem.linkUrl?.includes('yout')"
+           style="border-radius:16px;overflow:hidden;margin-bottom:24px;background:#000;">
+        <iframe [src]="pressService.getEmbedUrl(selectedItem.mediaUrl || selectedItem.linkUrl || '') | safe"
+                frameborder="0" allowfullscreen
+                style="width:100%;height:420px;border:none;display:block;"></iframe>
       </div>
 
-      <!-- Article Content -->
-      <article *ngIf="!showFullContent" style="font-size: 1.1rem; line-height: 1.8; color: #1e293b; margin-bottom: 20px; text-align: justify; word-break: break-word;">
-        {{ selectedItem.summary || (selectedItem.content ? (selectedItem.content | slice:0:300) + '...' : '') }}
-      </article>
-
-      <article *ngIf="showFullContent" [innerHTML]="selectedItem.content" style="font-size: 1.1rem; line-height: 1.8; color: #1e293b; margin-bottom: 20px; text-align: justify; word-break: break-word;">
-      </article>
-
-      <!-- Read More Button -->
-      <div style="text-align: center; margin-bottom: 40px;" *ngIf="!showFullContent">
-        <button (click)="showFullContent = true" style="background: #1565C0; color: white; border: none; padding: 12px 28px; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
-          {{ selectedItem.type === 'VIDEO' ? '▶ Regarder la vidéo' : 'Lire la suite' }}
-        </button>
+      <!-- PHOTO/IMAGE → image en grand directement -->
+      <div *ngIf="selectedItem.type !== 'VIDEO' && !selectedItem.mediaUrl?.includes('yout') && !selectedItem.linkUrl?.includes('yout') && selectedItem.mediaUrl"
+           style="border-radius:16px;overflow:hidden;margin-bottom:24px;max-height:480px;text-align:center;background:#f8fafc;">
+        <img [src]="selectedItem.mediaUrl" alt="Illustration"
+             style="max-width:100%;max-height:480px;object-fit:contain;display:block;margin:0 auto;">
       </div>
 
-      <!-- PDF Link -->
-      <section *ngIf="selectedItem.linkUrl && !(selectedItem.mediaUrl?.includes('yout') || selectedItem.linkUrl?.includes('yout'))" style="margin-bottom: 32px;">
-        <a [href]="selectedItem.linkUrl" target="_blank" style="background: #1565C0; color: white; padding: 10px 20px; border-radius: 12px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          Ouvrir la source
+      <!-- ARTICLE / COMMUNIQUE / autres → contenu texte + Lire la suite -->
+      <ng-container *ngIf="selectedItem.type !== 'VIDEO' && !selectedItem.mediaUrl?.includes('yout') && !selectedItem.linkUrl?.includes('yout')">
+        <article *ngIf="!showFullContent"
+                 style="font-size:1.05rem;line-height:1.8;color:#334155;margin-bottom:20px;text-align:justify;word-break:break-word;">
+          {{ selectedItem.summary || (selectedItem.content ? (selectedItem.content | slice:0:300) + '...' : '') }}
+        </article>
+        <article *ngIf="showFullContent" [innerHTML]="selectedItem.content"
+                 style="font-size:1.05rem;line-height:1.8;color:#334155;margin-bottom:20px;text-align:justify;word-break:break-word;">
+        </article>
+        <div *ngIf="!showFullContent" style="text-align:center;margin-bottom:28px;">
+          <button (click)="showFullContent = true"
+                  style="background:#1565C0;color:white;border:none;padding:12px 28px;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;">
+            Lire la suite →
+          </button>
+        </div>
+      </ng-container>
+
+      <!-- Lien PDF / source externe -->
+      <div *ngIf="selectedItem.linkUrl && !selectedItem.linkUrl.includes('yout')" style="margin-bottom:24px;">
+        <a [href]="selectedItem.linkUrl" target="_blank"
+           style="background:#f1f5f9;color:#1565C0;padding:10px 20px;border-radius:12px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:8px;border:1px solid #e2e8f0;">
+          🔗 Ouvrir le document / la source
         </a>
-      </section>
+      </div>
 
-      <!-- Gallery -->
-      <section *ngIf="getGalleryImages(selectedItem.gallery).length > 0" style="margin-bottom: 40px; padding-bottom: 30px; border-bottom: 1px solid #f1f5f9;">
-        <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 20px;">📸 Galerie Photos</h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
-          <div *ngFor="let imgUrl of getGalleryImages(selectedItem.gallery)" style="border-radius: 12px; overflow: hidden; height: 150px; border: 1px solid #e2e8f0;">
-            <img [src]="imgUrl" alt="Photo galerie" style="width: 100%; height: 100%; object-fit: cover;">
+      <!-- Galerie -->
+      <section *ngIf="getGalleryImages(selectedItem.gallery).length > 0"
+               style="margin-bottom:32px;padding-bottom:28px;border-bottom:1px solid #f1f5f9;">
+        <h3 style="font-size:1.1rem;font-weight:800;color:#1e293b;margin-bottom:16px;">📸 Galerie Photos</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;">
+          <div *ngFor="let imgUrl of getGalleryImages(selectedItem.gallery)"
+               style="border-radius:10px;overflow:hidden;height:140px;">
+            <img [src]="imgUrl" alt="Photo" style="width:100%;height:100%;object-fit:cover;">
           </div>
         </div>
       </section>
 
-      <!-- ═══════════════════════════════════════════════════ -->
-      <!-- INTERACTIONS SECTION (Réactions, Favoris, Commentaires) -->
-      <!-- ═══════════════════════════════════════════════════ -->
-      <section style="margin-top: 32px; padding-top: 24px; border-top: 2px solid #f1f5f9;">
+      <!-- ══════════════════════════════════════════ -->
+      <!--  INTERACTIONS (Réactions / Favoris / Commentaires) -->
+      <!-- ══════════════════════════════════════════ -->
+      <section style="border-top:2px solid #f1f5f9;padding-top:24px;margin-top:8px;">
 
-        <!-- Reactions + Favorite Bar -->
-        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; background: #f8fafc; padding: 16px 20px; border-radius: 16px; margin-bottom: 28px; gap: 12px;">
+        <!-- Message si non connecté -->
+        <div *ngIf="!currentUserId" style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:12px 16px;margin-bottom:20px;font-size:0.9rem;color:#92400e;display:flex;align-items:center;gap:8px;">
+          ⚠️ Connectez-vous pour réagir, mettre en favori ou commenter.
+        </div>
 
-          <!-- Emoji Reactions -->
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button *ngFor="let reaction of availableReactions"
-                    (click)="toggleReaction(reaction.type)"
-                    [style.border-color]="interactions?.currentUserReaction === reaction.type ? '#3b82f6' : '#e2e8f0'"
-                    [style.background]="interactions?.currentUserReaction === reaction.type ? '#eff6ff' : 'white'"
-                    [style.transform]="interactions?.currentUserReaction === reaction.type ? 'scale(1.1)' : 'scale(1)'"
-                    style="border: 2px solid #e2e8f0; border-radius: 50px; padding: 6px 14px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s; font-family: inherit;">
-              {{ reaction.emoji }}
-              <span style="font-size: 0.85rem; font-weight: 700; color: #475569;">{{ getReactionCount(reaction.type) }}</span>
+        <!-- Reactions + Favorite -->
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;background:#f8fafc;padding:14px 18px;border-radius:14px;margin-bottom:24px;gap:10px;">
+
+          <!-- Emoji buttons -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button *ngFor="let r of availableReactions" (click)="toggleReaction(r.type)"
+                    [style.border-color]="interactions?.currentUserReaction === r.type ? '#3b82f6' : '#e2e8f0'"
+                    [style.background]="interactions?.currentUserReaction === r.type ? '#eff6ff' : 'white'"
+                    [style.transform]="interactions?.currentUserReaction === r.type ? 'scale(1.12)' : 'scale(1)'"
+                    style="border:2px solid #e2e8f0;border-radius:50px;padding:7px 14px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.18s;font-family:inherit;font-weight:700;color:#475569;">
+              {{ r.emoji }} <span style="font-size:0.85rem;">{{ getReactionCount(r.type) }}</span>
             </button>
           </div>
 
-          <!-- Favorite Button -->
+          <!-- Favorite -->
           <button (click)="toggleFavorite()"
-                  [style.color]="interactions?.isFavoritedByCurrentUser ? '#eab308' : '#64748b'"
+                  [style.color]="interactions?.isFavoritedByCurrentUser ? '#ca8a04' : '#64748b'"
                   [style.background]="interactions?.isFavoritedByCurrentUser ? '#fefce8' : 'white'"
                   [style.border-color]="interactions?.isFavoritedByCurrentUser ? '#fde047' : '#e2e8f0'"
-                  style="border: 2px solid #e2e8f0; border-radius: 50px; padding: 8px 18px; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; font-family: inherit;">
+                  style="border:2px solid #e2e8f0;border-radius:50px;padding:8px 18px;font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all 0.18s;font-family:inherit;">
             <span>{{ interactions?.isFavoritedByCurrentUser ? '⭐' : '☆' }}</span>
             <span>{{ interactions?.isFavoritedByCurrentUser ? 'Favori' : 'Ajouter aux favoris' }}</span>
-            <span style="background: #e2e8f0; color: #475569; font-size: 0.8rem; padding: 2px 8px; border-radius: 20px;">{{ interactions?.totalFavorites || 0 }}</span>
+            <span style="background:#e2e8f0;color:#475569;font-size:0.78rem;padding:2px 8px;border-radius:20px;">{{ interactions?.totalFavorites || 0 }}</span>
           </button>
         </div>
 
-        <!-- Comments Section -->
-        <div>
-          <h3 style="font-size: 1.15rem; font-weight: 800; color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
-            💬 Commentaires <span style="background: #e0f2fe; color: #0284c7; font-size: 0.8rem; padding: 2px 10px; border-radius: 20px;">{{ interactions?.comments?.length || 0 }}</span>
-          </h3>
+        <!-- Comments -->
+        <h3 style="font-size:1.1rem;font-weight:800;color:#1e293b;margin-bottom:18px;display:flex;align-items:center;gap:8px;">
+          💬 Commentaires
+          <span style="background:#e0f2fe;color:#0284c7;font-size:0.78rem;padding:2px 10px;border-radius:20px;font-weight:700;">{{ interactions?.comments?.length || 0 }}</span>
+        </h3>
 
-          <!-- Add Comment -->
-          <div style="display: flex; gap: 12px; margin-bottom: 24px; align-items: flex-start;">
-            <div style="width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #0284c7, #0ea5e9); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; font-size: 1.1rem;">
-              Moi
-            </div>
-            <div style="flex-grow: 1; display: flex; gap: 8px;">
-              <input type="text" [(ngModel)]="newCommentText" (keyup.enter)="addComment()"
-                     placeholder="Écrire un commentaire..."
-                     style="flex-grow: 1; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 12px; outline: none; font-size: 0.95rem; transition: border-color 0.2s; font-family: inherit;">
-              <button (click)="addComment()" [disabled]="!newCommentText.trim() || isSubmittingComment"
-                      style="background: #0284c7; color: white; border: none; padding: 0 20px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; opacity: 1; font-family: inherit;"
-                      [style.opacity]="!newCommentText.trim() ? '0.5' : '1'">
-                Envoyer
-              </button>
-            </div>
+        <!-- Add comment -->
+        <div style="display:flex;gap:12px;margin-bottom:22px;align-items:flex-start;">
+          <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#0284c7,#0ea5e9);color:white;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;font-size:0.85rem;">
+            Moi
           </div>
-
-          <!-- Comments List -->
-          <div style="display: flex; flex-direction: column; gap: 12px; max-height: 420px; overflow-y: auto; padding-right: 4px;">
-            <div *ngFor="let comment of interactions?.comments"
-                 style="display: flex; gap: 12px; background: #f8fafc; padding: 14px 16px; border-radius: 14px; border: 1px solid #f1f5f9;">
-              <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; font-size: 1rem; text-transform: uppercase;">
-                {{ (comment.userName || 'N')[0] }}
-              </div>
-              <div style="flex: 1;">
-                <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px;">
-                  <span style="font-weight: 700; color: #1e293b; font-size: 0.95rem;">{{ comment.userName }}</span>
-                  <span style="font-size: 0.78rem; color: #94a3b8;">{{ comment.createdAt | date:'dd MMM à HH:mm' }}</span>
-                </div>
-                <p style="margin: 0; color: #334155; font-size: 0.95rem; line-height: 1.6; word-break: break-word;">{{ comment.text }}</p>
-              </div>
-            </div>
-
-            <!-- No comments yet -->
-            <div *ngIf="!interactions?.comments?.length"
-                 style="text-align: center; color: #94a3b8; padding: 30px 0; font-size: 0.95rem;">
-              <div style="font-size: 2rem; margin-bottom: 8px;">💬</div>
-              Soyez le premier à commenter !
-            </div>
+          <div style="flex-grow:1;display:flex;gap:8px;">
+            <input type="text" [(ngModel)]="newCommentText" (keyup.enter)="addComment()"
+                   placeholder="Écrire un commentaire..."
+                   [disabled]="!currentUserId"
+                   style="flex-grow:1;padding:12px 16px;border:2px solid #e2e8f0;border-radius:12px;outline:none;font-size:0.95rem;transition:border-color 0.2s;font-family:inherit;">
+            <button (click)="addComment()" [disabled]="!newCommentText.trim() || isSubmittingComment || !currentUserId"
+                    style="background:#0284c7;color:white;border:none;padding:0 20px;border-radius:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity 0.2s;"
+                    [style.opacity]="(!newCommentText.trim() || !currentUserId) ? '0.45' : '1'">
+              Envoyer
+            </button>
           </div>
         </div>
 
+        <!-- Comment list -->
+        <div style="display:flex;flex-direction:column;gap:12px;max-height:380px;overflow-y:auto;padding-right:4px;">
+          <div *ngFor="let comment of interactions?.comments"
+               style="display:flex;gap:12px;background:#f8fafc;padding:14px 16px;border-radius:14px;">
+            <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;font-size:1rem;text-transform:uppercase;">
+              {{ (comment.userName || '?')[0] }}
+            </div>
+            <div style="flex:1;">
+              <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:5px;">
+                <span style="font-weight:700;color:#1e293b;">{{ comment.userName }}</span>
+                <span style="font-size:0.78rem;color:#94a3b8;">{{ comment.createdAt | date:'dd MMM à HH:mm' }}</span>
+              </div>
+              <p style="margin:0;color:#334155;font-size:0.95rem;line-height:1.6;word-break:break-word;">{{ comment.text }}</p>
+            </div>
+          </div>
+
+          <div *ngIf="!interactions?.comments?.length"
+               style="text-align:center;color:#94a3b8;padding:28px 0;font-size:0.95rem;">
+            <div style="font-size:2rem;margin-bottom:8px;">💬</div>
+            Soyez le premier à commenter !
+          </div>
+        </div>
       </section>
+
     </div>
   </div>
 

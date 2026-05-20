@@ -32,4 +32,8 @@ export class SwimmerService {
   getNews(): Observable<any> {
     return this.http.get(`${this.api}/press/getAll`, { headers: this.getHeaders() });
   }
+
+  getDashboardStats(userId: number): Observable<any> {
+    return this.http.get(`${this.api}/users/${userId}/dashboard-stats`, { headers: this.getHeaders() });
+  }
 }

@@ -16,6 +16,7 @@ public interface PerformanceRepository extends JpaRepository<Performance, Long> 
      List<Performance> findBySwimmerIdOrderByDateDesc(Long swimmerId);
      List<Performance> findBySwimmerIdOrderByDateAsc(Long swimmerId);
      List<Performance> findBySwimmerIdAndDistanceAndStrokeOrderByDateDesc( Long swimmerId, Integer distance, StrokeType stroke);
+     long countBySwimmerId(Long swimmerId);
     @Query(" SELECT p FROM Performance p WHERE p.distance = :distance AND p.stroke = :stroke AND p.swimmer.gender = :gender ORDER BY p.time ASC LIMIT 1 ")
     Optional<Performance> findNationalRecord(@Param("distance") Integer distance, @Param("stroke") StrokeType stroke, @Param("gender") Gender gender);
      @Query(" SELECT p FROM Performance p WHERE p.distance = :distance AND p.stroke = :stroke AND p.swimmer.gender = :gender AND (:niveau IS NULL OR p.swimmer.niveau = :niveau) AND p.time = ( SELECT MIN(p2.time) FROM Performance p2 WHERE p2.swimmer = p.swimmer AND p2.distance = :distance AND p2.stroke = :stroke ) ORDER BY p.time ASC ")

@@ -72,6 +72,10 @@ const routes: Routes = [
           ),
       },
       {
+        path: 'espace-nageur',
+        loadChildren: () => import('./features/swimmer/swimmer.module').then(m => m.SwimmerModule)
+      },
+      {
         path: 'mon-profil',
         loadChildren: () => import('./features/profile/profile.module').then(m => m.ProfileModule)
       },

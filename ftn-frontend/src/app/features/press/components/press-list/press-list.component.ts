@@ -58,6 +58,16 @@ export class PressListComponent implements OnInit {
   showIframe = false;
   showFullContent = false;
 
+  // Interactions State
+  interactions: any = null;
+  availableReactions = [
+    { type: 'LIKE',    emoji: '👍' },
+    { type: 'DISLIKE', emoji: '👎' },
+    { type: 'SAD',     emoji: '😢' },
+    { type: 'ANGRY',   emoji: '😡' },
+    { type: 'HEART',   emoji: '❤️' }
+  ];
+
   constructor(
     public pressService: PressService,
     private router: Router
@@ -225,13 +235,28 @@ export class PressListComponent implements OnInit {
     this.aiRecap = null;
     this.showIframe = false;
     this.showFullContent = false;
+    this.interactions = null;
     document.body.style.overflow = 'hidden';
+    this.loadInteractions();
+  }
+
+  loadInteractions(): void {
+    if (!this.selectedItem?.idPressItem) return;
+    this.pressService.getInteractions(this.selectedItem.idPressItem, null).subscribe({
+      next: (res) => { this.interactions = res; },
+      error: (err) => console.error('Interactions error', err)
+    });
+  }
+
+  getReactionCount(type: string): number {
+    return this.interactions?.reactionCounts?.[type] || 0;
   }
 
   closeArticle(): void {
     this.selectedItem = null;
     this.translatedContent = null;
     this.aiRecap = null;
+    this.interactions = null;
     document.body.style.overflow = 'auto';
   }
 

@@ -243,6 +243,12 @@ public class PressController {
     // INTERACTIONS (Commentaires, Réactions, Favoris)
     // =====================================================================
 
+    @Operation(summary = "Obtenir les articles favoris d'un nageur")
+    @GetMapping("/favorites/{userId}")
+    public org.springframework.http.ResponseEntity<List<PressItem>> getFavoritesByUserId(@PathVariable Long userId) {
+        return org.springframework.http.ResponseEntity.ok(pressService.getFavoritesByUserId(userId));
+    }
+
     @Operation(summary = "Obtenir les interactions (commentaires, réactions, favoris) d'un article")
     @GetMapping("/{id}/interactions")
     public org.springframework.http.ResponseEntity<PressInteractionDTO> getInteractions(

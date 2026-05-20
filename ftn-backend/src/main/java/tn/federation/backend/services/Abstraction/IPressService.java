@@ -22,6 +22,7 @@ public interface IPressService {
     List<PressItem> getPopular(int limit);
     List<PressItem> getByType(PressType type);
     List<PressItem> getByTypeAndDiscipline(PressType type, String discipline);
+    List<PressItem> getFavoritesByUserId(Long userId);
 
     PressStatsDTO getStats();
 
