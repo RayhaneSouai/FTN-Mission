@@ -3,6 +3,7 @@ package tn.federation.backend.config;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import tn.federation.backend.entities.RegistrationStatus;
 import tn.federation.backend.entities.Role;
 import tn.federation.backend.entities.User;
 import tn.federation.backend.repositories.UserRepository;
@@ -46,6 +47,7 @@ public class DataInitializer implements CommandLineRunner {
         admin.setPasswordHash(passwordEncoder.encode(ADMIN_PASSWORD));
         admin.setRole(Role.ADMIN);
         admin.setActive(true);
+        admin.setRegistrationStatus(RegistrationStatus.CONFIRMEE);
         userRepository.save(admin);
         System.out.println("✅ Compte ADMIN prêt (admin@ftn.tn / admin123)");
 

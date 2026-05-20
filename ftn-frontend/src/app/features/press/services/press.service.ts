@@ -89,4 +89,17 @@ export class PressService {
   openLink(url?: string): void {
     if (url) window.open(url, '_blank');
   }
+
+  fetchMetadata(url: string): Observable<{ title?: string; description?: string; image?: string }> {
+    return this.http.get<{ title?: string; description?: string; image?: string }>(
+      `${this.baseUrl}/fetch-metadata`,
+      { params: { url } }
+    );
+  }
+
+  uploadFile(file: File): Observable<{ url: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<{ url: string }>(`${this.baseUrl}/upload`, formData);
+  }
 }

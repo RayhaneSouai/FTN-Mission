@@ -21,10 +21,6 @@ export class ClubService {
     return this.http.get<any>(`${this.apiUrl}/${id}/stats`);
   }
 
-  getById(id: number): Observable<Club> {
-    return this.http.get<Club>(`${this.apiUrl}/${id}`);
-  }
-
   create(club: Club): Observable<Club> {
     return this.http.post<Club>(this.apiUrl, club);
   }
@@ -35,13 +31,5 @@ export class ClubService {
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
-  }
-
-  getByRegion(region: string): Observable<Club[]> {
-    return this.http.get<Club[]>(`${this.apiUrl}/region/${region}`);
-  }
-
-  search(q: string): Observable<Club[]> {
-    return this.http.get<Club[]>(`${this.apiUrl}/search?q=${q}`);
   }
 }

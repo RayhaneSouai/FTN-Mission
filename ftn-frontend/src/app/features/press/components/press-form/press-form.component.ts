@@ -41,8 +41,8 @@ export class PressFormComponent implements OnInit {
     }
 
     this.loading = true;
-    this.http.get<any>(`/api/press/fetch-metadata?url=${encodeURIComponent(this.item.linkUrl)}`).subscribe({
-      next: (data) => {
+    this.pressService.fetchMetadata(this.item.linkUrl).subscribe({
+      next: (data: any) => {
         if (data.error) {
           this.showMessage(data.error, 'error');
         } else {
@@ -111,13 +111,12 @@ export class PressFormComponent implements OnInit {
   onFileSelected(event: any): void {
     const file: File = event.target.files[0];
     if (file) {
-      const formData = new FormData();
-      formData.append('file', file);
-      
       this.loading = true;
-      this.http.post<any>('/api/press/upload', formData).subscribe({
+      this.pressService.uploadFile(file).subscribe({
         next: (res) => {
-          this.item.mediaUrl = res.url;
+          this.item.mediaUrl = res.url.startsWith('http')
+            ? res.url
+            : `http://localhost:8083/ftn${res.url}`;
           this.loading = false;
           this.showMessage('Image téléchargée avec succès !', 'success');
         },

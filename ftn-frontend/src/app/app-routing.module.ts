@@ -10,6 +10,11 @@ import { AdminProgrammeComponent } from './features/admin/admin-programme/admin-
 import { AdminParticipationsComponent } from './features/admin/admin-participations/admin-participations.component';
 import { adminGuard } from './core/guards/admin.guard';
 
+import { MyPerformancesComponent } from './features/my-performance/my-performances.component';
+import { RankingComponent } from './features/ranking/ranking.component';
+
+
+  
 const routes: Routes = [
   // Admin Space (Backoffice)
   {
@@ -35,9 +40,29 @@ const routes: Routes = [
         path: 'press',
         loadChildren: () => import('./features/press/press.module').then(m => m.PressModule)
       },
+<<<<<<< HEAD
       { path: 'competitions', component: AdminCompetitionsComponent },
       { path: 'competitions/:id/programme', component: AdminProgrammeComponent },
       { path: 'participations', component: AdminParticipationsComponent }
+=======
+      {
+        path: 'clubs',
+        component: ClubListComponent,
+        data: { clubMode: 'admin' }
+      },
+      {
+        path: 'performances',
+    component: MyPerformancesComponent
+  },
+  {
+    path: 'ranking',
+    component: RankingComponent
+  },
+  {
+    path: '**',
+    redirectTo: 'performances'
+  }
+>>>>>>> 2676ef2f4156bf4d0841159873337acc200d2ced
     ]
   },
 
@@ -47,13 +72,18 @@ const routes: Routes = [
     component: PublicLayoutComponent,
     children: [
       { path: '', component: HomeComponent },
-      { path: 'clubs', component: ClubListComponent },
+      { path: 'clubs', component: ClubListComponent, data: { clubMode: 'public' } },
       {
         path: 'competitions',
         loadChildren: () =>
           import('./features/competitions/competition.routes').then(
             (m) => m.COMPETITION_ROUTES
           ),
+      },
+      {
+        path: 'press',
+        loadChildren: () =>
+          import('./features/press/press.module').then(m => m.PressModule)
       },
       // Keep Mon Profil for everyone in Frontoffice too
       {
@@ -68,7 +98,11 @@ const routes: Routes = [
     path: 'auth',
     loadChildren: () => import('./features/auth/auth.module').then(m => m.AuthModule)
   },
-  
+
+  // Legacy paths (older links / login redirects from teammates)
+  { path: 'utilisateurs', redirectTo: 'admin/utilisateurs', pathMatch: 'full' },
+  { path: 'licences', redirectTo: 'admin/licences', pathMatch: 'full' },
+
   // Wildcard redirect
   { path: '**', redirectTo: '' }
 ];
@@ -77,4 +111,4 @@ const routes: Routes = [
   imports: [RouterModule.forRoot(routes,{scrollPositionRestoration: 'top'})],
   exports: [RouterModule]
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}

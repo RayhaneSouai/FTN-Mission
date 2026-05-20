@@ -20,6 +20,8 @@ public class Participation {
     @Column(columnDefinition = "varchar(20)")
     private ParticipationRequestStatus status;
     private Double officialTime;
+
+    @Column(name = "rank_pos")
     private Integer rank;
     private LocalDateTime recordedAt;
     private Boolean disqualified;

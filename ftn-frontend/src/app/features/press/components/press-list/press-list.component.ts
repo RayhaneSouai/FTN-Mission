@@ -3,7 +3,6 @@ import { Router } from '@angular/router';
 import { PressItem, PressType } from '../../models/press-item.model';
 import { PressStats } from '../../models/press-stats.model';
 import { PressService } from '../../services/press.service';
-import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-press-list',
@@ -35,9 +34,8 @@ export class PressListComponent implements OnInit {
   formData: PressItem = this.getEmptyItem();
 
   constructor(
-    public pressService: PressService, 
-    private router: Router,
-    private http: HttpClient
+    public pressService: PressService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -197,8 +195,8 @@ export class PressListComponent implements OnInit {
     }
 
     this.loading = true;
-    this.http.get<any>(`/api/press/fetch-metadata?url=${encodeURIComponent(this.formData.linkUrl)}`).subscribe({
-      next: (data) => {
+    this.pressService.fetchMetadata(this.formData.linkUrl).subscribe({
+      next: (data: any) => {
         if (data.error) {
           this.showMessage(data.error, 'error');
         } else {
@@ -228,12 +226,12 @@ export class PressListComponent implements OnInit {
   onFileSelected(event: any): void {
     const file: File = event.target.files[0];
     if (file) {
-      const formData = new FormData();
-      formData.append('file', file);
       this.loading = true;
-      this.http.post<any>('/api/press/upload', formData).subscribe({
+      this.pressService.uploadFile(file).subscribe({
         next: (res) => {
-          this.formData.mediaUrl = res.url;
+          this.formData.mediaUrl = res.url.startsWith('http')
+            ? res.url
+            : `http://localhost:8083/ftn${res.url}`;
           this.loading = false;
           this.showMessage('🖼️ Image importée !', 'success');
         },

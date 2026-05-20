@@ -2,10 +2,13 @@ package tn.federation.backend.services.ServiceImpl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tn.federation.backend.entities.Club;
 import tn.federation.backend.entities.Role;
 import tn.federation.backend.entities.User;
 import tn.federation.backend.repositories.ClubRepository;
+import tn.federation.backend.repositories.LicenseRepository;
+import tn.federation.backend.repositories.UserRepository;
 import tn.federation.backend.services.Abstraction.IClubService;
 
 import java.util.HashMap;
@@ -18,7 +21,11 @@ public class ClubServiceImpl implements IClubService {
     @Autowired
     ClubRepository clubRepository;
 
+    @Autowired
+    LicenseRepository licenseRepository;
 
+    @Autowired
+    UserRepository userRepository;
 
     @Override
     public Club addClub(Club club) {
@@ -31,8 +38,20 @@ public class ClubServiceImpl implements IClubService {
     }
 
     @Override
+    @Transactional
     public void deleteClub(long id) {
-        clubRepository.deleteById(id);
+        Club club = clubRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Club introuvable"));
+
+        licenseRepository.deleteByClub_Id(id);
+
+        userRepository.findByClub_Id(id).forEach(user -> {
+            user.setClub(null);
+            userRepository.save(user);
+        });
+
+        club.setCoach(null);
+        clubRepository.delete(club);
     }
 
     @Override
