@@ -161,3 +161,15 @@
   font-size: 13px;
   color: #6b7280 !important;
 }
+
+.status-badge {
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+
+  &.approved {
+    background: #d1e7dd;
+    color: #0f5132;
+  }
+}

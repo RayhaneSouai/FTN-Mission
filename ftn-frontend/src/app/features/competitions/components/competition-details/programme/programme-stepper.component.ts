@@ -8,6 +8,7 @@ import {
   ProgramItemRequest, ProgramItemType, PROGRAM_ITEM_PRESETS
 } from '../../../models/competition.model';
 import { ConfirmDialogComponent } from './confirm-dialog.component';
+import { ToastService } from '../../../services/toast.service';
 import { timeFormatValidator, timeAfterValidator } from './validators';
 
 @Component({
@@ -21,6 +22,7 @@ export class ProgrammeStepperComponent implements OnInit {
   private readonly state = inject(CompetitionStateService);
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(ProgrammeApiService);
+  private readonly toast = inject(ToastService);
 
   @Input() inputCompetitionId?: number;
 
@@ -180,6 +182,7 @@ export class ProgrammeStepperComponent implements OnInit {
       // Update mode
       this.api.updateProgramItem(this.competitionId(), this.editingItemId()!, request).subscribe({
         next: () => {
+          this.toast.showSuccess('Élément modifié avec succès');
           this.cancelEdit();
           this.loadStatus();
         },
@@ -192,6 +195,7 @@ export class ProgrammeStepperComponent implements OnInit {
       // Add mode
       this.api.addProgramItem(this.competitionId(), this.selectedDayId()!, request).subscribe({
         next: () => {
+          this.toast.showSuccess('Élément ajouté avec succès');
           this.resetForm();
           this.loadStatus();
         },

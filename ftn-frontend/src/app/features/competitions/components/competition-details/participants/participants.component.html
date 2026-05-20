@@ -33,25 +33,23 @@
         <table class="participants-table">
             <thead>
                 <tr>
-                    <th>Ligne</th>
+                    <th>#</th>
                     <th>Nom</th>
-                    <th>Date de naissance</th>
-                    <th>Genre</th>
-                    <th>Club</th>
-                    <th>Temps eng.</th>
+                    <th>Prénom</th>
+                    <th>Date d'inscription</th>
+                    <th>Statut</th>
                 </tr>
             </thead>
             <tbody>
-                @for (p of filteredParticipants(); track p.id) {
+                @for (p of filteredParticipants(); track p.id; let i = $index) {
                 <tr>
-                    <td class="lane-cell">{{ p.lane }}</td>
-                    <td class="name-cell">{{ p.swimmerFirstName }} {{ p.swimmerLastName }}</td>
-                    <td>{{ p.birthDate }}</td>
+                    <td class="lane-cell">{{ i + 1 }}</td>
+                    <td class="name-cell">{{ p.swimmerLastName }}</td>
+                    <td class="name-cell">{{ p.swimmerFirstName }}</td>
+                    <td>{{ p.requestedAt ?? '—' }}</td>
                     <td>
-                        <span class="nationality-badge">{{ p.gender === 'MALE' ? 'M' : 'F' }}</span>
+                        <span class="status-badge approved">Approuvé</span>
                     </td>
-                    <td>{{ p.club }}</td>
-                    <td class="time-cell">{{ p.entryTime }}</td>
                 </tr>
                 }
             </tbody>

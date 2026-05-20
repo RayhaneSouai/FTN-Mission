@@ -2,8 +2,8 @@ import { Component, ChangeDetectionStrategy, inject, OnInit, signal } from '@ang
 import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CompetitionStateService } from '../../../services/competition-state.service';
-import { ProgrammeApiService } from '../../../services/programme-api.service';
-import { SeriesParticipant } from '../../../models/competition.model';
+import { CompetitionApiService } from '../../../services/competition-api.service';
+import { ParticipationResponseDTO } from '../../../models/competition.model';
 
 @Component({
   selector: 'app-participants',
@@ -15,10 +15,10 @@ import { SeriesParticipant } from '../../../models/competition.model';
 })
 export class ParticipantsComponent implements OnInit {
   private readonly state = inject(CompetitionStateService);
-  private readonly programmeApi = inject(ProgrammeApiService);
+  private readonly competitionApi = inject(CompetitionApiService);
 
-  participants = signal<SeriesParticipant[]>([]);
-  filteredParticipants = signal<SeriesParticipant[]>([]);
+  participants = signal<ParticipationResponseDTO[]>([]);
+  filteredParticipants = signal<ParticipationResponseDTO[]>([]);
   loading = signal(false);
   searchTerm = '';
 
@@ -31,7 +31,7 @@ export class ParticipantsComponent implements OnInit {
 
   private loadParticipants(competitionId: number): void {
     this.loading.set(true);
-    this.programmeApi.getParticipants(competitionId).subscribe({
+    this.competitionApi.getApprovedParticipants(competitionId).subscribe({
       next: (data) => {
         this.participants.set(data);
         this.filteredParticipants.set(data);
@@ -51,8 +51,7 @@ export class ParticipantsComponent implements OnInit {
       this.participants().filter(
         (p) =>
           p.swimmerFirstName?.toLowerCase().includes(term) ||
-          p.swimmerLastName?.toLowerCase().includes(term) ||
-          p.club?.toLowerCase().includes(term)
+          p.swimmerLastName?.toLowerCase().includes(term)
       )
     );
   }

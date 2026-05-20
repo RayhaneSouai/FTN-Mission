@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ProgrammeApiService } from '../../competitions/services/programme-api.service';
@@ -6,12 +6,15 @@ import { CompetitionApiService } from '../../competitions/services/competition-a
 import { Competition, ProgrammeStatusResponse } from '../../competitions/models/competition.model';
 import { ProgrammeStepperComponent } from '../../competitions/components/competition-details/programme/programme-stepper.component';
 import { ConfirmDialogComponent } from '../../competitions/components/competition-details/programme/confirm-dialog.component';
+import { ToastService } from '../../competitions/services/toast.service';
+import { ToastContainerComponent } from '../../competitions/components/toast-container/toast-container.component';
 
 @Component({
   selector: 'app-admin-programme',
   standalone: true,
-  imports: [CommonModule, RouterLink, ProgrammeStepperComponent, ConfirmDialogComponent],
+  imports: [CommonModule, RouterLink, ProgrammeStepperComponent, ConfirmDialogComponent, ToastContainerComponent],
   template: `
+    <app-toast-container />
     <div class="admin-programme">
       <div class="admin-header">
         <a routerLink="/admin/competitions" class="back-link">← Retour aux compétitions</a>
@@ -28,14 +31,14 @@ import { ConfirmDialogComponent } from '../../competitions/components/competitio
           </span>
 
           @if (programmeStatus() === 'DRAFT') {
-            <button class="btn btn-success" (click)="showApproveDialog.set(true)">
+            <button class="btn btn-success" [disabled]="!canApproveProgramme()" (click)="showApproveDialog.set(true)">
               ✓ Approuver le programme
             </button>
           }
         </div>
 
         <!-- Programme stepper (full CRUD) -->
-        <app-programme-stepper [inputCompetitionId]="competition()!.id"></app-programme-stepper>
+        <app-programme-stepper #stepper [inputCompetitionId]="competition()!.id"></app-programme-stepper>
       } @else {
         <div class="loading">Chargement...</div>
       }
@@ -92,7 +95,8 @@ import { ConfirmDialogComponent } from '../../competitions/components/competitio
     .btn-success {
       background: #198754;
       color: white;
-      &:hover { background: #157347; }
+      &:hover:not(:disabled) { background: #157347; }
+      &:disabled { opacity: 0.5; cursor: not-allowed; }
     }
     .loading { text-align: center; padding: 3rem; color: #6c757d; }
   `]
@@ -101,10 +105,19 @@ export class AdminProgrammeComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly competitionApi = inject(CompetitionApiService);
   private readonly programmeApi = inject(ProgrammeApiService);
+  private readonly toast = inject(ToastService);
+
+  @ViewChild('stepper') stepper?: ProgrammeStepperComponent;
 
   competition = signal<Competition | null>(null);
   programmeStatus = signal<string | null>(null);
   showApproveDialog = signal(false);
+
+  canApproveProgramme(): boolean {
+    const days = this.stepper?.days() ?? [];
+    if (days.length === 0) return false;
+    return days.every(d => d.items.length >= 2);
+  }
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -122,6 +135,7 @@ export class AdminProgrammeComponent implements OnInit {
     if (!comp) return;
     this.programmeApi.approveProgramme(comp.id).subscribe({
       next: (res) => {
+        this.toast.showSuccess('Programme approuvé avec succès');
         this.programmeStatus.set(res.programmeStatus);
       }
     });

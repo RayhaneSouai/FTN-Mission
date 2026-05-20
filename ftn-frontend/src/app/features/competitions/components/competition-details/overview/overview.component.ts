@@ -32,6 +32,7 @@ export class OverviewComponent implements OnInit {
   submitting = signal(false);
   successMessage = signal('');
   errorMessage = signal('');
+  showAllCategories = signal(false);
 
   /** Derived from state service */
   readonly participationStatus = this.state.participationStatus;
@@ -97,7 +98,7 @@ export class OverviewComponent implements OnInit {
     this.api.requestParticipation(comp.id).subscribe({
       next: () => {
         this.state.updateParticipationStatus('PENDING');
-        this.successMessage.set('Request submitted successfully! Your participation is pending approval.');
+        this.successMessage.set('Demande soumise avec succès ! Votre participation est en attente d\'approbation.');
         this.submitting.set(false);
       },
       error: (err) => {

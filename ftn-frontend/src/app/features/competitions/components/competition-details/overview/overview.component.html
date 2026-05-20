@@ -42,9 +42,17 @@
                 </svg>
                 Catégories
             </span>
-            <span class="info-value">
-                @for (cat of comp.allowedCategories; track cat) {
-                    <span class="badge-categorie">{{ categorieLabel(cat) }}</span>
+            <span class="info-value categories-value">
+                <span class="badge-categorie">{{ categorieLabel(comp.allowedCategories[0]) }}</span>
+                @if (comp.allowedCategories.length > 1) {
+                    @if (!showAllCategories()) {
+                        <button class="badge-more" (click)="showAllCategories.set(true)">+{{ comp.allowedCategories.length - 1 }}</button>
+                    } @else {
+                        @for (cat of comp.allowedCategories.slice(1); track cat) {
+                            <span class="badge-categorie">{{ categorieLabel(cat) }}</span>
+                        }
+                        <button class="badge-more" (click)="showAllCategories.set(false)">réduire</button>
+                    }
                 }
             </span>
         </div>
@@ -100,6 +108,15 @@
 </div>
 
 <!-- Ligne 2 : Conditions de Participation (full width) -->
+@if (comp.participationDeadline && isDeadlinePassed()) {
+<div class="deadline-expired-banner">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+    </svg>
+    <span>Date limite d'inscription expirée : {{ comp.participationDeadline | date:'dd MMMM yyyy' }}</span>
+</div>
+}
 <div class="conditions-card">
     <h3 class="info-card__title">
         <span class="title-icon title-icon--cond">
@@ -111,38 +128,22 @@
     </h3>
     @if (hasConditions()) {
     <div class="conditions-grid">
-        @if (comp.participationDeadline) {
-        <div class="condition-tag" [class.condition-tag--expired]="isDeadlinePassed()">
+        @if (comp.participationDeadline && !isDeadlinePassed()) {
+        <div class="condition-tag">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
             </svg>
             <span>Date limite : {{ comp.participationDeadline | date:'dd MMMM yyyy' }}</span>
-            @if (isDeadlinePassed()) { <span class="expired-badge">Expiré</span> }
         </div>
         }
-        @if (comp.allowedCategories && comp.allowedCategories.length) {
-        <div class="condition-tag condition-tag--categories">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-            <span>Catégories :</span>
-            @for (cat of comp.allowedCategories; track cat) {
-                <span class="category-badge">{{ categorieLabel(cat) }}</span>
-            }
-        </div>
-        }
-        @if (comp.allowedGender) {
         <div class="condition-tag">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="8" r="5" /><path d="M20 21a8 8 0 1 0-16 0" />
             </svg>
-            <span>Genre : {{ comp.allowedGender === 'HOMME' ? 'Hommes' : 'Femmes' }}</span>
+            <span>Genre : {{ comp.allowedGender === 'HOMME' ? 'Hommes' : comp.allowedGender === 'FEMME' ? 'Femmes' : 'Mixte' }}</span>
         </div>
-        }
         @if (comp.minAge || comp.maxAge) {
         <div class="condition-tag">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -213,13 +214,13 @@
                     }
                 </div>
                 <div class="banner-content">
-                    <span class="banner-title">{{ participationStatus() === 'PENDING' ? 'Pending Manual Review' : participationStatusLabel(participationStatus()) }}</span>
+                    <span class="banner-title">{{ participationStatusLabel(participationStatus()) }}</span>
                     @if (participationStatus() === 'PENDING') {
-                        <span class="banner-desc">Your request is under manual review by an administrator who will verify all conditions.</span>
+                        <span class="banner-desc">Votre demande est en cours de vérification manuelle par un administrateur qui vérifiera toutes les conditions.</span>
                     } @else if (participationStatus() === 'APPROVED') {
-                        <span class="banner-desc">Congratulations! You are registered for this competition.</span>
+                        <span class="banner-desc">Félicitations ! Vous êtes inscrit(e) à cette compétition.</span>
                     } @else if (participationStatus() === 'REJECTED') {
-                        <span class="banner-desc">Your request was not approved. Contact an administrator for details.</span>
+                        <span class="banner-desc">Votre demande n'a pas été approuvée. Contactez un administrateur pour plus de détails.</span>
                     }
                 </div>
             </div>
@@ -252,7 +253,7 @@
                         <line x1="12" y1="8" x2="12" y2="12" />
                         <line x1="12" y1="16" x2="12.01" y2="16" />
                     </svg>
-                    <span>Participation requests will open once a programme is published for this competition.</span>
+                    <span>Les demandes de participation seront ouvertes une fois le programme publié pour cette compétition.</span>
                 </div>
                 <button class="btn-participate btn-participate--disabled" disabled>
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
@@ -262,7 +263,7 @@
                         <line x1="19" y1="8" x2="19" y2="14" />
                         <line x1="22" y1="11" x2="16" y2="11" />
                     </svg>
-                    Request to Participate
+                    Demander à participer
                 </button>
             } @else if (isCategoryIneligible()) {
                 <div class="no-programme-notice">
@@ -272,7 +273,7 @@
                         <line x1="15" y1="9" x2="9" y2="15" />
                         <line x1="9" y1="9" x2="15" y2="15" />
                     </svg>
-                    <span>You are out of the age limits for this competition. Your category ({{ swimmerCategoryLabel() }}) does not match the allowed categories.</span>
+                    <span>Vous êtes hors des limites d'âge pour cette compétition. Votre catégorie ({{ swimmerCategoryLabel() }}) ne correspond pas aux catégories autorisées.</span>
                 </div>
                 <button class="btn-participate btn-participate--disabled" disabled>
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
@@ -297,7 +298,7 @@
                 }
                 <button class="btn-participate" (click)="requestParticipation()" [disabled]="submitting()">
                     @if (submitting()) {
-                        <span class="spinner-sm"></span> Submitting...
+                        <span class="spinner-sm"></span> Envoi en cours...
                     } @else {
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -306,7 +307,7 @@
                             <line x1="19" y1="8" x2="19" y2="14" />
                             <line x1="22" y1="11" x2="16" y2="11" />
                         </svg>
-                        Request to Participate
+                        Demander à participer
                     }
                 </button>
             }

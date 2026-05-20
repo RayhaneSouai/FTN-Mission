@@ -32,4 +32,11 @@ export class CompetitionApiService {
             `${this.baseUrl}/${competitionId}/my-participation`
         );
     }
+
+    /** Get approved participants for a competition */
+    getApprovedParticipants(competitionId: number): Observable<ParticipationResponseDTO[]> {
+        return this.http.get<ParticipationResponseDTO[]>(
+            `${this.baseUrl}/${competitionId}/participants`
+        );
+    }
 }

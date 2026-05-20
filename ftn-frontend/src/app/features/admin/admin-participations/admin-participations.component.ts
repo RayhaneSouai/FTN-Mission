@@ -5,12 +5,15 @@ import {
   ParticipationResponseDTO,
   PARTICIPATION_STATUS_LABELS,
 } from '../../competitions/models/competition.model';
+import { ToastService } from '../../competitions/services/toast.service';
+import { ToastContainerComponent } from '../../competitions/components/toast-container/toast-container.component';
 
 @Component({
   selector: 'app-admin-participations',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ToastContainerComponent],
   template: `
+    <app-toast-container />
     <div class="admin-participations">
       <div class="page-header">
         <div>
@@ -75,7 +78,7 @@ import {
       </div>
 
       @if (requests().length === 0) {
-        <div class="empty">Aucune demande de participation en attente.</div>
+        <div class="empty">Aucune demande de participation.</div>
       }
     </div>
   `,
@@ -116,16 +119,17 @@ import {
 })
 export class AdminParticipationsComponent implements OnInit {
   private readonly api = inject(AdminParticipationApiService);
+  private readonly toast = inject(ToastService);
 
   requests = signal<ParticipationResponseDTO[]>([]);
   processing = signal<Set<number>>(new Set());
 
   ngOnInit(): void {
-    this.loadPending();
+    this.loadAll();
   }
 
-  loadPending(): void {
-    this.api.getPending().subscribe(reqs => this.requests.set(reqs));
+  loadAll(): void {
+    this.api.getAll().subscribe(reqs => this.requests.set(reqs));
   }
 
   statusLabel(s: string): string {
@@ -135,7 +139,7 @@ export class AdminParticipationsComponent implements OnInit {
   approve(req: ParticipationResponseDTO): void {
     this.addProcessing(req.id);
     this.api.approve(req.id).subscribe({
-      next: () => this.requests.update(list => list.filter(r => r.id !== req.id)),
+      next: (updated) => { this.toast.showSuccess('Participation approuvée avec succès'); this.requests.update(list => list.map(r => r.id === req.id ? { ...r, status: 'APPROVED' } : r)); this.removeProcessing(req.id); },
       error: () => this.removeProcessing(req.id),
     });
   }
@@ -143,7 +147,7 @@ export class AdminParticipationsComponent implements OnInit {
   reject(req: ParticipationResponseDTO): void {
     this.addProcessing(req.id);
     this.api.reject(req.id).subscribe({
-      next: () => this.requests.update(list => list.filter(r => r.id !== req.id)),
+      next: () => { this.requests.update(list => list.map(r => r.id === req.id ? { ...r, status: 'REJECTED' } : r)); this.removeProcessing(req.id); },
       error: () => this.removeProcessing(req.id),
     });
   }

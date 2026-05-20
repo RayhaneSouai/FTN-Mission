@@ -252,9 +252,9 @@ export enum ParticipationStatus {
 }
 
 export const PARTICIPATION_STATUS_LABELS: Record<ParticipationStatus, string> = {
-  [ParticipationStatus.PENDING]: 'Pending Manual Review',
-  [ParticipationStatus.APPROVED]: 'Approved',
-  [ParticipationStatus.REJECTED]: 'Rejected',
+  [ParticipationStatus.PENDING]: 'Vérification manuelle en cours',
+  [ParticipationStatus.APPROVED]: 'Approuvé',
+  [ParticipationStatus.REJECTED]: 'Rejeté',
 };
 
 export interface ParticipationResponseDTO {

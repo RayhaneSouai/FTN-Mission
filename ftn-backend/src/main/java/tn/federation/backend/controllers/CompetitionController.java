@@ -4,8 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import tn.federation.backend.dto.CompetitionDetailDTO;
+import tn.federation.backend.dto.ParticipationResponseDTO;
 import tn.federation.backend.entities.Competition;
 import tn.federation.backend.entities.Participation;
+import tn.federation.backend.entities.ParticipationRequestStatus;
 import tn.federation.backend.entities.User;
 import tn.federation.backend.repositories.ParticipationRepository;
 import tn.federation.backend.repositories.UserRepository;
@@ -55,5 +57,22 @@ public class CompetitionController {
     @GetMapping("/getAll")
     public List<Competition> getAllCompetitions() {
         return competitionService.getAllCompetitions();
+    }
+
+    @GetMapping("/{id}/participants")
+    public List<ParticipationResponseDTO> getApprovedParticipants(@PathVariable Long id) {
+        return participationRepository.findByCompetitionIdAndStatus(id, ParticipationRequestStatus.APPROVED)
+                .stream()
+                .map(p -> new ParticipationResponseDTO(
+                        p.getId(),
+                        p.getSwimmer().getId(),
+                        p.getSwimmer().getFirstName(),
+                        p.getSwimmer().getLastName(),
+                        p.getCompetition().getId(),
+                        p.getCompetition().getName(),
+                        p.getStatus().name(),
+                        p.getRegisteredAt() != null ? p.getRegisteredAt().toString() : null,
+                        p.getCompetition().getCustomConditions()))
+                .toList();
     }
 }

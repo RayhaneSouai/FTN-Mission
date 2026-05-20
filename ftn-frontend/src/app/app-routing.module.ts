@@ -40,29 +40,16 @@ const routes: Routes = [
         path: 'press',
         loadChildren: () => import('./features/press/press.module').then(m => m.PressModule)
       },
-<<<<<<< HEAD
       { path: 'competitions', component: AdminCompetitionsComponent },
       { path: 'competitions/:id/programme', component: AdminProgrammeComponent },
-      { path: 'participations', component: AdminParticipationsComponent }
-=======
+      { path: 'participations', component: AdminParticipationsComponent },
       {
         path: 'clubs',
         component: ClubListComponent,
         data: { clubMode: 'admin' }
       },
-      {
-        path: 'performances',
-    component: MyPerformancesComponent
-  },
-  {
-    path: 'ranking',
-    component: RankingComponent
-  },
-  {
-    path: '**',
-    redirectTo: 'performances'
-  }
->>>>>>> 2676ef2f4156bf4d0841159873337acc200d2ced
+      { path: 'performances', component: MyPerformancesComponent },
+      { path: 'ranking', component: RankingComponent }
     ]
   },
 

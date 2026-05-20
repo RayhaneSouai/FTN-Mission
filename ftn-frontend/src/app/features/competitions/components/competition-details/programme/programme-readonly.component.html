@@ -39,7 +39,7 @@
                   <div class="timeline-marker"></div>
                   <div class="timeline-body">
                     <span class="type-badge" [class.badge-series]="item.type === 'SERIES'" [class.badge-part]="item.type === 'PART'">
-                      {{ item.type === 'SERIES' ? 'SÉRIE' : 'PARTIE' }}
+                      {{ item.type === 'SERIES' ? 'SÉRIE' : 'SESSION' }}
                     </span>
                     <strong>{{ item.label }}</strong>
                     @if (item.type === 'SERIES' && item.numberOfParticipants) {

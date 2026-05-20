@@ -15,6 +15,8 @@ import {
   Categorie,
 } from '../../competitions/models/competition.model';
 import { AdminCompetitionApiService } from './admin-competition-api.service';
+import { ToastService } from '../../competitions/services/toast.service';
+import { ToastContainerComponent } from '../../competitions/components/toast-container/toast-container.component';
 
 function dateRangeValidator(control: AbstractControl): ValidationErrors | null {
   const start = control.get('startDate')?.value;
@@ -29,8 +31,9 @@ function dateRangeValidator(control: AbstractControl): ValidationErrors | null {
 @Component({
   selector: 'app-admin-competitions',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule, ToastContainerComponent],
   template: `
+    <app-toast-container />
     <div class="admin-competitions">
       <div class="page-header">
         <div>
@@ -83,7 +86,7 @@ function dateRangeValidator(control: AbstractControl): ValidationErrors | null {
     <!-- Modal Form -->
     @if (modalOpen()) {
       <div class="modal-backdrop" (click)="closeModal()">
-        <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-content" (click)="dropdownOpen.set(false); $event.stopPropagation()">
           <h3>{{ editingComp() ? 'Modifier la compétition' : 'Nouvelle compétition' }}</h3>
           <form [formGroup]="form" (ngSubmit)="onSubmit()">
             <div class="form-group">
@@ -94,8 +97,11 @@ function dateRangeValidator(control: AbstractControl): ValidationErrors | null {
               }
             </div>
             <div class="form-group">
-              <label>Description</label>
-              <textarea formControlName="description" rows="2"></textarea>
+              <label>Description *</label>
+              <textarea formControlName="description" rows="2" [class.input-error]="form.controls.description.touched && form.controls.description.invalid"></textarea>
+              @if (form.controls.description.touched && form.controls.description.hasError('required')) {
+                <span class="field-error">La description est obligatoire.</span>
+              }
             </div>
             <div class="form-row">
               <div class="form-group">
@@ -368,6 +374,7 @@ function dateRangeValidator(control: AbstractControl): ValidationErrors | null {
 export class AdminCompetitionsComponent implements OnInit {
   private readonly api = inject(AdminCompetitionApiService);
   private readonly fb = inject(NonNullableFormBuilder);
+  private readonly toast = inject(ToastService);
 
   competitions = signal<Competition[]>([]);
   modalOpen = signal(false);
@@ -389,7 +396,7 @@ export class AdminCompetitionsComponent implements OnInit {
 
   readonly form = this.fb.group({
     name: this.fb.control('', Validators.required),
-    description: this.fb.control(''),
+    description: this.fb.control('', Validators.required),
     discipline: this.fb.control<Discipline>(Discipline.NATATION),
     startDate: this.fb.control('', Validators.required),
     endDate: this.fb.control('', Validators.required),
@@ -502,9 +509,9 @@ export class AdminCompetitionsComponent implements OnInit {
 
     if (this.editingComp()) {
       const payload: Competition = { ...dto, id: this.editingComp()!.id };
-      this.api.update(payload).subscribe(() => { this.loadAll(); this.closeModal(); });
+      this.api.update(payload).subscribe(() => { this.toast.showSuccess('Compétition modifiée avec succès'); this.loadAll(); this.closeModal(); });
     } else {
-      this.api.create(dto).subscribe(() => { this.loadAll(); this.closeModal(); });
+      this.api.create(dto).subscribe(() => { this.toast.showSuccess('Compétition créée avec succès'); this.loadAll(); this.closeModal(); });
     }
   }
 
