@@ -21,7 +21,6 @@ import tn.federation.backend.dto.PressInteractionDTO;
 
 @RestController
 @RequestMapping("/api/press")
-@CrossOrigin(origins = "*", maxAge = 3600)
 @Tag(name = "Press", description = "Gestion des articles de presse (CRUD + publication/archivage)")
 public class PressController {
 

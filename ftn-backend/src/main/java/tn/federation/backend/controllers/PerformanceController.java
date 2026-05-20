@@ -12,7 +12,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/performances")
 @RequiredArgsConstructor
-@CrossOrigin("*")
 public class PerformanceController {
     private final IPerformanceService performanceService;
 

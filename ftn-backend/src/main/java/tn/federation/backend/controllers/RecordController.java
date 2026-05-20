@@ -13,7 +13,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/records")
 @RequiredArgsConstructor
-@CrossOrigin("*")
 @Tag(name = "Records", description = "Records personnels et nationaux")
 public class RecordController {
     private final IRecordService recordService;
