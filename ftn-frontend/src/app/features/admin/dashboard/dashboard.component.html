@@ -1,0 +1,108 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-titles">
+      <h1 class="welcome-text">Tableau de Bord <span class="accent">FTN</span></h1>
+      <p class="subtitle">Vue d'ensemble de la fédération et monitoring en temps réel.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-refresh">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Actualiser
+      </button>
+      <button class="btn-primary-dashboard" routerLink="/admin/utilisateurs">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nouvel Utilisateur
+      </button>
+    </div>
+  </header>
+
+  <!-- Stats Grid -->
+  <section class="stats-grid">
+    <div class="stat-card" *ngFor="let stat of stats" [ngClass]="stat.color">
+      <div class="stat-content">
+        <div class="stat-main">
+          <span class="stat-label">{{ stat.label }}</span>
+          <h2 class="stat-value">{{ stat.value }}</h2>
+        </div>
+        <div class="stat-icon-wrapper">
+          <!-- Icons based on stat.icon -->
+          <svg *ngIf="stat.icon === 'users'" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <svg *ngIf="stat.icon === 'license'" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <svg *ngIf="stat.icon === 'pending'" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <svg *ngIf="stat.icon === 'club'" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M3 7v1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7H3l2-4h14l2 4"/></svg>
+        </div>
+      </div>
+      <div class="stat-footer">
+        <span class="trend" [ngClass]="{'up': stat.trend.includes('+'), 'down': stat.trend.includes('-')}">
+          {{ stat.trend }}
+        </span>
+        <span class="trend-label">depuis le mois dernier</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Middle Section: Analysis & Activity -->
+  <div class="dashboard-main-grid">
+    <!-- Visual Chart Mockup (Sophisticated CSS) -->
+    <div class="glass-card analysis-card">
+      <div class="card-header">
+        <h3>Activité des Inscriptions</h3>
+        <span class="badge">7 Derniers Jours</span>
+      </div>
+      <div class="chart-container-mock">
+        <div class="bar-chart">
+          <div class="bar" style="--h: 40%"><span>Lun</span></div>
+          <div class="bar" style="--h: 65%"><span>Mar</span></div>
+          <div class="bar active" style="--h: 85%"><span>Mer</span></div>
+          <div class="bar" style="--h: 50%"><span>Jeu</span></div>
+          <div class="bar" style="--h: 70%"><span>Ven</span></div>
+          <div class="bar" style="--h: 30%"><span>Sam</span></div>
+          <div class="bar" style="--h: 20%"><span>Dim</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="glass-card activity-card">
+      <div class="card-header">
+        <h3>Activités Récentes</h3>
+        <button class="btn-text">Tout voir</button>
+      </div>
+      <div class="activity-list">
+        <div class="activity-item" *ngFor="let act of recentActivities">
+          <div class="activity-icon" [ngClass]="act.type">
+            <i class="bi" [ngClass]="{'bi-person-plus': act.type === 'user', 'bi-file-earmark-check': act.type === 'license', 'bi-cpu': act.type === 'system'}"></i>
+          </div>
+          <div class="activity-info">
+            <div class="activity-header">
+              <span class="activity-title">{{ act.title }}</span>
+              <span class="activity-time">{{ act.time }}</span>
+            </div>
+            <p class="activity-desc">{{ act.description }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Section: Fast Links -->
+  <section class="quick-links">
+    <div class="link-card" routerLink="/admin/utilisateurs">
+      <div class="link-icon"><i class="bi bi-people"></i></div>
+      <span>Gérer les Utilisateurs</span>
+    </div>
+    <div class="link-card" routerLink="/admin/licences">
+      <div class="link-icon"><i class="bi bi-card-list"></i></div>
+      <span>Gestion des Licences</span>
+    </div>
+    <div class="link-card">
+      <div class="link-icon"><i class="bi bi-trophy"></i></div>
+      <span>Compétitions</span>
+    </div>
+    <div class="link-card" routerLink="/admin/mon-profil">
+      <div class="link-icon"><i class="bi bi-gear"></i></div>
+      <span>Paramètres Profil</span>
+    </div>
+  </section>
+</div>

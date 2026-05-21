@@ -1,0 +1,85 @@
+<div class="records-page">
+
+  <div class="page-header">
+    <div class="page-header__icon" aria-hidden="true">
+      <i class="bi bi-trophy-fill"></i>
+    </div>
+    <div>
+      <h1 class="page-header__title">Records nationaux</h1>
+      <p class="page-header__subtitle">Meilleurs chronos officiels de la Fédération Tunisienne de Natation</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label class="filter-label">Genre</label>
+      <div class="pill-group">
+        <button class="pill" [class.active]="filterGender() === ''" (click)="filterGender.set('')">Tous</button>
+        <button class="pill" [class.active]="filterGender() === 'HOMME'" (click)="filterGender.set('HOMME')">Homme</button>
+        <button class="pill" [class.active]="filterGender() === 'FEMME'" (click)="filterGender.set('FEMME')">Femme</button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">Style</label>
+      <select class="filter-select" [ngModel]="filterStroke()" (ngModelChange)="filterStroke.set($event)">
+        <option value="">Tous les styles</option>
+        <option *ngFor="let s of strokes.slice(1)" [value]="s">{{ strokeLabels[s] }}</option>
+      </select>
+    </div>
+    <div class="filter-count">
+      <span>{{ filtered().length }} record(s)</span>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="spinner-wrap">
+      <div class="spinner"></div>
+      <p>Chargement des records...</p>
+    </div>
+  } @else if (error()) {
+    <div class="alert-error">
+      <i class="bi bi-exclamation-circle"></i> {{ error() }}
+    </div>
+  } @else if (filtered().length === 0) {
+    <div class="empty-state">
+      <i class="bi bi-inbox"></i>
+      <p>Aucun record trouvé.</p>
+    </div>
+  } @else {
+    <div class="records-grid">
+      @for (record of filtered(); track record.holderId + record.distance + record.stroke) {
+        <div class="record-card">
+          <div class="record-card__top">
+            <div class="record-icon" aria-hidden="true">
+              <i class="bi bi-trophy-fill"></i>
+            </div>
+            <div class="record-event">
+              <span class="record-event__distance">{{ record.distance }}m</span>
+              <span class="record-event__stroke">{{ strokeLabels[record.stroke] }}</span>
+            </div>
+            <span class="badge-gender" [class.femme]="record.gender === 'FEMME'">
+              {{ genderLabels[record.gender] }}
+            </span>
+          </div>
+
+          <div class="record-time">{{ formatTime(record.recordTime) }}</div>
+
+          <div class="record-holder">
+            <i class="bi bi-person-fill" aria-hidden="true"></i>
+            {{ record.holderFirstName }} {{ record.holderLastName }}
+            @if (record.holderClub) {
+              <span class="record-club"> · {{ record.holderClub }}</span>
+            }
+          </div>
+
+          <div class="record-date">
+            <i class="bi bi-calendar3" aria-hidden="true"></i>
+            {{ record.dateAchieved | date:'dd MMMM yyyy' }}
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+</div>

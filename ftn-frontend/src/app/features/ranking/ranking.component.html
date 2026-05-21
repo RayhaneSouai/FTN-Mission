@@ -1,0 +1,129 @@
+<div class="ranking-page">
+
+  <div class="page-header">
+    <div class="page-header__icon" aria-hidden="true">
+      <i class="bi bi-bar-chart-line-fill"></i>
+    </div>
+    <div>
+      <h1 class="page-header__title">Classement national</h1>
+      <p class="page-header__subtitle">Meilleurs chronos par épreuve et catégorie</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-card">
+    <div class="filter-grid">
+      <div class="filter-group">
+        <label class="filter-label" for="distance">Distance</label>
+        <select id="distance" class="filter-select" [(ngModel)]="distance">
+          <option *ngFor="let d of distances" [value]="d">{{ d }}m</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label" for="stroke">Style de nage</label>
+        <select id="stroke" class="filter-select" [(ngModel)]="stroke">
+          <option *ngFor="let s of strokes" [value]="s">{{ strokeLabels[s] }}</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label" for="gender">Genre</label>
+        <select id="gender" class="filter-select" [(ngModel)]="gender">
+          <option *ngFor="let g of genders" [value]="g.value">{{ g.label }}</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label" for="niveau">Catégorie</label>
+        <select id="niveau" class="filter-select" [(ngModel)]="niveau">
+          <option value="">Toutes catégories</option>
+          <option *ngFor="let n of niveaux.slice(1)" [value]="n">{{ niveauLabels[n] }}</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn-search" (click)="loadRanking()" [disabled]="loading()">
+      <i class="bi bi-search"></i>
+      {{ loading() ? 'Chargement...' : 'Afficher le classement' }}
+    </button>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="spinner-wrap">
+      <div class="spinner"></div>
+      <p>Chargement du classement...</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (!loading() && error()) {
+    <div class="alert-error">
+      <i class="bi bi-exclamation-circle"></i>
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Results -->
+  @if (!loading() && searched() && !error()) {
+    <div class="results-card">
+      <div class="results-header">
+        <span class="results-title">
+          <i class="bi bi-trophy"></i>
+          {{ eventLabel }}
+          @if (niveau) { — {{ niveauLabels[niveau] }} }
+        </span>
+        <span class="results-count">{{ ranking().length }} nageur(s)</span>
+      </div>
+
+      @if (ranking().length === 0) {
+        <div class="empty-state">
+          <i class="bi bi-inbox"></i>
+          <p>Aucun résultat pour cette épreuve.</p>
+        </div>
+      } @else {
+        <div class="table-wrap">
+          <table class="ranking-table">
+            <thead>
+            <tr>
+              <th class="col-rank">Rang</th>
+              <th>Nageur</th>
+              <th>Club</th>
+              <th>Catégorie</th>
+              <th class="col-time">Temps</th>
+              <th class="col-date">Date</th>
+            </tr>
+            </thead>
+            <tbody>
+              @for (entry of ranking(); track entry.swimmerId) {
+                <tr [class.row-record]="entry.isNationalRecord">
+                  <td>
+                    <span class="rank-badge" [ngClass]="getRankClass(entry.rank)">
+                      {{ entry.rank }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="swimmer-name">
+                      {{ entry.swimmerFirstName }} {{ entry.swimmerLastName }}
+                    </span>
+                    @if (entry.isNationalRecord) {
+                      <span class="badge-nr">Record national</span>
+                    }
+                  </td>
+                  <td class="cell-muted">{{ entry.clubName ?? '—' }}</td>
+                  <td class="cell-muted">{{ niveauLabels[entry.category] }}</td>
+                  <td>
+                    <span class="time-chip">{{ formatTime(entry.time) }}</span>
+                  </td>
+                  <td class="cell-muted">{{ entry.date | date:'dd/MM/yyyy' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+</div>

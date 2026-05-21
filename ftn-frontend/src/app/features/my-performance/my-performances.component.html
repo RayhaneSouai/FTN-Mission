@@ -1,0 +1,150 @@
+<div class="perf-page">
+
+  <div class="page-header">
+    <div class="page-header__icon" aria-hidden="true">
+      <i class="bi bi-activity"></i>
+    </div>
+    <div>
+      <h1 class="page-header__title">Mes performances</h1>
+      <p class="page-header__subtitle">Suivi de vos chronos et progression</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="spinner-wrap">
+      <div class="spinner"></div>
+      <p>Chargement de vos performances...</p>
+    </div>
+  } @else if (error()) {
+    <div class="alert-error">
+      <i class="bi bi-exclamation-circle"></i> {{ error() }}
+    </div>
+  } @else {
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label">Performances</span>
+        <span class="stat-value">{{ stats().total }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Épreuves</span>
+        <span class="stat-value">{{ stats().events }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Records perso.</span>
+        <span class="stat-value">{{ stats().pr }}</span>
+      </div>
+      <div class="stat-card stat-card--accent">
+        <span class="stat-label">Records nationaux</span>
+        <span class="stat-value">{{ stats().nr }}</span>
+      </div>
+    </div>
+
+    <!-- Best per event -->
+    <div class="section">
+      <h2 class="section-title">Meilleurs chronos par épreuve</h2>
+
+      @if (bestPerEvent().length === 0) {
+        <div class="empty-state">
+          <i class="bi bi-inbox"></i>
+          <p>Aucune performance enregistrée.</p>
+        </div>
+      } @else {
+        <div class="perf-grid">
+          @for (p of bestPerEvent(); track p.id) {
+            <div
+              class="perf-card"
+              [class.selected]="selectedEvent() === p.distance + '-' + p.stroke"
+              (click)="selectEvent(p.distance + '-' + p.stroke)"
+            >
+              <div class="perf-card__event">{{ p.distance }}m {{ strokeLabels[p.stroke] }}</div>
+              <div class="perf-card__time">{{ formatTime(p.time) }}</div>
+              <div class="perf-card__date">{{ p.date | date:'dd/MM/yyyy' }}</div>
+              <div class="perf-card__badges">
+                @if (p.personalRecord) {
+                  <span class="badge-pr">PR</span>
+                }
+                @if (p.nationalRecord) {
+                  <span class="badge-nr">🏆 Record nat.</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Progression chart -->
+    @if (selectedEvent() && chartData().length >= 2) {
+      <div class="section">
+        <div class="chart-card">
+          <div class="chart-card__header">
+            <div>
+              <h2 class="chart-card__title">
+                <i class="bi bi-graph-down-arrow" aria-hidden="true"></i>
+                Progression — {{ getEventLabel(selectedEvent()!) }}
+              </h2>
+              <p class="chart-card__subtitle">{{ chartData().length }} performance(s) enregistrée(s)</p>
+            </div>
+            <div class="event-tabs">
+              @for (ev of events(); track ev.key) {
+                <button
+                  class="event-tab"
+                  [class.active]="selectedEvent() === ev.key"
+                  (click)="selectEvent(ev.key)"
+                >
+                  {{ ev.label }}
+                </button>
+              }
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <canvas #chartCanvas></canvas>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- History table -->
+    <div class="section">
+      <h2 class="section-title">Historique complet</h2>
+      <div class="table-card">
+        <table class="history-table">
+          <thead>
+          <tr>
+            <th>Épreuve</th>
+            <th class="col-time">Temps</th>
+            <th class="col-date">Date</th>
+            <th></th>
+          </tr>
+          </thead>
+          <tbody>
+            @for (p of performances(); track p.id) {
+              <tr>
+                <td>
+                  <span class="event-name">{{ p.distance }}m {{ strokeLabels[p.stroke]}}</span>
+                </td>
+                <td>
+                  <span class="time-chip">{{ formatTime(p.time) }}</span>
+                </td>
+                <td class="cell-muted">{{ p.date | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  <div class="badge-row">
+                    @if (p.personalRecord) {
+                      <span class="badge-pr">PR</span>
+                    }
+                    @if (p.nationalRecord) {
+                      <span class="badge-nr">Record</span>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  }
+</div>

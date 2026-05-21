@@ -103,7 +103,7 @@
 }
 
 // ─── Inputs (matches Club .form-group input) ───
-input, select {
+input, select, textarea {
   width: 100%;
   padding: 10px 14px;
   border-radius: 8px;
@@ -125,6 +125,11 @@ input, select {
     border-color: #dc2626;
     box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.08);
   }
+}
+
+textarea {
+  resize: vertical;
+  min-height: 60px;
 }
 select option {
   background: #fff;
@@ -180,6 +185,48 @@ select option {
   border-top-color: #fff;
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
+}
+
+// ─── Radio Group (Secteur) ───
+.radio-group {
+  display: flex;
+  gap: 16px;
+
+  &--row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  transition: all 0.2s;
+
+  &:has(input:checked) {
+    border-color: #1565C0;
+    background: rgba(21, 101, 192, 0.04);
+    box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.08);
+  }
+
+  input[type="radio"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #1565C0;
+    cursor: pointer;
+  }
+}
+
+.radio-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
 }
 
 // ═══════════ ANIMATIONS ═══════════
