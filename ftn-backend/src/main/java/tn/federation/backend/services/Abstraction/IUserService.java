@@ -2,8 +2,8 @@ package tn.federation.backend.services.Abstraction;
 
 import tn.federation.backend.dto.AthleteProgressDTO;
 import tn.federation.backend.dto.RegisterRequestDTO;
+import tn.federation.backend.dto.SwimmerDashboardDTO;
 import tn.federation.backend.dto.UserDTO;
-
 import java.util.List;
 
 public interface IUserService {
@@ -17,4 +17,6 @@ public interface IUserService {
     UserDTO approveUser(Long id);
     UserDTO rejectUser(Long id);
     AthleteProgressDTO getAthleteProgress(Long swimmerId);
+    SwimmerDashboardDTO getSwimmerDashboardStats(Long swimmerId);
+    tn.federation.backend.dto.AdminDashboardDTO getAdminDashboardStats();
 }

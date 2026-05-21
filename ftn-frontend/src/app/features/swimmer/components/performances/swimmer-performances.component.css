@@ -1,0 +1,37 @@
+.page { }
+.page-header { margin-bottom: 28px; }
+.page-title { font-size: 24px; font-weight: 700; color: #1a1a2e; margin: 0 0 4px; }
+.page-subtitle { font-size: 14px; color: #64748b; margin: 0; }
+
+.filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+.filter-btn {
+  padding: 8px 16px; border-radius: 8px; border: 1.5px solid #e2e8f0;
+  background: #fff; color: #475569; font-size: 13px; font-weight: 500; cursor: pointer;
+  font-family: inherit; transition: all 0.2s;
+}
+.filter-btn:hover { border-color: #1565C0; color: #1565C0; }
+.filter-btn.active { background: #1565C0; color: #fff; border-color: #1565C0; }
+
+.card { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); margin-bottom: 24px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.card-header h2 { font-size: 16px; font-weight: 700; color: #1a1a2e; margin: 0; }
+
+.empty-card { text-align: center; padding: 60px 24px; color: #94a3b8; background:#f8fafc; border-radius:16px; border:2px dashed #e2e8f0; margin-bottom:24px; }
+.empty-card p { font-size:14px; margin-top:12px; }
+
+/* ─── Performance Table ──────────────────────────────────────── */
+.perf-table { width: 100%; border-collapse: collapse; }
+.perf-table th { text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; padding: 10px 12px; border-bottom: 2px solid #f1f5f9; }
+.perf-table td { padding: 12px; border-bottom: 1px solid #f8fafc; font-size: 13px; color: #374151; }
+.perf-table tr:hover td { background: #f8fafc; }
+.pr-row td { background: #fffbeb !important; }
+.stroke-badge { background: #dbeafe; color: #1565C0; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+.time-val { font-size: 15px; font-weight: 700; color: #1565C0; font-family: 'Courier New', monospace; }
+.pr-badge { background: #fef3c7; color: #b45309; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+.no-pr { color: #d1d5db; }
+
+/* Best Times */
+.best-times-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.best-time-card { background: #f8fafc; border-radius: 10px; padding: 16px; text-align: center; border: 1px solid #e2e8f0; }
+.bt-stroke { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.bt-time { font-size: 20px; font-weight: 800; color: #1565C0; font-family: 'Courier New', monospace; }

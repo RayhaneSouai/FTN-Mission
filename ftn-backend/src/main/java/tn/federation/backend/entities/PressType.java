@@ -1,3 +1,6 @@
 package tn.federation.backend.entities;
 
-public enum PressType { ARTICLE, VIDEO, PHOTO, COMMUNIQUE }
+public enum PressType {
+    ARTICLE, VIDEO, PHOTO, COMMUNIQUE,
+    COMPETITIONS, RESULTS, OFFICIAL_COMMUNICATIONS, NATIONAL_SELECTIONS, TRAININGS, FEDERAL_EVENTS
+}

@@ -12,6 +12,7 @@ export class ProfilePageComponent implements OnInit {
   loading = true;
   error = '';
   success = '';
+  isReadOnly = false;
 
   constructor(
     private userService: UserService,
@@ -34,6 +35,8 @@ export class ProfilePageComponent implements OnInit {
           next: (data) => {
             this.user = data;
             this.loading = false;
+            // Check if the user is a swimmer to set read-only mode
+            this.isReadOnly = data.role === 'SWIMMER' || data.role === 'NAGEUR';
           },
           error: (err) => {
             this.error = 'Erreur lors du chargement du profil';

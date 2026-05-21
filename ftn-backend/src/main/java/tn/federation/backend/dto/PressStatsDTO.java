@@ -16,8 +16,12 @@ public class PressStatsDTO {
     private long total;
     private long published;
     private long draft;
+
+    private long scheduled;
     private long archived;
     private long deleted;
+    private long totalViews;
+    private long totalDownloads;
     
     private Map<String, Long> countByType;
     private Map<String, Long> countByDiscipline;

@@ -11,6 +11,7 @@ import tn.federation.backend.entities.Performance;
 import tn.federation.backend.entities.Role;
 import tn.federation.backend.entities.User;
 import tn.federation.backend.entities.RegistrationStatus;
+import tn.federation.backend.repositories.ClubRepository;
 import tn.federation.backend.repositories.PerformanceRepository;
 import tn.federation.backend.repositories.UserRepository;
 import java.time.LocalDateTime;
@@ -22,12 +23,21 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements IUserService {
     private final UserRepository userRepository;
     private final PerformanceRepository performanceRepository;
+    private final ClubRepository clubRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository, PerformanceRepository performanceRepository, PasswordEncoder passwordEncoder) {
+    private final tn.federation.backend.repositories.ParticipationRepository participationRepository;
+    private final tn.federation.backend.repositories.PressFavoriteRepository favoriteRepository;
+
+    public UserServiceImpl(UserRepository userRepository, PerformanceRepository performanceRepository, ClubRepository clubRepository, PasswordEncoder passwordEncoder,
+                           tn.federation.backend.repositories.ParticipationRepository participationRepository,
+                           tn.federation.backend.repositories.PressFavoriteRepository favoriteRepository) {
         this.userRepository = userRepository;
         this.performanceRepository = performanceRepository;
+        this.clubRepository = clubRepository;
         this.passwordEncoder = passwordEncoder;
+        this.participationRepository = participationRepository;
+        this.favoriteRepository = favoriteRepository;
     }
 
     public List<UserDTO> findAllUsers() {
@@ -103,6 +113,13 @@ public class UserServiceImpl implements IUserService {
         user.setDiscipline(convertToDiscipline(dto.getDiscipline()));
         user.setAnciennete(dto.getAnciennete());
 
+        if (dto.getClubId() != null) {
+            user.setClub(clubRepository.findById(dto.getClubId()).orElse(null));
+        } else if (dto.getClubName() == null) {
+            // Only clear club if specifically requested (no clubId and no clubName info)
+            user.setClub(null);
+        }
+
         if (dto.getRegistrationStatus() != null && !dto.getRegistrationStatus().isBlank()) {
             try {
                 user.setRegistrationStatus(RegistrationStatus.valueOf(dto.getRegistrationStatus().trim().toUpperCase()));
@@ -168,6 +185,39 @@ public class UserServiceImpl implements IUserService {
         return progressDTO;
     }
 
+    public tn.federation.backend.dto.SwimmerDashboardDTO getSwimmerDashboardStats(Long swimmerId) {
+        if (!userRepository.existsById(swimmerId)) {
+            throw new IllegalArgumentException("Nageur introuvable avec id: " + swimmerId);
+        }
+        User swimmer = userRepository.findById(swimmerId).get();
+        
+        long participations = participationRepository.countBySwimmerId(swimmerId);
+        long performances = performanceRepository.countBySwimmerId(swimmerId);
+        long favorites = favoriteRepository.countByUserId(swimmerId);
+        boolean hasLicense = swimmer.getActive() != null && swimmer.getActive() && swimmer.getClub() != null;
+
+        return tn.federation.backend.dto.SwimmerDashboardDTO.builder()
+                .totalParticipations(participations)
+                .totalPerformances(performances)
+                .totalFavorites(favorites)
+                .hasActiveLicense(hasLicense)
+                .build();
+    }
+
+    public tn.federation.backend.dto.AdminDashboardDTO getAdminDashboardStats() {
+        long totalUsers = userRepository.count();
+        long activeLicenses = userRepository.findAll().stream().filter(u -> tn.federation.backend.entities.RegistrationStatus.CONFIRMEE.equals(u.getRegistrationStatus())).count();
+        long pendingRequests = userRepository.findAll().stream().filter(u -> tn.federation.backend.entities.RegistrationStatus.EN_ATTENTE.equals(u.getRegistrationStatus())).count();
+        long affiliatedClubs = clubRepository.count();
+
+        return tn.federation.backend.dto.AdminDashboardDTO.builder()
+                .totalUsers(totalUsers)
+                .activeLicenses(activeLicenses)
+                .pendingRequests(pendingRequests)
+                .affiliatedClubs(affiliatedClubs)
+                .build();
+    }
+
     private PerformanceDTO mapPerformanceToDTO(Performance performance) {
         PerformanceDTO dto = new PerformanceDTO();
         dto.setTime(performance.getTime());
@@ -192,6 +242,18 @@ public class UserServiceImpl implements IUserService {
         dto.setDiscipline(user.getDiscipline() != null ? user.getDiscipline().name() : null);
         dto.setAnciennete(user.getAnciennete());
         dto.setRegistrationStatus(user.getRegistrationStatus() != null ? user.getRegistrationStatus().name() : null);
+        dto.setCreatedAt(user.getCreatedAt());
+
+        // Map club details
+        if (user.getClub() != null) {
+            dto.setClubId(user.getClub().getId());
+            dto.setClubName(user.getClub().getName());
+            dto.setClubRegion(user.getClub().getRegion());
+            dto.setClubManager(user.getClub().getManager());
+            dto.setClubContact(user.getClub().getContact());
+            dto.setClubAffiliationDate(user.getClub().getAffiliationDate());
+        }
+        
         return dto;
     }
 

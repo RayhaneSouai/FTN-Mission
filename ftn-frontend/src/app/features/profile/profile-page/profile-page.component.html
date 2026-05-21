@@ -5,7 +5,7 @@
         <div class="position-relative d-inline-block mx-auto mb-3">
           <img [src]="'https://ui-avatars.com/api/?name=' + user?.firstName + '+' + user?.lastName + '&background=random&size=128&color=fff'" 
                class="rounded-circle shadow" width="120" height="120" alt="Avatar">
-          <button class="btn btn-primary btn-sm rounded-circle position-absolute bottom-0 end-0 p-2 shadow-sm border-white border-2">
+          <button *ngIf="!isReadOnly" class="btn btn-primary btn-sm rounded-circle position-absolute bottom-0 end-0 p-2 shadow-sm border-white border-2">
             <i class="bi bi-camera"></i>
           </button>
         </div>
@@ -50,11 +50,11 @@
             <div class="row g-3">
               <div class="col-md-6">
                 <label class="form-label fw-bold small text-muted text-uppercase">Prénom</label>
-                <input type="text" class="form-control rounded-3" [(ngModel)]="user.firstName" name="firstName" required>
+                <input type="text" class="form-control rounded-3" [(ngModel)]="user.firstName" name="firstName" required [readonly]="isReadOnly">
               </div>
               <div class="col-md-6">
                 <label class="form-label fw-bold small text-muted text-uppercase">Nom</label>
-                <input type="text" class="form-control rounded-3" [(ngModel)]="user.lastName" name="lastName" required>
+                <input type="text" class="form-control rounded-3" [(ngModel)]="user.lastName" name="lastName" required [readonly]="isReadOnly">
               </div>
               <div class="col-md-12">
                 <label class="form-label fw-bold small text-muted text-uppercase">Email</label>
@@ -64,19 +64,19 @@
               
               <div class="col-md-6" *ngIf="user?.birthDate">
                 <label class="form-label fw-bold small text-muted text-uppercase">Date de naissance</label>
-                <input type="date" class="form-control rounded-3" [(ngModel)]="user.birthDate" name="birthDate">
+                <input type="date" class="form-control rounded-3" [(ngModel)]="user.birthDate" name="birthDate" [readonly]="isReadOnly">
               </div>
               
               <div class="col-md-6" *ngIf="user?.gender">
                 <label class="form-label fw-bold small text-muted text-uppercase">Genre</label>
-                <select class="form-select rounded-3" [(ngModel)]="user.gender" name="gender">
+                <select class="form-select rounded-3" [(ngModel)]="user.gender" name="gender" [disabled]="isReadOnly">
                   <option value="HOMME">Homme</option>
                   <option value="FEMME">Femme</option>
                 </select>
               </div>
             </div>
 
-            <div class="mt-4 pt-4 border-top text-end">
+            <div class="mt-4 pt-4 border-top text-end" *ngIf="!isReadOnly">
               <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 fw-bold" [disabled]="loading">
                 <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                 Enregistrer les modifications

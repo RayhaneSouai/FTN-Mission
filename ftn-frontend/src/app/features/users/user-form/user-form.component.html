@@ -123,7 +123,28 @@
         </div>
       </div>
 
-      <!-- Status Section -->
+      <!-- Affiliation Section -->
+      <div class="form-section mb-4" *ngIf="userData.role === 'SWIMMER'">
+        <div class="d-flex align-items-center mb-3 pt-2">
+          <div class="section-icon bg-warning-subtle text-warning rounded-3 p-2 me-2">
+            <i class="bi bi-building fs-5"></i>
+          </div>
+          <h5 class="fw-bold mb-0 text-dark">Affiliation Club</h5>
+        </div>
+        
+        <div class="row g-3">
+          <div class="col-md-12">
+            <div class="form-floating custom-form-control">
+              <select name="clubId" class="form-select" id="clubId" [(ngModel)]="userData.clubId" [disabled]="isViewOnly">
+                <option [ngValue]="null">-- Aucun club --</option>
+                <option *ngFor="let club of clubs" [value]="club.id">{{ club.name }} ({{ club.region }})</option>
+              </select>
+              <label for="clubId">Sélectionner le club</label>
+            </div>
+            <div class="form-text small mt-2">L'affectation à un club permet au nageur de voir les informations de son club dans son espace.</div>
+          </div>
+        </div>
+      </div>
       <div class="mb-4" *ngIf="isEditMode">
         <div class="card bg-light border-0 rounded-3 p-3">
           <div class="form-check form-switch d-flex align-items-center mb-0">

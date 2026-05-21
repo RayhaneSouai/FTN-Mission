@@ -28,8 +28,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .cors(org.springframework.security.config.Customizer.withDefaults())
+        http.cors(org.springframework.security.config.Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
@@ -40,8 +39,11 @@ public class SecurityConfig {
                                 "/api/press/fetch-metadata",
                                 "/api/press/upload",
                                 "/api/press/images/**",
+                                // Public competition endpoints (read-only)
                                 "/api/competitions/getAll",
                                 "/api/competitions/get/**",
+                                "/api/competitions/*/programme",
+                                "/api/competitions/*/programme/participants",
                                 "/api/clubs/**",
                                 "/api/performances/**",
                                 "/api/rankings/**",
@@ -49,6 +51,21 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**")
+                        .permitAll()
+                        // Admin endpoints require authentication
+                        .requestMatchers("/api/admin/**").authenticated()
+                        // Participation request endpoints require authentication
+                        .requestMatchers("/api/competitions/*/participate").authenticated()
+                        .requestMatchers("/api/competitions/*/my-participation").authenticated()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                "/api/clubs/**",
+                                "/api/competitions/**",
+                                "/api/licenses/**")
+                        .permitAll()
+                        // Public swimmer list only; other /api/users/* need JWT + @PreAuthorize
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/swimmers")
+                        .permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**")
                         .permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -63,5 +63,10 @@ export class UserService {
       headers: this.getHeaders()
     });
   }
-}
 
+  getAdminDashboardStats(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/admin/dashboard-stats`, { 
+      headers: this.getHeaders()
+    });
+  }
+}

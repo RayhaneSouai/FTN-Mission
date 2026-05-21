@@ -1,6 +1,6 @@
 import { Component, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
 @Component({
@@ -14,8 +14,9 @@ export class LoginComponent {
   showPassword = false;
 
   constructor(
-    private authService: AuthService, 
+    private authService: AuthService,
     private router: Router,
+    private route: ActivatedRoute,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
@@ -28,16 +29,21 @@ export class LoginComponent {
       next: (res) => {
         if (isPlatformBrowser(this.platformId)) {
           localStorage.setItem('token', res.token);
-          localStorage.setItem('user', JSON.stringify(res.user));
-          
-          // Check if the user is an admin based on the backend response
+          this.authService.setUser(res.user);
+          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+
           if (res.user.role === 'ADMIN' || res.user.role === 'ADMINISTRATEUR') {
             localStorage.setItem('isAdmin', 'true');
+          } else {
+            localStorage.removeItem('isAdmin');
+          }
+
+          if (returnUrl) {
+            this.router.navigateByUrl(returnUrl);
+          } else if (res.user.role === 'ADMIN' || res.user.role === 'ADMINISTRATEUR') {
             this.router.navigate(['/admin']);
           } else {
-            // Normal user / Swimmer / Coach
-            localStorage.removeItem('isAdmin');
-            this.router.navigate(['/']); 
+            this.router.navigate(['/']);
           }
         }
       },

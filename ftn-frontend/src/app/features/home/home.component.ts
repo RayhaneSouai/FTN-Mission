@@ -31,6 +31,7 @@ export class HomeComponent implements OnInit {
         // Filtrer les articles publiés et prendre les 3 dernières actualités pour l'accueil
         this.news = data
           .filter(item => item.status === 'PUBLISHED')
+          .sort((a, b) => (b.idPressItem || 0) - (a.idPressItem || 0))
           .slice(0, 3);
         this.loading = false;
       },

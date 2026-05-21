@@ -1,0 +1,225 @@
+<div class="swimmer-actualites-container" style="padding: 24px; max-width: 1200px; margin: 0 auto; min-height: 100vh;">
+  
+  <header style="margin-bottom: 32px;">
+    <h1 style="font-size: 2.2rem; font-weight: 850; color: #1e293b; margin-bottom: 8px;">Actualités & Presse 📰</h1>
+    <p style="color: #64748b; font-size: 1.1rem;">Restez informé des dernières nouveautés de la natation tunisienne.</p>
+  </header>
+
+  <!-- Filter by discipline (Optional, keeping it simple as before, but the user requested earlier to remove the disciplines filter! Ah, wait, in previous steps I removed it. The user said: "enleve ces types pour les 2 premiers photos". Yes, I removed the filter chips!) -->
+  
+  <!-- Loading State -->
+  <div *ngIf="loading" style="text-align: center; padding: 60px;">
+    <div style="margin: 0 auto 16px; width: 36px; height: 36px; border: 4px solid rgba(21,101,192,0.2); border-top-color: #1565C0; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+    <p style="color: #64748b; font-weight: 600;">Chargement des actualités...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && filteredItems.length === 0" style="text-align: center; padding: 60px; background: white; border-radius: 24px; border: 1px solid #f1f5f9;">
+    <h3 style="font-weight: 800; color: #1e293b; margin-bottom: 8px;">Aucune actualité trouvée</h3>
+    <p style="color: #94a3b8;">Revenez bientôt !</p>
+  </div>
+
+  <!-- News Grid -->
+  <div *ngIf="!loading && filteredItems.length > 0"
+       style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 32px;">
+    <div *ngFor="let item of filteredItems"
+         style="background:#fff; border-radius:20px; overflow:hidden; box-shadow:0 10px 15px -3px rgba(0,0,0,0.05); border:1px solid #f1f5f9; transition:all 0.3s ease; display:flex; flex-direction:column; cursor:pointer;"
+         (click)="openArticle(item)">
+
+      <!-- Media thumbnail -->
+      <div style="height:220px; overflow:hidden; background:#f1f5f9; position:relative;">
+        <img *ngIf="item.type === 'VIDEO' && item.mediaUrl" [src]="pressService.getVideoThumbnail(item.mediaUrl)" alt="Video" style="width:100%;height:100%;object-fit:cover;">
+        <div *ngIf="item.type === 'VIDEO'" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.6);border-radius:50%;width:54px;height:54px;display:flex;align-items:center;justify-content:center;">
+          <span style="color:white;font-size:1.5rem;">▶</span>
+        </div>
+        <img *ngIf="item.type !== 'VIDEO' && item.mediaUrl" [src]="item.mediaUrl" alt="Actualité" style="width:100%;height:100%;object-fit:cover;">
+        <div *ngIf="!item.mediaUrl" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:3rem;">📰</div>
+      </div>
+
+      <!-- Card body -->
+      <div style="padding:24px; flex:1; display:flex; flex-direction:column;">
+        <div style="font-size:11px;font-weight:800;color:#1565C0;text-transform:uppercase;margin-bottom:12px;">{{ item.discipline }}</div>
+        <h3 style="font-size:19px;font-weight:800;color:#1a1a2e;line-height:1.4;margin-bottom:12px;">{{ item.title }}</h3>
+        <p style="font-size:15px;color:#64748b;line-height:1.6;margin-bottom:20px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">
+          {{ item.summary || (item.content | slice:0:150) }}
+        </p>
+        <div style="margin-top:auto;display:flex;justify-content:space-between;align-items:center;padding-top:16px;border-top:1px solid #f1f5f9;font-size:0.8rem;color:#94a3b8;font-weight:700;">
+          <span>👁️ {{ item.views || 0 }}</span>
+          <span style="color:#1565C0;font-weight:800;">
+            {{ item.type === 'VIDEO' ? 'Regarder ▶' : item.type === 'PHOTO' ? 'Voir 🖼️' : 'Lire →' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ MODAL ═══════ -->
+  <div *ngIf="selectedItem" (click)="closeArticle()"
+       style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);backdrop-filter:blur(8px);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn 0.3s ease-out;">
+    <div (click)="$event.stopPropagation()"
+         style="background:white;border-radius:24px;padding:32px;width:100%;max-width:900px;max-height:92vh;overflow-y:auto;position:relative;border:1px solid #f1f5f9;box-shadow:0 25px 50px -12px rgba(0,0,0,0.3);">
+
+      <!-- Close -->
+      <button (click)="closeArticle()"
+              style="position:absolute;top:20px;right:20px;width:40px;height:40px;border-radius:50%;border:none;background:#f1f5f9;color:#64748b;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+
+      <!-- Title -->
+      <h1 style="font-size:1.9rem;font-weight:800;color:#1e293b;line-height:1.3;margin-bottom:14px;padding-right:50px;">{{ selectedItem.title }}</h1>
+
+      <!-- Meta -->
+      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:0.85rem;color:#94a3b8;font-weight:600;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #f1f5f9;">
+        <span>📅 {{ selectedItem.publishedAt || selectedItem.createdAt | date:'dd MMMM yyyy' }}</span>
+        <span *ngIf="selectedItem.discipline">🏊 {{ selectedItem.discipline }}</span>
+      </div>
+
+      <!-- ══ MEDIA selon le type ══ -->
+
+      <!-- VIDEO → player YouTube embedé directement -->
+      <div *ngIf="selectedItem.type === 'VIDEO' || selectedItem.mediaUrl?.includes('yout') || selectedItem.linkUrl?.includes('yout')"
+           style="border-radius:16px;overflow:hidden;margin-bottom:24px;background:#000;">
+        <iframe [src]="pressService.getEmbedUrl(selectedItem.mediaUrl || selectedItem.linkUrl || '') | safe"
+                frameborder="0" allowfullscreen
+                style="width:100%;height:420px;border:none;display:block;"></iframe>
+      </div>
+
+      <!-- PHOTO/IMAGE → image en grand directement -->
+      <div *ngIf="selectedItem.type !== 'VIDEO' && !selectedItem.mediaUrl?.includes('yout') && !selectedItem.linkUrl?.includes('yout') && selectedItem.mediaUrl"
+           style="border-radius:16px;overflow:hidden;margin-bottom:24px;max-height:480px;text-align:center;background:#f8fafc;">
+        <img [src]="selectedItem.mediaUrl" alt="Illustration"
+             style="max-width:100%;max-height:480px;object-fit:contain;display:block;margin:0 auto;">
+      </div>
+
+      <!-- ARTICLE / COMMUNIQUE / autres → contenu texte + Lire la suite -->
+      <ng-container *ngIf="selectedItem.type !== 'VIDEO' && !selectedItem.mediaUrl?.includes('yout') && !selectedItem.linkUrl?.includes('yout')">
+        <article *ngIf="!showFullContent"
+                 style="font-size:1.05rem;line-height:1.8;color:#334155;margin-bottom:20px;text-align:justify;word-break:break-word;">
+          {{ selectedItem.summary || (selectedItem.content ? (selectedItem.content | slice:0:300) + '...' : '') }}
+        </article>
+        <article *ngIf="showFullContent" [innerHTML]="selectedItem.content"
+                 style="font-size:1.05rem;line-height:1.8;color:#334155;margin-bottom:20px;text-align:justify;word-break:break-word;">
+        </article>
+        <div *ngIf="!showFullContent" style="text-align:center;margin-bottom:28px;">
+          <button (click)="showFullContent = true"
+                  style="background:#1565C0;color:white;border:none;padding:12px 28px;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;">
+            Lire la suite →
+          </button>
+        </div>
+      </ng-container>
+
+      <!-- Lien PDF / source externe (affiché comme Lire la suite pour le pdf) -->
+      <div *ngIf="selectedItem.linkUrl && !selectedItem.linkUrl.includes('yout')" style="margin-bottom:24px;text-align:center;">
+        <a [href]="selectedItem.linkUrl" target="_blank"
+           style="background:#1565C0;color:white;border:none;padding:12px 28px;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;display:inline-block;text-decoration:none;">
+          Lire la suite (Document)
+        </a>
+      </div>
+      
+      <!-- Documents joints PDF -->
+      <section *ngIf="selectedItem.documents" style="margin-bottom:24px;">
+        <div *ngFor="let docUrl of getDocuments(selectedItem.documents)" style="margin-bottom: 10px;text-align:center;">
+          <a [href]="docUrl" target="_blank" style="background: #1565C0; color: white; padding: 12px 28px; border-radius: 12px; font-weight: 700; font-size:1rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+            Lire la suite (PDF)
+          </a>
+        </div>
+      </section>
+
+      <!-- Galerie -->
+      <section *ngIf="getGalleryImages(selectedItem.gallery).length > 0"
+               style="margin-bottom:32px;padding-bottom:28px;border-bottom:1px solid #f1f5f9;">
+        <h3 style="font-size:1.1rem;font-weight:800;color:#1e293b;margin-bottom:16px;">📸 Galerie Photos</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;">
+          <div *ngFor="let imgUrl of getGalleryImages(selectedItem.gallery)"
+               style="border-radius:10px;overflow:hidden;height:140px;">
+            <img [src]="imgUrl" alt="Photo" style="width:100%;height:100%;object-fit:cover;">
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!--  INTERACTIONS (Réactions / Favoris / Commentaires) -->
+      <!-- ══════════════════════════════════════════ -->
+      <section style="border-top:2px solid #f1f5f9;padding-top:24px;margin-top:8px;">
+
+        <!-- Message si non connecté -->
+        <div *ngIf="!currentUserId" style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:12px 16px;margin-bottom:20px;font-size:0.9rem;color:#92400e;display:flex;align-items:center;gap:8px;">
+          ⚠️ Connectez-vous pour réagir, mettre en favori ou commenter.
+        </div>
+
+        <!-- Reactions + Favorite -->
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;background:#f8fafc;padding:14px 18px;border-radius:14px;margin-bottom:24px;gap:10px;">
+
+          <!-- Emoji buttons -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button *ngFor="let r of availableReactions" (click)="toggleReaction(r.type)"
+                    [style.border-color]="interactions?.currentUserReaction === r.type ? '#3b82f6' : '#e2e8f0'"
+                    [style.background]="interactions?.currentUserReaction === r.type ? '#eff6ff' : 'white'"
+                    [style.transform]="interactions?.currentUserReaction === r.type ? 'scale(1.12)' : 'scale(1)'"
+                    style="border:2px solid #e2e8f0;border-radius:50px;padding:7px 14px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.18s;font-family:inherit;font-weight:700;color:#475569;">
+              {{ r.emoji }} <span style="font-size:0.85rem;">{{ getReactionCount(r.type) }}</span>
+            </button>
+          </div>
+
+          <!-- Favorite -->
+          <button (click)="toggleFavorite()"
+                  [style.color]="interactions?.isFavoritedByCurrentUser ? '#ca8a04' : '#64748b'"
+                  [style.background]="interactions?.isFavoritedByCurrentUser ? '#fefce8' : 'white'"
+                  [style.border-color]="interactions?.isFavoritedByCurrentUser ? '#fde047' : '#e2e8f0'"
+                  style="border:2px solid #e2e8f0;border-radius:50px;padding:8px 18px;font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all 0.18s;font-family:inherit;">
+            <span>{{ interactions?.isFavoritedByCurrentUser ? '⭐' : '☆' }}</span>
+            <span>{{ interactions?.isFavoritedByCurrentUser ? 'Favori' : 'Ajouter aux favoris' }}</span>
+            <span style="background:#e2e8f0;color:#475569;font-size:0.78rem;padding:2px 8px;border-radius:20px;">{{ interactions?.totalFavorites || 0 }}</span>
+          </button>
+        </div>
+
+        <!-- Comments -->
+        <h3 style="font-size:1.1rem;font-weight:800;color:#1e293b;margin-bottom:18px;display:flex;align-items:center;gap:8px;">
+          💬 Commentaires
+          <span style="background:#e0f2fe;color:#0284c7;font-size:0.78rem;padding:2px 10px;border-radius:20px;font-weight:700;">{{ interactions?.comments?.length || 0 }}</span>
+        </h3>
+
+        <!-- Add comment -->
+        <div style="display:flex;gap:12px;margin-bottom:22px;align-items:flex-start;">
+          <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#0284c7,#0ea5e9);color:white;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;font-size:0.85rem;">
+            Moi
+          </div>
+          <div style="flex-grow:1;display:flex;gap:8px;">
+            <input type="text" [(ngModel)]="newCommentText" (keyup.enter)="addComment()"
+                   placeholder="Écrire un commentaire..."
+                   [disabled]="!currentUserId"
+                   style="flex-grow:1;padding:12px 16px;border:2px solid #e2e8f0;border-radius:12px;outline:none;font-size:0.95rem;transition:border-color 0.2s;font-family:inherit;">
+            <button (click)="addComment()" [disabled]="!newCommentText.trim() || isSubmittingComment || !currentUserId"
+                    style="background:#0284c7;color:white;border:none;padding:0 20px;border-radius:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity 0.2s;"
+                    [style.opacity]="(!newCommentText.trim() || !currentUserId) ? '0.45' : '1'">
+              Envoyer
+            </button>
+          </div>
+        </div>
+
+        <!-- Comment list -->
+        <div style="display:flex;flex-direction:column;gap:12px;max-height:380px;overflow-y:auto;padding-right:4px;">
+          <div *ngFor="let comment of interactions?.comments"
+               style="display:flex;gap:12px;background:#f8fafc;padding:14px 16px;border-radius:14px;">
+            <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;font-size:1rem;text-transform:uppercase;">
+              {{ (comment.userName || '?')[0] }}
+            </div>
+            <div style="flex:1;">
+              <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:5px;">
+                <span style="font-weight:700;color:#1e293b;">{{ comment.userName }}</span>
+                <span style="font-size:0.78rem;color:#94a3b8;">{{ comment.createdAt | date:'dd MMM à HH:mm' }}</span>
+              </div>
+              <p style="margin:0;color:#334155;font-size:0.95rem;line-height:1.6;word-break:break-word;">{{ comment.text }}</p>
+            </div>
+          </div>
+
+          <div *ngIf="!interactions?.comments?.length"
+               style="text-align:center;color:#94a3b8;padding:28px 0;font-size:0.95rem;">
+            <div style="font-size:2rem;margin-bottom:8px;">💬</div>
+            Soyez le premier à commenter !
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+</div>

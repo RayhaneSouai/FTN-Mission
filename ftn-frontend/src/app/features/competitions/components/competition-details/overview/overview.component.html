@@ -1,59 +1,327 @@
 @if (state.selectedCompetition(); as comp) {
-<div class="overview-grid">
+
+<!-- Ligne 1 : Description | Infos générales | Localisation (3 colonnes) -->
+<div class="overview-grid-3col">
+    @if (comp.description) {
     <div class="info-card">
-        <h3 class="info-card__title">Informations générales</h3>
+        <h3 class="info-card__title">
+            <span class="title-icon title-icon--desc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+                </svg>
+            </span>
+            Description
+        </h3>
+        <p class="info-description">{{ comp.description }}</p>
+    </div>
+    }
+
+    <div class="info-card">
+        <h3 class="info-card__title">
+            <span class="title-icon title-icon--info">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+            </span>
+            Informations générales
+        </h3>
         <div class="info-row">
-            <span class="info-label">Discipline</span>
+            <span class="info-label">
+                <svg class="row-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+                </svg>
+                Discipline
+            </span>
             <span class="info-value">{{ disciplineLabel(comp.discipline) }}</span>
         </div>
+        @if (comp.allowedCategories && comp.allowedCategories.length) {
         <div class="info-row">
-            <span class="info-label">Secteur</span>
-            <span class="info-value">{{ comp.secteur === 'NATIONAL' ? '🇹🇳 National' : '🌍 International' }}</span>
+            <span class="info-label">
+                <svg class="row-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>
+                </svg>
+                Catégories
+            </span>
+            <span class="info-value categories-value">
+                <span class="badge-categorie">{{ categorieLabel(comp.allowedCategories[0]) }}</span>
+                @if (comp.allowedCategories.length > 1) {
+                    @if (!showAllCategories()) {
+                        <button class="badge-more" (click)="showAllCategories.set(true)">+{{ comp.allowedCategories.length - 1 }}</button>
+                    } @else {
+                        @for (cat of comp.allowedCategories.slice(1); track cat) {
+                            <span class="badge-categorie">{{ categorieLabel(cat) }}</span>
+                        }
+                        <button class="badge-more" (click)="showAllCategories.set(false)">réduire</button>
+                    }
+                }
+            </span>
         </div>
+        }
         <div class="info-row">
-            <span class="info-label">Date de début</span>
+            <span class="info-label">
+                <svg class="row-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                Date de début
+            </span>
             <span class="info-value">{{ comp.startDate | date:'dd MMMM yyyy' }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Date de fin</span>
+            <span class="info-label">
+                <svg class="row-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                Date de fin
+            </span>
             <span class="info-value">{{ comp.endDate | date:'dd MMMM yyyy' }}</span>
         </div>
     </div>
 
     <div class="info-card">
-        <h3 class="info-card__title">Localisation</h3>
-        @if (comp.secteur === 'NATIONAL') {
+        <h3 class="info-card__title">
+            <span class="title-icon title-icon--loc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                </svg>
+            </span>
+            Localisation
+        </h3>
         <div class="info-row">
-            <span class="info-label">Région</span>
+            <span class="info-label">
+                <svg class="row-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                </svg>
+                Région
+            </span>
             <span class="info-value">{{ regionLabel(comp.region ?? '') }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Piscine</span>
+            <span class="info-label">
+                <svg class="row-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 12h6l3-9 6 18 3-9h4"/>
+                </svg>
+                Piscine
+            </span>
             <span class="info-value">{{ piscineLabel(comp.lieu ?? '') }}</span>
         </div>
-        } @else {
-        <div class="info-row">
-            <span class="info-label">Pays</span>
-            <span class="info-value">{{ comp.country }}</span>
+    </div>
+</div>
+
+<!-- Ligne 2 : Conditions de Participation (full width) -->
+@if (comp.participationDeadline && isDeadlinePassed()) {
+<div class="deadline-expired-banner">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+    </svg>
+    <span>Date limite d'inscription expirée : {{ comp.participationDeadline | date:'dd MMMM yyyy' }}</span>
+</div>
+}
+<div class="conditions-card">
+    <h3 class="info-card__title">
+        <span class="title-icon title-icon--cond">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+        </span>
+        Conditions de Participation
+    </h3>
+    @if (hasConditions()) {
+    <div class="conditions-grid">
+        @if (comp.participationDeadline && !isDeadlinePassed()) {
+        <div class="condition-tag">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+            </svg>
+            <span>Date limite : {{ comp.participationDeadline | date:'dd MMMM yyyy' }}</span>
         </div>
-        <div class="info-row">
-            <span class="info-label">Ville</span>
-            <span class="info-value">{{ comp.city }}</span>
+        }
+        <div class="condition-tag">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="8" r="5" /><path d="M20 21a8 8 0 1 0-16 0" />
+            </svg>
+            <span>Genre : {{ comp.allowedGender === 'HOMME' ? 'Hommes' : comp.allowedGender === 'FEMME' ? 'Femmes' : 'Mixte' }}</span>
         </div>
-        <div class="info-row">
-            <span class="info-label">Lieu</span>
-            <span class="info-value">{{ comp.venue }}</span>
+        @if (comp.minAge || comp.maxAge) {
+        <div class="condition-tag">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+            <span>Âge :
+                @if (comp.minAge && comp.maxAge) { {{ comp.minAge }} – {{ comp.maxAge }} ans }
+                @else if (comp.minAge) { {{ comp.minAge }}+ ans }
+                @else { Jusqu'à {{ comp.maxAge }} ans }
+            </span>
+        </div>
+        }
+        @if (comp.maxEvents) {
+        <div class="condition-tag">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 11 12 14 22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+            </svg>
+            <span>Max {{ comp.maxEvents }} épreuve{{ comp.maxEvents > 1 ? 's' : '' }} / nageur</span>
         </div>
         }
     </div>
-
-    @if (comp.description) {
-    <div class="info-card info-card--full">
-        <h3 class="info-card__title">Description</h3>
-        <p class="info-description">{{ comp.description }}</p>
+    @if (comp.customConditions) {
+    <div class="custom-conditions">
+        <p>{{ comp.customConditions }}</p>
     </div>
     }
+    } @else {
+    <p class="no-conditions-text">Aucune condition spécifique.</p>
+    }
 </div>
+
+<!-- Programme (read-only view of approved programme) -->
+<app-programme-readonly></app-programme-readonly>
+
+<!-- Participation Section -->
+<div class="participation-section">
+    @if (!isLoggedIn()) {
+        <p class="participation-hint">Connectez-vous en tant que nageur pour demander une participation.</p>
+    } @else if (!isSwimmer()) {
+        <p class="participation-hint">Seuls les nageurs peuvent demander une participation.</p>
+    } @else {
+        @if (hasExistingRequest()) {
+            <!-- Status Banner -->
+            <div class="participation-banner" [class]="'banner-' + participationStatus()">
+                <div class="banner-icon">
+                    @if (participationStatus() === 'APPROVED') {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                            <polyline points="22 4 12 14.01 9 11.01" />
+                        </svg>
+                    } @else if (participationStatus() === 'REJECTED') {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="15" y1="9" x2="9" y2="15" />
+                            <line x1="9" y1="9" x2="15" y2="15" />
+                        </svg>
+                    } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                        </svg>
+                    }
+                </div>
+                <div class="banner-content">
+                    <span class="banner-title">{{ participationStatusLabel(participationStatus()) }}</span>
+                    @if (participationStatus() === 'PENDING') {
+                        <span class="banner-desc">Votre demande est en cours de vérification manuelle par un administrateur qui vérifiera toutes les conditions.</span>
+                    } @else if (participationStatus() === 'APPROVED') {
+                        <span class="banner-desc">Félicitations ! Vous êtes inscrit(e) à cette compétition.</span>
+                    } @else if (participationStatus() === 'REJECTED') {
+                        <span class="banner-desc">Votre demande n'a pas été approuvée. Contactez un administrateur pour plus de détails.</span>
+                    }
+                </div>
+            </div>
+        } @else {
+            <!-- Participate Button -->
+            @if (isDeadlinePassed()) {
+                <div class="no-programme-notice">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    <span>Inscriptions clôturées — la date limite d'inscription est dépassée.</span>
+                </div>
+                <button class="btn-participate btn-participate--disabled" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <line x1="19" y1="8" x2="19" y2="14" />
+                        <line x1="22" y1="11" x2="16" y2="11" />
+                    </svg>
+                    Inscriptions clôturées
+                </button>
+            } @else if (!hasProgramme()) {
+                <div class="no-programme-notice">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    <span>Les demandes de participation seront ouvertes une fois le programme publié pour cette compétition.</span>
+                </div>
+                <button class="btn-participate btn-participate--disabled" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <line x1="19" y1="8" x2="19" y2="14" />
+                        <line x1="22" y1="11" x2="16" y2="11" />
+                    </svg>
+                    Demander à participer
+                </button>
+            } @else if (isCategoryIneligible()) {
+                <div class="no-programme-notice">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="15" y1="9" x2="9" y2="15" />
+                        <line x1="9" y1="9" x2="15" y2="15" />
+                    </svg>
+                    <span>Vous êtes hors des limites d'âge pour cette compétition. Votre catégorie ({{ swimmerCategoryLabel() }}) ne correspond pas aux catégories autorisées.</span>
+                </div>
+                <button class="btn-participate btn-participate--disabled" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <line x1="19" y1="8" x2="19" y2="14" />
+                        <line x1="22" y1="11" x2="16" y2="11" />
+                    </svg>
+                    Catégorie non éligible
+                </button>
+            } @else {
+                @if (hasCustomConditions()) {
+                <div class="manual-review-notice">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    <span>Note : Cette compétition a des conditions supplémentaires (voir ci-dessus). Votre demande sera manuellement vérifiée par l'administrateur.</span>
+                </div>
+                }
+                <button class="btn-participate" (click)="requestParticipation()" [disabled]="submitting()">
+                    @if (submitting()) {
+                        <span class="spinner-sm"></span> Envoi en cours...
+                    } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <line x1="19" y1="8" x2="19" y2="14" />
+                            <line x1="22" y1="11" x2="16" y2="11" />
+                        </svg>
+                        Demander à participer
+                    }
+                </button>
+            }
+        }
+    }
+
+    @if (successMessage()) {
+        <div class="alert alert-success">{{ successMessage() }}</div>
+    }
+    @if (errorMessage()) {
+        <div class="alert alert-error">{{ errorMessage() }}</div>
+    }
+</div>
+
 } @else if (state.isLoading()) {
 <div class="loading-container">
     <div class="spinner"></div>

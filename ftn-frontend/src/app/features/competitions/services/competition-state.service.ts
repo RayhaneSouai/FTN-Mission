@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { catchError, finalize, of, tap } from 'rxjs';
-import { Competition, CompetitionRequest } from '../models/competition.model';
+import { Competition } from '../models/competition.model';
 import { CompetitionApiService } from './competition-api.service';
 import { ToastService } from './toast.service';
 
@@ -93,68 +93,27 @@ export class CompetitionStateService {
         ).subscribe();
     }
 
-    addCompetition(dto: CompetitionRequest): void {
-        this.state.update((s) => ({ ...s, loading: true, error: null }));
-        this.api.create(dto).pipe(
-            tap((created) => this.state.update((s) => ({ ...s, items: [...s.items, created] }))),
-            catchError((err) => {
-                const msg = err?.message ?? 'Échec de la création';
-                this.state.update((s) => ({ ...s, error: msg }));
-                this.toast.showError(msg);
-                return of(null);
-            }),
-            finalize(() => this.state.update((s) => ({ ...s, loading: false })))
-        ).subscribe();
-    }
-
-    updateCompetition(id: number, dto: CompetitionRequest): void {
-        this.state.update((s) => ({ ...s, loading: true, error: null }));
-        const payload: Competition = { ...dto, id };
-        this.api.update(payload).pipe(
-            tap((updated) => this.state.update((s) => ({
-                ...s,
-                items: s.items.map((c) => (c.id === id ? updated : c)),
-            }))),
-            catchError((err) => {
-                const msg = err?.message ?? 'Échec de la mise à jour';
-                this.state.update((s) => ({ ...s, error: msg }));
-                this.toast.showError(msg);
-                return of(null);
-            }),
-            finalize(() => this.state.update((s) => ({ ...s, loading: false })))
-        ).subscribe();
-    }
-
-    deleteCompetition(id: number): void {
-        this.state.update((s) => ({ ...s, loading: true, error: null }));
-        this.api.delete(id).pipe(
-            tap(() => {
-                this.state.update((s) => ({ ...s, items: s.items.filter((c) => c.id !== id) }));
-                this.toast.showSuccess('Compétition supprimée.');
-                // Reset page if needed
-                if (this.currentPage() >= this.totalPages()) {
-                    this.currentPage.set(Math.max(0, this.totalPages() - 1));
-                }
-            }),
-            catchError((err) => {
-                const msg = err?.message ?? 'Échec de la suppression';
-                this.state.update((s) => ({ ...s, error: msg }));
-                this.toast.showError(msg);
-                return of(null);
-            }),
-            finalize(() => this.state.update((s) => ({ ...s, loading: false })))
-        ).subscribe();
-    }
-
     /* ─── Single Competition (Details Page) ─── */
     private readonly _selectedCompetition = signal<Competition | null>(null);
     readonly selectedCompetition = this._selectedCompetition.asReadonly();
 
+    private readonly _participationStatus = signal<'PENDING' | 'APPROVED' | 'REJECTED' | 'NONE'>('NONE');
+    readonly participationStatus = this._participationStatus.asReadonly();
+
+    readonly hasProgramme = computed(() => {
+        const comp = this._selectedCompetition();
+        return comp?.programmeStatus === 'APPROVED';
+    });
+
     loadCompetitionById(id: number): void {
         this.state.update((s) => ({ ...s, loading: true, error: null }));
         this._selectedCompetition.set(null);
+        this._participationStatus.set('NONE');
         this.api.getById(id).pipe(
-            tap((comp) => this._selectedCompetition.set(comp)),
+            tap((res) => {
+                this._selectedCompetition.set(res.competition);
+                this._participationStatus.set(res.participationStatus ?? 'NONE');
+            }),
             catchError((err) => {
                 const msg = err?.message ?? 'Échec du chargement de la compétition';
                 this.state.update((s) => ({ ...s, error: msg }));
@@ -163,6 +122,10 @@ export class CompetitionStateService {
             }),
             finalize(() => this.state.update((s) => ({ ...s, loading: false })))
         ).subscribe();
+    }
+
+    updateParticipationStatus(status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'NONE'): void {
+        this._participationStatus.set(status);
     }
 
     clearSelectedCompetition(): void {

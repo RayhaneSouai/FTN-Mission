@@ -2,18 +2,20 @@ package tn.federation.backend.services.ServiceImpl;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tn.federation.backend.dto.PerformanceRequestDTO;
 import tn.federation.backend.dto.PerformanceResponseDTO;
 import tn.federation.backend.entities.Performance;
+import tn.federation.backend.entities.StrokeType;
 import tn.federation.backend.entities.User;
 import tn.federation.backend.mappers.PerformanceMapper;
 import tn.federation.backend.repositories.PerformanceRepository;
 import tn.federation.backend.repositories.UserRepository;
 import tn.federation.backend.services.Abstraction.IPerformanceService;
+
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,12 +28,19 @@ public class PerformanceServiceImpl implements IPerformanceService {
     private final UserRepository userRepository;
     private final PerformanceMapper mapper;
 
+    // =====================================================
+    // CREATE
+    // =====================================================
 
     @Override
     public PerformanceResponseDTO create(PerformanceRequestDTO dto) {
+
         User swimmer = userRepository.findById(dto.getSwimmerId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Nageur introuvable avec id: " + dto.getSwimmerId()));
+                .orElseThrow(() ->
+                        new EntityNotFoundException(
+                                "Nageur introuvable avec id : " + dto.getSwimmerId()
+                        )
+                );
 
         Performance entity = mapper.toEntity(dto);
         entity.setSwimmer(swimmer);
@@ -43,21 +52,35 @@ public class PerformanceServiceImpl implements IPerformanceService {
         return enrichWithNationalFlag(saved);
     }
 
+    // =====================================================
+    // UPDATE
+    // =====================================================
 
     @Override
     public PerformanceResponseDTO update(Long id, PerformanceRequestDTO dto) {
-        Performance existing = performanceRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Performance introuvable avec id: " + id));
 
+        Performance existing = performanceRepository.findById(id)
+                .orElseThrow(() ->
+                        new EntityNotFoundException(
+                                "Performance introuvable avec id : " + id
+                        )
+                );
+
+        // Changement nageur
         if (!existing.getSwimmer().getId().equals(dto.getSwimmerId())) {
+
             User newSwimmer = userRepository.findById(dto.getSwimmerId())
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            "Nageur introuvable avec id: " + dto.getSwimmerId()));
+                    .orElseThrow(() ->
+                            new EntityNotFoundException(
+                                    "Nageur introuvable avec id : " + dto.getSwimmerId()
+                            )
+                    );
+
             existing.setSwimmer(newSwimmer);
         }
 
         mapper.updateEntityFromDto(dto, existing);
+
         Performance updated = performanceRepository.save(existing);
 
         recomputePersonalRecord(updated);
@@ -65,87 +88,149 @@ public class PerformanceServiceImpl implements IPerformanceService {
         return enrichWithNationalFlag(updated);
     }
 
+    // =====================================================
+    // DELETE
+    // =====================================================
 
     @Override
     public void delete(Long id) {
+
         Performance toDelete = performanceRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Performance introuvable avec id: " + id));
+                .orElseThrow(() ->
+                        new EntityNotFoundException(
+                                "Performance introuvable avec id : " + id
+                        )
+                );
 
         Long swimmerId = toDelete.getSwimmer().getId();
         Integer distance = toDelete.getDistance();
-        var stroke = toDelete.getStroke();
+        StrokeType stroke = toDelete.getStroke();
 
-        performanceRepository.deleteById(id);
+        performanceRepository.delete(toDelete);
 
-        reassignPersonalRecordAfterDelete(swimmerId, distance, stroke);
+        reassignPersonalRecordAfterDelete(
+                swimmerId,
+                distance,
+                stroke
+        );
     }
 
+    // =====================================================
+    // FIND BY ID
+    // =====================================================
 
     @Override
     @Transactional(readOnly = true)
     public PerformanceResponseDTO findById(Long id) {
+
         Performance entity = performanceRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Performance introuvable avec id: " + id));
+                .orElseThrow(() ->
+                        new EntityNotFoundException(
+                                "Performance introuvable avec id : " + id
+                        )
+                );
+
         return enrichWithNationalFlag(entity);
     }
 
+    // =====================================================
+    // FIND ALL
+    // =====================================================
 
     @Override
     @Transactional(readOnly = true)
     public List<PerformanceResponseDTO> findAll() {
-        List<Performance> allNationalRecords = performanceRepository.findAllNationalRecords();
-        Set<Long> nationalRecordIds = allNationalRecords.stream()
+
+        Set<Long> nationalRecordIds = performanceRepository
+                .findAllNationalRecords()
+                .stream()
                 .map(Performance::getId)
                 .collect(Collectors.toSet());
 
-        return performanceRepository.findAll().stream()
-                .map(p -> {
-                    PerformanceResponseDTO dto = mapper.toDto(p);
-                    dto.setNationalRecord(nationalRecordIds.contains(p.getId()));
+        return performanceRepository.findAll()
+                .stream()
+                .map(performance -> {
+
+                    PerformanceResponseDTO dto = mapper.toDto(performance);
+
+                    dto.setNationalRecord(
+                            nationalRecordIds.contains(performance.getId())
+                    );
+
                     return dto;
                 })
                 .toList();
     }
 
+    // =====================================================
+    // FIND BY SWIMMER
+    // =====================================================
 
     @Override
     @Transactional(readOnly = true)
     public List<PerformanceResponseDTO> findBySwimmer(Long swimmerId) {
-        return performanceRepository.findBySwimmerIdOrderByDateDesc(swimmerId).stream()
+
+        return performanceRepository
+                .findBySwimmerIdOrderByDateDesc(swimmerId)
+                .stream()
                 .map(this::enrichWithNationalFlag)
                 .toList();
     }
 
-       private void recomputePersonalRecord(Performance trigger) {
+    // =====================================================
+    // PERSONAL RECORD RECALCULATION
+    // =====================================================
+
+    private void recomputePersonalRecord(Performance trigger) {
+
         Long swimmerId = trigger.getSwimmer().getId();
-        Integer distance = trigger.getDistance();
-        var stroke = trigger.getStroke();
 
-        List<Performance> allPerfs = performanceRepository
-                .findBySwimmerIdAndDistanceAndStrokeOrderByDateDesc(swimmerId, distance, stroke);
+        List<Performance> performances =
+                performanceRepository
+                        .findBySwimmerIdAndDistanceAndStrokeOrderByDateDesc(
+                                swimmerId,
+                                trigger.getDistance(),
+                                trigger.getStroke()
+                        );
 
-        if (allPerfs.isEmpty()) return;
+        if (performances.isEmpty()) return;
 
-        Performance best = allPerfs.stream()
+        Performance best = performances.stream()
                 .min((a, b) -> Double.compare(a.getTime(), b.getTime()))
                 .orElseThrow();
 
-        for (Performance p : allPerfs) {
-            boolean shouldBePR = p.getId().equals(best.getId());
-            if (!Boolean.valueOf(shouldBePR).equals(p.getIsPersonalRecord())) {
-                p.setIsPersonalRecord(shouldBePR);
-                performanceRepository.save(p);
+        for (Performance performance : performances) {
+
+            boolean shouldBePR =
+                    performance.getId().equals(best.getId());
+
+            if (!Boolean.valueOf(shouldBePR)
+                    .equals(performance.getIsPersonalRecord())) {
+
+                performance.setIsPersonalRecord(shouldBePR);
+
+                performanceRepository.save(performance);
             }
         }
     }
 
+    // =====================================================
+    // REASSIGN PR AFTER DELETE
+    // =====================================================
 
-    private void reassignPersonalRecordAfterDelete(Long swimmerId, Integer distance,
-                                                   tn.federation.backend.entities.StrokeType stroke) {
-        List<Performance> remaining = performanceRepository
-                .findBySwimmerIdAndDistanceAndStrokeOrderByDateDesc(swimmerId, distance, stroke);
+    private void reassignPersonalRecordAfterDelete(
+            Long swimmerId,
+            Integer distance,
+            StrokeType stroke
+    ) {
+
+        List<Performance> remaining =
+                performanceRepository
+                        .findBySwimmerIdAndDistanceAndStrokeOrderByDateDesc(
+                                swimmerId,
+                                distance,
+                                stroke
+                        );
 
         if (remaining.isEmpty()) return;
 
@@ -153,32 +238,44 @@ public class PerformanceServiceImpl implements IPerformanceService {
                 .min((a, b) -> Double.compare(a.getTime(), b.getTime()))
                 .orElseThrow();
 
-        for (Performance p : remaining) {
-            boolean shouldBePR = p.getId().equals(best.getId());
-            if (!Boolean.valueOf(shouldBePR).equals(p.getIsPersonalRecord())) {
-                p.setIsPersonalRecord(shouldBePR);
-                performanceRepository.save(p);
+        for (Performance performance : remaining) {
+
+            boolean shouldBePR =
+                    performance.getId().equals(best.getId());
+
+            if (!Boolean.valueOf(shouldBePR)
+                    .equals(performance.getIsPersonalRecord())) {
+
+                performance.setIsPersonalRecord(shouldBePR);
+
+                performanceRepository.save(performance);
             }
         }
     }
 
+    // =====================================================
+    // NATIONAL RECORD FLAG
+    // =====================================================
 
-    private PerformanceResponseDTO enrichWithNationalFlag(Performance entity) {
+    private PerformanceResponseDTO enrichWithNationalFlag(
+            Performance entity
+    ) {
+
         PerformanceResponseDTO dto = mapper.toDto(entity);
 
-        List<Performance> national = performanceRepository.findNationalRecord(
-                entity.getDistance(),
-                entity.getStroke(),
-                entity.getSwimmer().getGender()
-        );
+        List<Performance> nationalRecords =
+                performanceRepository.findNationalRecord(
+                        entity.getDistance(),
+                        entity.getStroke(),
+                        entity.getSwimmer().getGender(),
+                        PageRequest.of(0, 1)
+                );
 
-        boolean isNational = national.stream()
+        boolean isNationalRecord = nationalRecords.stream()
                 .anyMatch(p -> p.getId().equals(entity.getId()));
 
-        dto.setNationalRecord(isNational);
+        dto.setNationalRecord(isNationalRecord);
 
         return dto;
     }
 }
-
-
