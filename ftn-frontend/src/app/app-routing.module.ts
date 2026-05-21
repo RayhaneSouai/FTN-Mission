@@ -5,6 +5,9 @@ import { ClubListComponent } from './features/clubs/components/club-list/club-li
 import { PublicLayoutComponent } from './layout/public/public-layout.component';
 import { AdminLayoutComponent } from './layout/admin/admin-layout.component';
 import { DashboardComponent } from './features/admin/dashboard/dashboard.component';
+import { AdminCompetitionsComponent } from './features/admin/admin-competitions/admin-competitions.component';
+import { AdminProgrammeComponent } from './features/admin/admin-programme/admin-programme.component';
+import { AdminParticipationsComponent } from './features/admin/admin-participations/admin-participations.component';
 import { adminGuard } from './core/guards/admin.guard';
 
 import { MyPerformancesComponent } from './features/my-performance/my-performances.component';
@@ -37,23 +40,16 @@ const routes: Routes = [
         path: 'press',
         loadChildren: () => import('./features/press/press.module').then(m => m.PressModule)
       },
+      { path: 'competitions', component: AdminCompetitionsComponent },
+      { path: 'competitions/:id/programme', component: AdminProgrammeComponent },
+      { path: 'participations', component: AdminParticipationsComponent },
       {
         path: 'clubs',
         component: ClubListComponent,
         data: { clubMode: 'admin' }
       },
-      {
-        path: 'performances',
-    component: MyPerformancesComponent
-  },
-  {
-    path: 'ranking',
-    component: RankingComponent
-  },
-  {
-    path: '**',
-    redirectTo: 'performances'
-  }
+      { path: 'performances', component: MyPerformancesComponent },
+      { path: 'ranking', component: RankingComponent }
     ]
   },
 

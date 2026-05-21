@@ -1,0 +1,59 @@
+@if (loading()) {
+<div class="loading-container">
+    <div class="spinner"></div>
+    <p>Chargement des participants...</p>
+</div>
+} @else if (participants().length === 0) {
+<div class="empty-state">
+    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+    <p>Aucun participant n'est encore inscrit à cette compétition.</p>
+</div>
+} @else {
+<div class="participants-container">
+    <!-- Search bar -->
+    <div class="search-bar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input type="text" placeholder="Rechercher par nom ou club..."
+            [(ngModel)]="searchTerm" (input)="onSearch()" />
+        <span class="result-count">{{ filteredParticipants().length }} participant{{ filteredParticipants().length > 1 ? 's' : '' }}</span>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrapper">
+        <table class="participants-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nom</th>
+                    <th>Prénom</th>
+                    <th>Date d'inscription</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (p of filteredParticipants(); track p.id; let i = $index) {
+                <tr>
+                    <td class="lane-cell">{{ i + 1 }}</td>
+                    <td class="name-cell">{{ p.swimmerLastName }}</td>
+                    <td class="name-cell">{{ p.swimmerFirstName }}</td>
+                    <td>{{ p.requestedAt ?? '—' }}</td>
+                    <td>
+                        <span class="status-badge approved">Approuvé</span>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+}

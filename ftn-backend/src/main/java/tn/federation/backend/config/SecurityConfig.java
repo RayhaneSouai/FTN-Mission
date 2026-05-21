@@ -39,10 +39,21 @@ public class SecurityConfig {
                                 "/api/press/fetch-metadata",
                                 "/api/press/upload",
                                 "/api/press/images/**",
+                                // Public competition endpoints (read-only)
+                                "/api/competitions/getAll",
+                                "/api/competitions/get/**",
+                                "/api/competitions/*/programme",
+                                "/api/competitions/*/programme/participants",
+                                "/api/clubs/**",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**")
                         .permitAll()
+                        // Admin endpoints require authentication
+                        .requestMatchers("/api/admin/**").authenticated()
+                        // Participation request endpoints require authentication
+                        .requestMatchers("/api/competitions/*/participate").authenticated()
+                        .requestMatchers("/api/competitions/*/my-participation").authenticated()
                         .requestMatchers(org.springframework.http.HttpMethod.GET,
                                 "/api/clubs/**",
                                 "/api/competitions/**",
