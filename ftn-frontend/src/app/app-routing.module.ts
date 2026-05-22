@@ -61,6 +61,10 @@ const routes: Routes = [
     component: PublicLayoutComponent,
     children: [
       { path: '', component: HomeComponent },
+      {
+        path: 'partenaires',
+        loadChildren: () => import('./features/partners/partners.module').then(m => m.PartnersModule)
+      },
       { path: 'clubs', component: ClubListComponent },
       {
         path: 'competitions',
