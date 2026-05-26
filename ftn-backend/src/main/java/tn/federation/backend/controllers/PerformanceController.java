@@ -4,9 +4,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import tn.federation.backend.dtos.PerformanceRequestDTO;
-import tn.federation.backend.dtos.PerformanceResponseDTO;
+import tn.federation.backend.dto.PerformanceRequestDTO;
+import tn.federation.backend.dto.PerformanceResponseDTO;
 import tn.federation.backend.services.Abstraction.IPerformanceService;
 import java.util.List;
 @RestController
@@ -18,12 +19,15 @@ public class PerformanceController {
 
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'COACH')")
     public ResponseEntity<PerformanceResponseDTO> create(@Valid @RequestBody PerformanceRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(performanceService.create(dto)); }
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COACH')")
     public ResponseEntity<PerformanceResponseDTO> update( @PathVariable Long id, @Valid @RequestBody PerformanceRequestDTO dto) {
         return ResponseEntity.ok(performanceService.update(id, dto)); }
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COACH')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         performanceService.delete(id); return ResponseEntity.noContent().build(); }
     @GetMapping("/{id}")

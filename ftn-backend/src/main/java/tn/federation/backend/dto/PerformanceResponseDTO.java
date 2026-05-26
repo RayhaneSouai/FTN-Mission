@@ -1,4 +1,4 @@
-package tn.federation.backend.dtos;
+package tn.federation.backend.dto;
 
 import lombok.*;
 import tn.federation.backend.entities.StrokeType;

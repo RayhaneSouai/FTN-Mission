@@ -1,4 +1,4 @@
-package tn.federation.backend.dtos;
+package tn.federation.backend.dto;
 
 import lombok.*;
 import tn.federation.backend.entities.Niveau;
@@ -18,6 +18,7 @@ public class RankingEntryDTO {
     private Niveau category;
      private Double time;
      private LocalDate date;
+    private String clubName;
 
     private Integer distance;
     private StrokeType stroke;

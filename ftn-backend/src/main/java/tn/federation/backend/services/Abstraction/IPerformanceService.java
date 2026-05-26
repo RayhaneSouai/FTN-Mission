@@ -1,7 +1,7 @@
 package tn.federation.backend.services.Abstraction;
 
-import tn.federation.backend.dtos.PerformanceRequestDTO;
-import tn.federation.backend.dtos.PerformanceResponseDTO;
+import tn.federation.backend.dto.PerformanceRequestDTO;
+import tn.federation.backend.dto.PerformanceResponseDTO;
 import java.util.List;
 public interface IPerformanceService {
     PerformanceResponseDTO create(PerformanceRequestDTO dto);

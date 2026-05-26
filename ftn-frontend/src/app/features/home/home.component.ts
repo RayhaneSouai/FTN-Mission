@@ -8,6 +8,24 @@ import { PressService } from '../press/services/press.service';
   styleUrl: './home.component.css'
 })
 export class HomeComponent implements OnInit {
+  openPartnerPopup(): void {
+    this.partnerPopupOpen = true;
+  }
+
+  closePartnerPopup(): void {
+    this.partnerPopupOpen = false;
+  }
+
+  partners = [
+    { name: 'Fédération & Natation Tunisie', category: 'Natation', initials: 'FN', description: 'Partenaire de développement de la natation en Tunisie.' },
+    { name: 'Sport Aquatique Club', category: 'Sport', initials: 'SA', description: 'Soutien aux compétitions et à la formation.' },
+    { name: 'Sponsoring Hydra', category: 'Natation', initials: 'HY', description: 'Sponsoring d’athlètes et d’événements aquatiques.' },
+    { name: 'Club Méditerranée', category: 'Sport', initials: 'CM', description: 'Partenaire stratégique pour la promotion du sport.' },
+    { name: 'Media Wave', category: 'Natation', initials: 'MW', description: 'Partenaire médiatique pour la visibilité des nageurs.' },
+  ];
+
+  partnerPopupOpen = false;
+
   cards = [
     { title: 'Compétitions', description: 'Calendrier et résultats', icon: 'trophy', color: '#1565C0' },
     { title: 'Équipes Nationales', description: 'Natation et Water Polo', icon: 'users', color: '#1565C0' },

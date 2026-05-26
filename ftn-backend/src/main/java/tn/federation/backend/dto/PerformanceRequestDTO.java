@@ -1,4 +1,4 @@
-package tn.federation.backend.dtos;
+package tn.federation.backend.dto;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;

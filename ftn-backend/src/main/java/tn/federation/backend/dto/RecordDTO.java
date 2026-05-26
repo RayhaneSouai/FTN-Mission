@@ -1,4 +1,4 @@
-package tn.federation.backend.dtos;
+package tn.federation.backend.dto;
 
 import lombok.*;
 import tn.federation.backend.entities.Gender;
@@ -18,4 +18,6 @@ public class RecordDTO {
     private LocalDate dateAchieved;
     private Long holderId;
     private String holderFirstName;
-    private String holderLastName; }
+    private String holderLastName;
+    private String holderClub;
+}

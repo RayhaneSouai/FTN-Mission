@@ -6,7 +6,7 @@ public class FixDb {
     public static void main(String[] args) {
         String url = "jdbc:mysql://localhost:3306/ftn-db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
         String user = "root";
-        String password = "";
+        String password = "1234";
 
         try (Connection conn = DriverManager.getConnection(url, user, password)) {
             String sql = "UPDATE press_item SET status='DRAFT' WHERE status='SUBMITTED'";
