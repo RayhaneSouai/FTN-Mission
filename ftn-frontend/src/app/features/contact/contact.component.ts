@@ -1,8 +1,11 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-contact',
   standalone: true,
+  imports: [CommonModule, RouterModule],
   template: `
     <section class="hero">
       <div class="hero-bg"></div>
@@ -13,7 +16,44 @@ import { Component } from '@angular/core';
       </div>
     </section>
 
-    <section class="contact-section" style="padding: 100px 20px; text-align: center; background: #f8fafc;">
+    <!-- Section Partenaires (The first photo) -->
+    <section class="partners-section" id="partenaires">
+      <div class="news-header" style="margin-bottom:18px;">
+        <h2>Nos Partenaires</h2>
+        <button class="btn-link" type="button" (click)="openPartnerPopup()">Devenir partenaire</button>
+      </div>
+
+      <div class="premium-grid">
+        <article *ngFor="let p of partners" class="premium-card">
+          <div class="premium-image-wrapper">
+            <div class="premium-placeholder">{{ p.initials }}</div>
+            <span class="category-badge cat-sport">{{ p.category }}</span>
+          </div>
+          <div class="premium-content">
+            <h3 class="premium-title">{{ p.name }}</h3>
+            <p class="premium-excerpt">{{ p.description }}</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <div class="modal-backdrop" *ngIf="partnerPopupOpen" (click)="closePartnerPopup()"></div>
+    <div class="modal" *ngIf="partnerPopupOpen">
+      <div class="modal-header">
+        <h3>Partenariat & Sponsoring</h3>
+        <button class="modal-close" (click)="closePartnerPopup()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>Vous voulez être une partenaire de la fédération / sponsoriser un nageur ?</p>
+        <div class="modal-actions">
+          <button class="btn-primary" routerLink="/partenaires/demande" (click)="closePartnerPopup()">Devenir partenaire</button>
+          <button class="btn-outline" routerLink="/partenaires/sponsoring" (click)="closePartnerPopup()">Sponsoriser un nageur</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact Info -->
+    <section class="contact-section" style="padding: 60px 20px 100px; text-align: center; background: #f8fafc;">
       <h2 style="color: #0f172a; margin-bottom: 20px; font-size: 32px; font-weight: 800;">Contactez-nous</h2>
       <p style="color: #64748b; font-size: 18px; margin-bottom: 40px;">Une question ? Nous sommes à votre écoute.</p>
       
@@ -36,61 +76,24 @@ import { Component } from '@angular/core';
       </div>
     </section>
   `,
-  styles: [`
-    .hero {
-      position: relative;
-      height: 400px;
-      display: flex;
-      align-items: center;
-      padding: 0 80px;
-      color: #fff;
-      overflow: hidden;
-    }
-    .hero-bg {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-image: url('/assets/home-hero.png');
-      background-size: cover;
-      background-position: center;
-      z-index: -1;
-    }
-    .hero-overlay {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: linear-gradient(90deg, rgba(11, 44, 91, 0.85) 0%, rgba(18, 66, 131, 0.6) 40%, rgba(21, 101, 192, 0.3) 100%);
-      z-index: 0;
-    }
-    .hero-content {
-      position: relative;
-      z-index: 1;
-      max-width: 650px;
-      animation: fadeInUp 0.8s ease-out;
-    }
-    .hero-content h1 {
-      font-size: 48px;
-      font-weight: 700;
-      line-height: 1.1;
-      margin: 0 0 20px;
-      letter-spacing: -1px;
-    }
-    .hero-content p {
-      font-size: 18px;
-      opacity: 0.9;
-      margin-bottom: 40px;
-      line-height: 1.6;
-    }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @media (max-width: 992px) {
-      .hero { padding: 0 40px; height: 350px; }
-      .hero-content h1 { font-size: 36px; }
-    }
-    @media (max-width: 600px) {
-      .hero { padding: 0 24px; height: 300px; }
-    }
-  `]
+  styleUrls: ['../home/home.component.css']
 })
 export class ContactComponent {
+  partnerPopupOpen = false;
+
+  partners = [
+    { name: 'Fédération & Natation Tunisie', category: 'Natation', initials: 'FN', description: 'Partenaire de développement de la natation en Tunisie.' },
+    { name: 'Sport Aquatique Club', category: 'Sport', initials: 'SA', description: 'Soutien aux compétitions et à la formation.' },
+    { name: 'Sponsoring Hydra', category: 'Natation', initials: 'HY', description: 'Sponsoring d’athlètes et d’événements aquatiques.' },
+    { name: 'Club Méditerranée', category: 'Sport', initials: 'CM', description: 'Partenaire stratégique pour la promotion du sport.' },
+    { name: 'Media Wave', category: 'Natation', initials: 'MW', description: 'Partenaire médiatique pour la visibilité des nageurs.' },
+  ];
+
+  openPartnerPopup(): void {
+    this.partnerPopupOpen = true;
+  }
+
+  closePartnerPopup(): void {
+    this.partnerPopupOpen = false;
+  }
 }
