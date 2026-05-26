@@ -5,21 +5,23 @@ import { HttpClient } from '@angular/common/http';
 @Component({
   selector: 'app-partnership-request',
   templateUrl: './partnership-request.component.html',
-  styleUrls: ['./partnership-request.component.scss'],
+  styleUrls: [],
 })
 export class PartnershipRequestComponent {
   loading = false;
   message = '';
 
-  form = this.fb.group({
-    nomRepresentant: ['', Validators.required],
-    adresse: ['', Validators.required],
-    contact: ['', Validators.required],
-    matriculeFiscale: ['', Validators.required],
-    typePartenariat: ['FINANCIER', Validators.required],
-  });
+  form: any;
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {}
+  constructor(private fb: FormBuilder, private http: HttpClient) {
+    this.form = this.fb.group({
+      nomRepresentant: ['', Validators.required],
+      adresse: ['', Validators.required],
+      contact: ['', Validators.required],
+      matriculeFiscale: ['', Validators.required],
+      typePartenariat: ['FINANCIER', Validators.required],
+    });
+  }
 
   submit(): void {
     this.message = '';

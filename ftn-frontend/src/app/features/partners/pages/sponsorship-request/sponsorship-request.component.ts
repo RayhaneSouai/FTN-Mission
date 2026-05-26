@@ -7,20 +7,22 @@ type SwimmerShort = { id: number; firstName: string; lastName: string; email?: s
 @Component({
   selector: 'app-sponsorship-request',
   templateUrl: './sponsorship-request.component.html',
-  styleUrls: ['./sponsorship-request.component.scss'],
+  styleUrls: [],
 })
 export class SponsorshipRequestComponent implements OnInit {
   loading = false;
   message = '';
   swimmers: SwimmerShort[] = [];
 
-  form = this.fb.group({
-    swimmerId: [null, Validators.required],
-    typeSponsor: ['FINANCIER', Validators.required],
-    details: ['', Validators.required],
-  });
+  form: any;
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {}
+  constructor(private fb: FormBuilder, private http: HttpClient) {
+    this.form = this.fb.group({
+      swimmerId: [null, Validators.required],
+      typeSponsor: ['FINANCIER', Validators.required],
+      details: ['', Validators.required],
+    });
+  }
 
   ngOnInit(): void {
     // MVP: utiliser la liste publique des nageurs
