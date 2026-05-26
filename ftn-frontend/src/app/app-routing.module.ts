@@ -7,11 +7,12 @@ import { AdminLayoutComponent } from './layout/admin/admin-layout.component';
 import { DashboardComponent } from './features/admin/dashboard/dashboard.component';
 import { adminGuard } from './core/guards/admin.guard';
 
+import { AdminCompetitionsComponent } from './features/admin/admin-competitions/admin-competitions.component';
+import { AdminProgrammeComponent } from './features/admin/admin-programme/admin-programme.component';
+import { AdminParticipationsComponent } from './features/admin/admin-participations/admin-participations.component';
 import { MyPerformancesComponent } from './features/my-performance/my-performances.component';
 import { RankingComponent } from './features/ranking/ranking.component';
-import {PerformanceListComponent} from './features/performances/Performance-List/performance-list.component';
-
-
+import { PerformanceListComponent } from './features/performances/Performance-List/performance-list.component';
 
 const routes: Routes = [
   // Admin Space (Backoffice)
@@ -37,8 +38,16 @@ const routes: Routes = [
       {
         path: 'press',
         loadChildren: () => import('./features/press/press.module').then(m => m.PressModule)
-      }
-     ,
+      },
+      { path: 'competitions', component: AdminCompetitionsComponent },
+      { path: 'competitions/:id/programme', component: AdminProgrammeComponent },
+      { path: 'participations', component: AdminParticipationsComponent },
+      {
+        path: 'clubs',
+        component: ClubListComponent,
+        data: { clubMode: 'admin' }
+      },
+      { path: 'ranking', component: RankingComponent },
       {
         path: 'performances',
         loadComponent: () =>
@@ -93,6 +102,18 @@ const routes: Routes = [
         loadComponent: () =>
           import('./features/my-performance/my-performances.component').then(m => m.MyPerformancesComponent),
       },
+      {
+        path: 'espace-nageur',
+        loadChildren: () => import('./features/swimmer/swimmer.module').then(m => m.SwimmerModule)
+      },
+      {
+        path: 'press',
+        loadChildren: () => import('./features/press/press.module').then(m => m.PressModule)
+      },
+      {
+        path: 'contact',
+        loadComponent: () => import('./features/contact/contact.component').then(m => m.ContactComponent)
+      }
     ],
   },
 
