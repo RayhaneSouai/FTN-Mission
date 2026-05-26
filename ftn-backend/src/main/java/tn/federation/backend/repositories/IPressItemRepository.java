@@ -30,12 +30,12 @@ public interface IPressItemRepository extends JpaRepository<PressItem, Long> {
 
     @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true)
     @org.springframework.transaction.annotation.Transactional
-    @Query("UPDATE PressItem p SET p.views = p.views + 1 WHERE p.idPressItem = ?1")
+    @Query("UPDATE PressItem p SET p.views = COALESCE(p.views, 0) + 1 WHERE p.idPressItem = ?1")
     void incrementViews(long id);
 
     @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true)
     @org.springframework.transaction.annotation.Transactional
-    @Query("UPDATE PressItem p SET p.downloadsCount = p.downloadsCount + 1 WHERE p.idPressItem = ?1")
+    @Query("UPDATE PressItem p SET p.downloadsCount = COALESCE(p.downloadsCount, 0) + 1 WHERE p.idPressItem = ?1")
     void incrementDownloads(long id);
 
     @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true)

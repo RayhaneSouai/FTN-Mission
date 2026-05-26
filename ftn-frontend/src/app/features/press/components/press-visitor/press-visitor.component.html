@@ -14,6 +14,7 @@
     <button (click)="onFilterChange('PHOTO')" [ngStyle]="{'background': activeFilter === 'PHOTO' ? '#1565C0' : '#f1f5f9', 'color': activeFilter === 'PHOTO' ? 'white' : '#475569', 'border': 'none', 'padding': '10px 20px', 'border-radius': '50px', 'font-weight': '700', 'cursor': 'pointer', 'transition': 'all 0.2s'}">Photos</button>
     <button (click)="onFilterChange('COMMUNIQUE')" [ngStyle]="{'background': activeFilter === 'COMMUNIQUE' ? '#1565C0' : '#f1f5f9', 'color': activeFilter === 'COMMUNIQUE' ? 'white' : '#475569', 'border': 'none', 'padding': '10px 20px', 'border-radius': '50px', 'font-weight': '700', 'cursor': 'pointer', 'transition': 'all 0.2s'}">Communiqués</button>
     <button *ngIf="currentUserId" (click)="onFilterChange('FAVORITES')" [ngStyle]="{'background': activeFilter === 'FAVORITES' ? '#f59e0b' : '#fef3c7', 'color': activeFilter === 'FAVORITES' ? 'white' : '#b45309', 'border': 'none', 'padding': '10px 20px', 'border-radius': '50px', 'font-weight': '800', 'cursor': 'pointer', 'transition': 'all 0.2s'}">⭐ Mes Favoris</button>
+    <button *ngIf="currentUserId" (click)="onFilterChange('PINNED')" [ngStyle]="{'background': activeFilter === 'PINNED' ? '#c2410c' : '#ffedd5', 'color': activeFilter === 'PINNED' ? 'white' : '#9a3412', 'border': 'none', 'padding': '10px 20px', 'border-radius': '50px', 'font-weight': '800', 'cursor': 'pointer', 'transition': 'all 0.2s'}">📌 Épinglés</button>
   </section>
 
   <!-- Search Box -->
@@ -37,9 +38,9 @@
   </div>
 
   <!-- News Grid -->
-  <div *ngIf="!loading && getFilteredItems().length > 0"
+  <div *ngIf="!loading && pagedItems.length > 0"
        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 32px;">
-    <div *ngFor="let item of getFilteredItems()"
+    <div *ngFor="let item of pagedItems"
          style="background:#fff; border-radius:20px; overflow:hidden; box-shadow:0 10px 15px -3px rgba(0,0,0,0.05); border:1px solid #f1f5f9; transition:all 0.3s ease; display:flex; flex-direction:column; cursor:pointer;"
          (click)="openArticle(item)">
 
@@ -71,6 +72,23 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Pagination Controls -->
+  <div *ngIf="!loading && totalPages > 1" style="display:flex; justify-content:center; align-items:center; gap:16px; margin-top:40px;">
+    <button (click)="prevPage()" [disabled]="currentPage === 1"
+            style="background:#f1f5f9; border:none; padding:10px 20px; border-radius:50px; font-weight:700; cursor:pointer; color:#475569;"
+            [ngStyle]="{'opacity': currentPage === 1 ? '0.5' : '1'}">
+      Précédent
+    </button>
+    <span style="font-weight:700; color:#1e293b;">
+      Page {{ currentPage }} sur {{ totalPages }}
+    </span>
+    <button (click)="nextPage()" [disabled]="currentPage === totalPages"
+            style="background:#1565C0; border:none; padding:10px 20px; border-radius:50px; font-weight:700; cursor:pointer; color:white;"
+            [ngStyle]="{'opacity': currentPage === totalPages ? '0.5' : '1'}">
+      Suivant
+    </button>
   </div>
 
   <!-- ═══════ MODAL ═══════ -->
@@ -111,6 +129,22 @@
 
       <!-- ARTICLE / COMMUNIQUE / autres → contenu texte + Lire la suite -->
       <ng-container *ngIf="selectedItem.type !== 'VIDEO' && !selectedItem.mediaUrl?.includes('yout') && !selectedItem.linkUrl?.includes('yout')">
+        
+        <!-- ✨ IA Recap Action -->
+        <div *ngIf="selectedItem.type !== 'PHOTO'" style="margin-bottom: 20px; display: flex; justify-content: flex-end;">
+          <button (click)="generateSummary()" [disabled]="generatingAiRecap"
+                  style="background: linear-gradient(135deg, #8b5cf6, #3b82f6); color: white; border: none; padding: 10px 20px; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: transform 0.2s, opacity 0.2s; box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.2);"
+                  [style.opacity]="generatingAiRecap ? '0.7' : '1'">
+            <span *ngIf="!generatingAiRecap">✨ Obtenir un résumé IA</span>
+            <span *ngIf="generatingAiRecap">⏳ Analyse en cours...</span>
+          </button>
+        </div>
+
+        <!-- ✨ IA Recap Box -->
+        <div *ngIf="aiRecap" style="background: #f8fafc; border-left: 4px solid #8b5cf6; padding: 20px; border-radius: 12px; margin-bottom: 24px; animation: fadeIn 0.4s ease-out; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+          <div [innerHTML]="aiRecap"></div>
+        </div>
+
         <article *ngIf="!showFullContent"
                  style="font-size:1.05rem;line-height:1.8;color:#334155;margin-bottom:20px;text-align:justify;word-break:break-word;">
           {{ selectedItem.summary || (selectedItem.content ? (selectedItem.content | slice:0:300) + '...' : '') }}
@@ -170,16 +204,29 @@
             </button>
           </div>
 
-          <!-- Favorite -->
-          <button (click)="toggleFavorite()"
-                  [style.color]="interactions?.isFavoritedByCurrentUser ? '#ca8a04' : '#64748b'"
-                  [style.background]="interactions?.isFavoritedByCurrentUser ? '#fefce8' : 'white'"
-                  [style.border-color]="interactions?.isFavoritedByCurrentUser ? '#fde047' : '#e2e8f0'"
-                  style="border:2px solid #e2e8f0;border-radius:50px;padding:8px 18px;font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all 0.18s;font-family:inherit;">
-            <span>{{ interactions?.isFavoritedByCurrentUser ? '⭐' : '☆' }}</span>
-            <span>{{ interactions?.isFavoritedByCurrentUser ? 'Favori' : 'Ajouter aux favoris' }}</span>
-            <span style="background:#e2e8f0;color:#475569;font-size:0.78rem;padding:2px 8px;border-radius:20px;">{{ interactions?.totalFavorites || 0 }}</span>
-          </button>
+          <div style="display:flex; gap:10px;">
+            <!-- Favorite -->
+            <button (click)="toggleFavorite()"
+                    [style.color]="interactions?.isFavoritedByCurrentUser ? '#ca8a04' : '#64748b'"
+                    [style.background]="interactions?.isFavoritedByCurrentUser ? '#fefce8' : 'white'"
+                    [style.border-color]="interactions?.isFavoritedByCurrentUser ? '#fde047' : '#e2e8f0'"
+                    style="border:2px solid #e2e8f0;border-radius:50px;padding:8px 18px;font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all 0.18s;font-family:inherit;">
+              <span>{{ interactions?.isFavoritedByCurrentUser ? '⭐' : '☆' }}</span>
+              <span>{{ interactions?.isFavoritedByCurrentUser ? 'Favori' : 'Favori' }}</span>
+              <span style="background:#e2e8f0;color:#475569;font-size:0.78rem;padding:2px 8px;border-radius:20px;">{{ interactions?.totalFavorites || 0 }}</span>
+            </button>
+
+            <!-- Epingler (Pin) -->
+            <button (click)="togglePin()"
+                    [style.color]="interactions?.isPinnedByCurrentUser ? '#c2410c' : '#64748b'"
+                    [style.background]="interactions?.isPinnedByCurrentUser ? '#ffedd5' : 'white'"
+                    [style.border-color]="interactions?.isPinnedByCurrentUser ? '#fb923c' : '#e2e8f0'"
+                    style="border:2px solid #e2e8f0;border-radius:50px;padding:8px 18px;font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all 0.18s;font-family:inherit;">
+              <span>{{ interactions?.isPinnedByCurrentUser ? '📌' : '📍' }}</span>
+              <span>{{ interactions?.isPinnedByCurrentUser ? 'Épinglé' : 'Épingler' }}</span>
+              <span style="background:#e2e8f0;color:#475569;font-size:0.78rem;padding:2px 8px;border-radius:20px;">{{ interactions?.totalPins || 0 }}</span>
+            </button>
+          </div>
         </div>
 
         <!-- Comments -->

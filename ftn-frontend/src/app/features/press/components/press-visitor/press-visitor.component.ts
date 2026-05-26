@@ -29,10 +29,37 @@ export class PressVisitorComponent implements OnInit {
   selectedItem: PressItem | null = null;
   showFullContent = false;
 
+  currentPage = 1;
+  itemsPerPage = 3;
+
+  get pagedItems(): PressItem[] {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    return this.getFilteredItems().slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.getFilteredItems().length / this.itemsPerPage));
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) this.currentPage++;
+  }
+
+  prevPage() {
+    if (this.currentPage > 1) this.currentPage--;
+  }
+
+  setPage(page: number) {
+    this.currentPage = page;
+  }
+
   // Interactions
   interactions: any = null;
   newCommentText = '';
   isSubmittingComment = false;
+
+  aiRecap: string | null = null;
+  generatingAiRecap = false;
 
   availableReactions = [
     { type: 'LIKE',    emoji: '👍' },
@@ -57,12 +84,14 @@ export class PressVisitorComponent implements OnInit {
           .sort((a, b) => (b.idPressItem || 0) - (a.idPressItem || 0));
         this.loading = false;
         this.loadFavorites();
+        this.loadPinned();
       },
       error: () => this.loading = false
     });
   }
 
   favoriteItems: PressItem[] = [];
+  pinnedItems: PressItem[] = [];
 
   loadFavorites(): void {
     const userId = this.getCurrentUserId();
@@ -73,11 +102,26 @@ export class PressVisitorComponent implements OnInit {
     });
   }
 
+  loadPinned(): void {
+    const userId = this.getCurrentUserId();
+    if (!userId) return;
+    this.pressService.getPinsByUserId(userId).subscribe({
+      next: (res) => this.pinnedItems = res,
+      error: (err) => console.error('Erreur chargement epingles', err)
+    });
+  }
+
   getFilteredItems(): PressItem[] {
-    let sourceItems = this.activeFilter === 'FAVORITES' ? this.favoriteItems : this.items;
+    let sourceItems = this.items;
+    if (this.activeFilter === 'FAVORITES') {
+        sourceItems = this.favoriteItems;
+    } else if (this.activeFilter === 'PINNED') {
+        sourceItems = this.pinnedItems;
+    }
+    
     let filtered = [...sourceItems];
 
-    if (this.activeFilter !== 'ALL' && this.activeFilter !== 'FAVORITES') {
+    if (this.activeFilter !== 'ALL' && this.activeFilter !== 'FAVORITES' && this.activeFilter !== 'PINNED') {
       filtered = filtered.filter(item => item.type === this.activeFilter);
     }
 
@@ -95,6 +139,7 @@ export class PressVisitorComponent implements OnInit {
 
   onFilterChange(filter: string): void {
     this.activeFilter = filter;
+    this.currentPage = 1;
   }
 
   onSearch(term: string): void {
@@ -106,15 +151,14 @@ export class PressVisitorComponent implements OnInit {
     this.showFullContent = false;
     this.interactions = null;
     this.newCommentText = '';
+    this.aiRecap = null;
     document.body.style.overflow = 'hidden';
 
-    if (item.idPressItem) {
-      this.pressService.incrementViews(item.idPressItem).subscribe({
-        next: () => {
-          if (this.selectedItem) this.selectedItem.views = (this.selectedItem.views || 0) + 1;
-          const local = this.items.find(i => i.idPressItem === item.idPressItem);
-          if (local) local.views = (local.views || 0) + 1;
-        }
+    const articleId = item.idPressItem || (item as any).id;
+    if (articleId) {
+      item.views = (item.views || 0) + 1;
+      this.pressService.incrementViews(articleId).subscribe({
+        next: () => {}
       });
       this.loadInteractions();
     }
@@ -124,6 +168,7 @@ export class PressVisitorComponent implements OnInit {
     this.selectedItem = null;
     this.interactions = null;
     this.showFullContent = false;
+    this.aiRecap = null;
     document.body.style.overflow = 'auto';
   }
 
@@ -147,7 +192,11 @@ export class PressVisitorComponent implements OnInit {
     if (typeof localStorage !== 'undefined') {
       try {
         const u = localStorage.getItem('user');
-        return u ? JSON.parse(u).id : null;
+        if (u) {
+          const user = JSON.parse(u);
+          const userId = user.id || user.idUser || user.id_user;
+          return userId || null;
+        }
       } catch { return null; }
     }
     return null;
@@ -198,7 +247,33 @@ export class PressVisitorComponent implements OnInit {
     });
   }
 
+  togglePin(): void {
+    if (!this.selectedItem?.idPressItem) return;
+    const userId = this.getCurrentUserId();
+    if (!userId) { alert('Vous devez être connecté pour épingler.'); return; }
+    this.pressService.togglePin(this.selectedItem.idPressItem, userId).subscribe({
+      next: () => {
+        this.loadInteractions();
+      }
+    });
+  }
+
   getReactionCount(type: string): number {
     return this.interactions?.reactionCounts?.[type] || 0;
+  }
+
+  generateSummary() {
+    if (!this.selectedItem?.idPressItem) return;
+    this.generatingAiRecap = true;
+    
+    this.pressService.generateAiRecap(this.selectedItem.idPressItem).subscribe({
+      next: (recap) => {
+        this.aiRecap = recap;
+        this.generatingAiRecap = false;
+      },
+      error: () => {
+        this.generatingAiRecap = false;
+      }
+    });
   }
 }

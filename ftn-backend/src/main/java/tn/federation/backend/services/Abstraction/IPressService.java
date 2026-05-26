@@ -23,6 +23,7 @@ public interface IPressService {
     List<PressItem> getByType(PressType type);
     List<PressItem> getByTypeAndDiscipline(PressType type, String discipline);
     List<PressItem> getFavoritesByUserId(Long userId);
+    List<PressItem> getPinsByUserId(Long userId);
 
     PressStatsDTO getStats();
 
@@ -31,4 +32,5 @@ public interface IPressService {
     void addComment(long pressItemId, Long userId, String text);
     void toggleReaction(long pressItemId, Long userId, String reactionType);
     void toggleFavorite(long pressItemId, Long userId);
+    void togglePin(long pressItemId, Long userId);
 }

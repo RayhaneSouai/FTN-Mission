@@ -19,6 +19,9 @@ public class PressInteractionDTO {
     private boolean isFavoritedByCurrentUser;
     private Long totalFavorites;
 
+    private boolean isPinnedByCurrentUser;
+    private Long totalPins;
+
     @Data
     @Builder
     @NoArgsConstructor
