@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { PressItem, PressStatus } from '../models/press-item.model';
 import { PressStats } from '../models/press-stats.model';
 
@@ -70,6 +71,10 @@ export class PressService {
     return this.http.get<PressItem[]>(`${this.baseUrl}/favorites/${userId}`);
   }
 
+  getPinsByUserId(userId: number): Observable<PressItem[]> {
+    return this.http.get<PressItem[]>(`${this.baseUrl}/pins/${userId}`);
+  }
+
   getEmbedUrl(url: string): string {
     if (!url) return '';
     let videoId = '';
@@ -125,42 +130,21 @@ export class PressService {
       setTimeout(() => {
         subscriber.next(translatedMock);
         subscriber.complete();
-      }, 1500); 
+      }, 1500);
     });
   }
 
-  generateAiRecap(text: string): Observable<string> {
-    return new Observable(subscriber => {
-      setTimeout(() => {
-        if (!text) {
-          subscriber.next('<i>Aucun contenu à résumer.</i>');
-          subscriber.complete();
-          return;
-        }
-        const cleanText = text.replace(/<[^>]*>/g, '').trim();
-        const sentences = cleanText.split(/[.!?]\n?/).map(s => s.trim()).filter(s => s.length > 20);
-        
-        let recap = `<div style="font-size: 1.1rem; margin-bottom: 10px;">🤖 <b>Récapitulatif IA Intelligent</b></div>`;
-        if (sentences.length === 0) {
-           recap += `<i>${cleanText}</i>`;
-        } else {
-           const subject = sentences[0];
-           const details = sentences.slice(1).find(s => /\d+/.test(s)) || (sentences.length > 1 ? sentences[1] : "");
-           const conclusion = sentences.length > 2 ? sentences[sentences.length - 1] : "";
+  generateAiRecap(id: number): Observable<string> {
+    return this.http.get(`${this.baseUrl}/${id}/claude-summary`, { responseType: 'text' }).pipe(
+      catchError(error => {
+        console.error('Erreur IA Claude:', error);
+        return of('<div style="color:red;">Erreur de communication avec l\'IA Claude. Vérifiez si la clé API est configurée côté backend.</div>');
+      })
+    );
+  }
 
-           recap += `<div style="margin-bottom: 12px;"><b style="color: #0369a1;">🎯 Sujet Principal :</b> ${subject}.</div>`;
-           if (details) {
-              recap += `<div style="margin-bottom: 12px;"><b style="color: #0369a1;">📊 Détails / Faits Marquants :</b> ${details}.</div>`;
-           }
-           if (conclusion && conclusion !== details) {
-              recap += `<div><b style="color: #0369a1;">💡 En bref :</b> ${conclusion}.</div>`;
-           }
-        }
-        
-        subscriber.next(recap);
-        subscriber.complete();
-      }, 1500);
-    });
+  togglePin(pressItemId: number, userId: number): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/${pressItemId}/pin?userId=${userId}`, {});
   }
 
   fetchMetadata(url: string): Observable<{ title?: string; description?: string; image?: string; videoUrl?: string; content?: string; error?: string }> {

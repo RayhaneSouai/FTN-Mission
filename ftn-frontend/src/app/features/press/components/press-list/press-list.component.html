@@ -66,8 +66,7 @@
           <span class="popular-title">{{ item.title }}</span>
         </div>
         <div class="popular-meta">
-          <span title="Nombre de vues">👁️ {{ item.views || 0 }} vues</span>
-          <span title="Temps de lecture estimé">⏳ {{ item.readTime || 1 }} min de lecture</span>
+          <span title="Nombre de vues" style="font-weight:700; color:#475569;">👁️ {{ item.views || 0 }} vues</span>
           <span title="Téléchargements de documents PDF" *ngIf="item.downloadsCount">📥 {{ item.downloadsCount }} DL</span>
           <span class="badge" [ngClass]="getStatusClass(item.status)">{{ item.status }}</span>
         </div>
@@ -111,8 +110,8 @@
   </div>
 
   <!-- News Grid -->
-  <div class="news-grid" *ngIf="!loading && getFilteredItems().length > 0">
-    <div *ngFor="let item of getFilteredItems()" class="news-card" 
+  <div class="news-grid" *ngIf="!loading && pagedItems.length > 0">
+    <div *ngFor="let item of pagedItems" class="news-card" 
          [class.importance-a-la-une]="item.importance === 'A_LA_UNE'"
          [class.importance-urgent]="item.importance === 'URGENT'"
          [class.importance-important]="item.importance === 'IMPORTANT'">
@@ -145,8 +144,6 @@
 
         <div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600; margin-bottom: 15px; display: flex; gap: 15px;">
           <span>✍️ {{ item.author || 'Admin' }}</span>
-          <span>👁️ {{ item.views || 0 }} vues</span>
-          <span>⏳ {{ item.readTime || 1 }} min</span>
         </div>
 
         <div class="card-actions">
@@ -175,6 +172,23 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Pagination Controls -->
+  <div *ngIf="!loading && totalPages > 1" style="display:flex; justify-content:center; align-items:center; gap:16px; margin-top:40px; margin-bottom:40px;">
+    <button (click)="prevPage()" [disabled]="currentPage === 1"
+            style="background:#f1f5f9; border:none; padding:10px 24px; border-radius:50px; font-weight:700; cursor:pointer; color:#475569; transition:all 0.2s;"
+            [ngStyle]="{'opacity': currentPage === 1 ? '0.4' : '1'}">
+      ← Précédent
+    </button>
+    <span style="font-weight:800; color:#1e293b; font-size:0.95rem;">
+      Page {{ currentPage }} / {{ totalPages }}
+    </span>
+    <button (click)="nextPage()" [disabled]="currentPage === totalPages"
+            style="background:#1565C0; border:none; padding:10px 24px; border-radius:50px; font-weight:700; cursor:pointer; color:white; transition:all 0.2s;"
+            [ngStyle]="{'opacity': currentPage === totalPages ? '0.4' : '1'}">
+      Suivant →
+    </button>
   </div>
 
   <!-- CONFIRMATION MODAL -->
@@ -284,8 +298,6 @@
                 <label>Statut de base</label>
                 <select class="form-control premium-input workflow-select" [(ngModel)]="formData.status">
                   <option value="DRAFT">Brouillon (Non visible)</option>
-                  <option value="PUBLISHED">Publié immédiatement</option>
-                  <option value="ARCHIVED">Archivé</option>
                 </select>
               </div>
               <div class="form-group full-width">
@@ -447,20 +459,7 @@
       <!-- Close Button -->
       <button class="modal-close" (click)="closeArticle()" style="position: absolute; top: 24px; right: 24px; width: 40px; height: 40px; border-radius: 50%; border: none; background: #f1f5f9; color: #64748b; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; transition: all 0.2s;">✕</button>
 
-      <!-- Smart Features Bar (AI Recap) -->
-      <div style="background: linear-gradient(135deg, #f8fafc, #e0f2fe); padding: 16px; border-radius: 16px; margin-bottom: 24px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; border: 1px solid #bae6fd;">
-        <div style="display: flex; gap: 12px; align-items: center;">
-          <button (click)="generateRecap()" [disabled]="isRecapping" style="background: #0284c7; color: white; border: none; padding: 10px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.3);">
-            <span *ngIf="!isRecapping">✨ Résumé IA</span>
-            <span *ngIf="isRecapping">⏳ Génération...</span>
-          </button>
-        </div>
-      </div>
 
-      <!-- AI Recap Box -->
-      <div *ngIf="aiRecap" style="background: #fdfcdc; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 24px; font-size: 1.05rem; line-height: 1.6; color: #451a03; animation: fadeIn 0.5s;">
-        <div [innerHTML]="aiRecap | safe:'html'"></div>
-      </div>
 
       <!-- Category Label & Discipline -->
       <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px; margin-top: 10px;">

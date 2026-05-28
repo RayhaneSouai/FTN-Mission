@@ -62,6 +62,11 @@ export interface Competition {
   maxAge?: number | null;
   maxEvents?: number | null;
   customConditions?: string | null;
+  /* ─── New Competition Conditions ─── */
+  licenseRequired?: boolean;
+  medicalCertificateRequired?: boolean;
+  hasMinimas?: boolean;
+  minimaTime?: number | null;
 }
 
 /** Backend response for GET /api/competitions/get/:id */
@@ -203,6 +208,8 @@ export interface ProgramItemResponse {
   time: string;
   type: ProgramItemType;
   numberOfParticipants?: number;
+  swimmerCategory?: string;
+  seriesGender?: string;
 }
 
 // Request DTOs
@@ -211,6 +218,8 @@ export interface ProgramItemRequest {
   time: string;
   type: ProgramItemType;
   numberOfParticipants?: number;
+  swimmerCategory?: string;
+  seriesGender?: string;
 }
 
 /** Preset labels for program items */
@@ -252,7 +261,7 @@ export enum ParticipationStatus {
 }
 
 export const PARTICIPATION_STATUS_LABELS: Record<ParticipationStatus, string> = {
-  [ParticipationStatus.PENDING]: 'Vérification manuelle en cours',
+  [ParticipationStatus.PENDING]: 'En attente',
   [ParticipationStatus.APPROVED]: 'Approuvé',
   [ParticipationStatus.REJECTED]: 'Rejeté',
 };
@@ -266,5 +275,38 @@ export interface ParticipationResponseDTO {
   competitionName: string;
   status: string;
   requestedAt: string | null;
-  customConditions: string | null;
+  rejectionReason: string | null;
+}
+
+/* ─── Distribution Models ─── */
+
+export enum DistributionStatus {
+  GENERATED = 'GENERATED',
+  APPROVED = 'APPROVED',
+}
+
+export interface DistributionParticipant {
+  swimmerId: number;
+  swimmerFirstName: string;
+  swimmerLastName: string;
+  position: number;
+  bestTime: number | null;
+}
+
+export interface DistributionSeries {
+  seriesId: number;
+  seriesLabel: string;
+  swimmerCategory: string | null;
+  time: string | null;
+  capacity: number;
+  participants: DistributionParticipant[];
+}
+
+export interface DistributionResponse {
+  competitionId: number;
+  competitionName: string;
+  status: DistributionStatus;
+  generatedAt: string;
+  approvedAt: string | null;
+  series: DistributionSeries[];
 }

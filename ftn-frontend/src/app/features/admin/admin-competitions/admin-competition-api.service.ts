@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Competition, CompetitionRequest } from '../../competitions/models/competition.model';
+import { Competition, CompetitionRequest, DistributionResponse } from '../../competitions/models/competition.model';
 
 /**
  * Admin API service for competition CRUD operations.
@@ -30,5 +30,26 @@ export class AdminCompetitionApiService {
 
     delete(id: number): Observable<void> {
         return this.http.delete<void>(`${this.baseUrl}/delete/${id}`);
+    }
+
+    /** Generate participant distribution for a competition */
+    generateDistribution(competitionId: number): Observable<DistributionResponse> {
+        return this.http.post<DistributionResponse>(
+            `${this.baseUrl}/${competitionId}/distribution/generate`, {}
+        );
+    }
+
+    /** Approve generated distribution */
+    approveDistribution(competitionId: number): Observable<DistributionResponse> {
+        return this.http.put<DistributionResponse>(
+            `${this.baseUrl}/${competitionId}/distribution/approve`, {}
+        );
+    }
+
+    /** Get current distribution (admin - any status) */
+    getDistribution(competitionId: number): Observable<DistributionResponse> {
+        return this.http.get<DistributionResponse>(
+            `${this.baseUrl}/${competitionId}/distribution`
+        );
     }
 }

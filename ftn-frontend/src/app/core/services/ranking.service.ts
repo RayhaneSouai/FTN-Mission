@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { CompetitionResultDTO, RankingEntry } from '../models/performance.model';
+import { CompetitionResult, RankingEntry } from '../models/performance.model';
+import { CompetitionResultDTO } from '../models/performance.model';
 
 @Injectable({ providedIn: 'root' })
 export class RankingService {
@@ -28,5 +29,11 @@ export class RankingService {
 
   getCompetitionResults(competitionId: number): Observable<CompetitionResultDTO[]> {
     return this.http.get<CompetitionResultDTO[]>(`${this.apiUrl}/competition/${competitionId}`);
+  }
+
+  getCompetitionResults(competitionId: number): Observable<CompetitionResult[]> {
+    return this.http.get<CompetitionResult[]>(
+      `${this.apiUrl}/competition/${competitionId}`
+    );
   }
 }

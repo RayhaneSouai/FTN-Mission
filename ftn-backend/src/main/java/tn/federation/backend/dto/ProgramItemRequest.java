@@ -13,6 +13,10 @@ public record ProgramItemRequest(
 
         @NotNull(message = "Le type est obligatoire") String type, // "PART" or "SERIES"
 
-        Integer numberOfParticipants // required only when type == SERIES
+        Integer numberOfParticipants, // required only when type == SERIES
+
+        String swimmerCategory, // required only when type == SERIES, must be one of competition categories
+
+        String seriesGender // "HOMME", "FEMME", or null for MIXTE. Only for SERIES.
 ) {
 }

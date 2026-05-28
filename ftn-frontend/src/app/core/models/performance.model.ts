@@ -33,6 +33,7 @@ export interface RankingEntry {
   isNationalRecord: boolean;
 }
 
+export interface CompetitionResult {
 export interface RecordDTO {
   distance: number;
   stroke: string;

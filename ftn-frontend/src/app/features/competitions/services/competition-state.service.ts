@@ -100,6 +100,9 @@ export class CompetitionStateService {
     private readonly _participationStatus = signal<'PENDING' | 'APPROVED' | 'REJECTED' | 'NONE'>('NONE');
     readonly participationStatus = this._participationStatus.asReadonly();
 
+    private readonly _rejectionReason = signal<string | null>(null);
+    readonly rejectionReason = this._rejectionReason.asReadonly();
+
     readonly hasProgramme = computed(() => {
         const comp = this._selectedCompetition();
         return comp?.programmeStatus === 'APPROVED';
@@ -109,10 +112,21 @@ export class CompetitionStateService {
         this.state.update((s) => ({ ...s, loading: true, error: null }));
         this._selectedCompetition.set(null);
         this._participationStatus.set('NONE');
+        this._rejectionReason.set(null);
         this.api.getById(id).pipe(
             tap((res) => {
                 this._selectedCompetition.set(res.competition);
                 this._participationStatus.set(res.participationStatus ?? 'NONE');
+                // Load rejection reason if status is REJECTED
+                if (res.participationStatus === 'REJECTED') {
+                    this.api.getMyParticipation(id).subscribe({
+                        next: (p) => {
+                            if (p?.rejectionReason) {
+                                this._rejectionReason.set(p.rejectionReason);
+                            }
+                        }
+                    });
+                }
             }),
             catchError((err) => {
                 const msg = err?.message ?? 'Échec du chargement de la compétition';
@@ -126,6 +140,10 @@ export class CompetitionStateService {
 
     updateParticipationStatus(status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'NONE'): void {
         this._participationStatus.set(status);
+    }
+
+    updateRejectionReason(reason: string | null): void {
+        this._rejectionReason.set(reason);
     }
 
     clearSelectedCompetition(): void {

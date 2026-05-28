@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { ProgrammeApiService } from '../../competitions/services/programme-api.service';
 import { CompetitionApiService } from '../../competitions/services/competition-api.service';
 import { Competition, ProgrammeStatusResponse } from '../../competitions/models/competition.model';
@@ -26,16 +26,45 @@ import { ToastContainerComponent } from '../../competitions/components/toast-con
       @if (competition()) {
         <!-- Status badge -->
         <div class="status-bar">
-          <span class="status-badge" [class.draft]="programmeStatus() === 'DRAFT'" [class.approved]="programmeStatus() === 'APPROVED'">
-            {{ programmeStatus() === 'APPROVED' ? '✓ Approuvé' : programmeStatus() === 'DRAFT' ? '⏳ Brouillon' : 'Non généré' }}
+          <span class="status-badge" [class.draft]="getCurrentStatus() === 'DRAFT'" [class.approved]="getCurrentStatus() === 'APPROVED'">
+            {{ getCurrentStatus() === 'APPROVED' ? '✓ Approuvé' : getCurrentStatus() === 'DRAFT' ? '⏳ Brouillon' : 'Non généré' }}
           </span>
 
-          @if (programmeStatus() === 'DRAFT') {
-            <button class="btn btn-success" [disabled]="!canApproveProgramme()" (click)="showApproveDialog.set(true)">
+          @if (getCurrentStatus() !== 'APPROVED') {
+            <button class="btn btn-success" [disabled]="!canApprove()" (click)="showApproveDialog.set(true)">
               ✓ Approuver le programme
             </button>
           }
         </div>
+
+        @if (getCurrentStatus() === 'APPROVED') {
+          <div class="lock-notice">
+            🔒 Cette compétition est verrouillée car le programme a été approuvé. Aucune modification n'est possible.
+          </div>
+
+          <!-- Post-approval action buttons -->
+          <div class="post-approval-actions">
+            <button class="btn btn-distribution" (click)="goToDistribution()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              Répartition
+            </button>
+            <button class="btn btn-archive" (click)="archiveCompetition()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="21 8 21 21 3 21 3 8"/>
+                <rect x="1" y="3" width="22" height="5"/>
+                <line x1="10" y1="12" x2="14" y2="12"/>
+              </svg>
+              Placer aux archives
+            </button>
+          </div>
+        }
 
         <!-- Programme stepper (full CRUD) -->
         <app-programme-stepper #stepper [inputCompetitionId]="competition()!.id"></app-programme-stepper>
@@ -98,11 +127,47 @@ import { ToastContainerComponent } from '../../competitions/components/toast-con
       &:hover:not(:disabled) { background: #157347; }
       &:disabled { opacity: 0.5; cursor: not-allowed; }
     }
+    .lock-notice {
+      padding: 0.75rem 1rem;
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      color: #664d03;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    .post-approval-actions {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background: #f0f7ff;
+      border-radius: 8px;
+      border: 1px solid #b6d4fe;
+    }
+    .btn-distribution {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #0d6efd;
+      color: white;
+      &:hover { background: #0b5ed7; }
+    }
+    .btn-archive {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #6c757d;
+      color: white;
+      &:hover { background: #5c636a; }
+    }
     .loading { text-align: center; padding: 3rem; color: #6c757d; }
   `]
 })
 export class AdminProgrammeComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly competitionApi = inject(CompetitionApiService);
   private readonly programmeApi = inject(ProgrammeApiService);
   private readonly toast = inject(ToastService);
@@ -113,7 +178,15 @@ export class AdminProgrammeComponent implements OnInit {
   programmeStatus = signal<string | null>(null);
   showApproveDialog = signal(false);
 
-  canApproveProgramme(): boolean {
+  /** Derives current programme status from stepper (reactive) or initial load */
+  getCurrentStatus(): string | null {
+    return this.stepper?.status()?.programmeStatus ?? this.programmeStatus();
+  }
+
+  /** Reactive check: enabled when DRAFT + all days have ≥ 2 items */
+  canApprove(): boolean {
+    const status = this.getCurrentStatus();
+    if (status !== 'DRAFT') return false;
     const days = this.stepper?.days() ?? [];
     if (days.length === 0) return false;
     return days.every(d => d.items.length >= 2);
@@ -134,10 +207,20 @@ export class AdminProgrammeComponent implements OnInit {
     const comp = this.competition();
     if (!comp) return;
     this.programmeApi.approveProgramme(comp.id).subscribe({
-      next: (res) => {
+      next: () => {
         this.toast.showSuccess('Programme approuvé avec succès');
-        this.programmeStatus.set(res.programmeStatus);
+        this.router.navigate(['/admin/competitions']);
       }
     });
+  }
+
+  goToDistribution(): void {
+    const comp = this.competition();
+    if (!comp) return;
+    this.router.navigate(['/admin/competitions', comp.id, 'distribution']);
+  }
+
+  archiveCompetition(): void {
+    this.toast.showInfo('Fonctionnalité bientôt disponible');
   }
 }

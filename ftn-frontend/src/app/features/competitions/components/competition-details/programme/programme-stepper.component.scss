@@ -399,3 +399,49 @@ input:invalid {
   font-style: italic;
   font-size: 0.85rem;
 }
+
+// Category chips for SERIES type
+.form-group--categories {
+  flex-basis: 100%;
+  margin-top: 0.25rem;
+}
+
+.category-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.chip-selected {
+  background: #1565C0 !important;
+  color: white !important;
+  &:hover {
+    background: #0d47a1 !important;
+  }
+}
+
+.categories-badge {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+  margin-left: 0.3rem;
+}
+
+.cat-tag {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  background: #e3f2fd;
+  color: #1565C0;
+}
+
+.gender-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  background: #fce4ec;
+  color: #c62828;
+  margin-left: 0.3rem;
+}
