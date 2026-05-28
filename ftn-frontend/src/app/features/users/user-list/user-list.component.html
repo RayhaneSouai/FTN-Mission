@@ -1,70 +1,55 @@
-<main class="dashboard">
-  <!-- Hero Banner -->
-  <section class="user-hero">
-    <div class="hero-overlay"></div>
-    <div class="hero-content">
-      <h1>Gestion des Utilisateurs</h1>
-      <p>Administrez les membres de la fédération, gérez les rôles et suivez les inscriptions.</p>
+<div class="admin-page">
+  <app-admin-page-header
+    title="Gestion des Utilisateurs"
+    subtitle="Administrez les membres de la fédération, gérez les rôles et suivez les inscriptions.">
+    <div actions class="admin-toolbar-actions">
+      <button type="button" class="admin-btn admin-btn--secondary" routerLink="/admin/utilisateurs/import">
+        <i class="bi bi-file-earmark-arrow-up me-1"></i> Importer CSV
+      </button>
+      <button type="button" class="admin-btn admin-btn--primary" (click)="openAddModal()">
+        <i class="bi bi-plus-lg"></i>
+        Ajouter un Utilisateur
+      </button>
     </div>
-  </section>
-
-  <!-- Actions -->
-  <div class="hero-actions">
-    <button class="btn-primary" (click)="openAddModal()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Ajouter un Utilisateur
-    </button>
-  </div>
+  </app-admin-page-header>
 
   <!-- Stats Section -->
-  <section class="stats-section">
-    <div class="stats-grid">
-      <div class="stat-card stat-card--accent">
-        <div class="stat-info">
-          <span class="stat-label">Total Utilisateurs</span>
-          <span class="stat-value">{{ users.length }}</span>
-        </div>
-        <div class="stat-icon">
-          <i class="bi bi-people-fill"></i>
-        </div>
-      </div>
-      <div
-        class="stat-card stat-card--pending"
-        [class.stat-card--pending-click]="pendingValidationCount > 0"
-        (click)="openPendingValidationHub()"
-        (keydown.enter)="openPendingValidationHub()"
-        (keydown.space)="$event.preventDefault(); openPendingValidationHub()"
-        [attr.tabindex]="pendingValidationCount > 0 ? 0 : null"
-        [attr.role]="pendingValidationCount > 0 ? 'button' : null"
-        [attr.aria-label]="
-          pendingValidationCount > 0
-            ? 'Traiter les ' + pendingValidationCount + ' demandes en attente de validation'
-            : 'Aucune demande en attente de validation'
-        ">
-        <div class="stat-card-pending-row">
-          <div class="stat-info">
-            <span class="stat-label">En attente de validation</span>
-            <span
-              class="stat-value"
-              [class.text-warning]="pendingValidationCount > 0"
-              [class.text-secondary]="pendingValidationCount === 0">
-              {{ pendingValidationCount }}
-            </span>
-          </div>
-          <div class="stat-icon" [class.text-warning]="pendingValidationCount > 0" [class.text-secondary]="pendingValidationCount === 0">
-            <i class="bi bi-hourglass-split"></i>
-          </div>
-        </div>
-        <span class="stat-card-hint" [class.stat-card-hint--muted]="pendingValidationCount === 0">
-          {{ pendingValidationCount > 0 ? 'Cliquer pour examiner et décider' : 'Aucune demande à traiter pour le moment' }}
-        </span>
-      </div>
-    </div>
+  <section class="admin-stats-row">
+    <app-admin-stat-card
+      label="Total Utilisateurs"
+      [value]="users.length"
+      icon="bi-people-fill"
+      variant="blue">
+    </app-admin-stat-card>
+    <app-admin-stat-card
+      label="En attente de validation"
+      [value]="pendingValidationCount"
+      [clickable]="pendingValidationCount > 0"
+      [highlight]="pendingValidationCount > 0"
+      (cardClick)="openPendingValidationHub()"
+      [detail]="pendingValidationCount > 0 ? 'Cliquer pour examiner et décider' : 'Aucune demande à traiter pour le moment'"
+      icon="bi-hourglass-split"
+      [variant]="pendingValidationCount > 0 ? 'orange' : 'default'">
+    </app-admin-stat-card>
   </section>
 
   <!-- Table Card -->
   <div class="card border-0 shadow-sm rounded-4 overflow-hidden mx-4 mb-5">
-    <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
+    <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div class="user-tabs-nav">
+        <button type="button" class="user-tab-btn" [class.active]="selectedRole === 'ALL'" (click)="filterByRole('ALL')">
+          Tous <span class="tab-badge">{{ getRoleCount('ALL') }}</span>
+        </button>
+        <button type="button" class="user-tab-btn" [class.active]="selectedRole === 'SWIMMER'" (click)="filterByRole('SWIMMER')">
+          Nageurs <span class="tab-badge swimmer">{{ getRoleCount('SWIMMER') }}</span>
+        </button>
+        <button type="button" class="user-tab-btn" [class.active]="selectedRole === 'COACH'" (click)="filterByRole('COACH')">
+          Coachs <span class="tab-badge coach">{{ getRoleCount('COACH') }}</span>
+        </button>
+        <button type="button" class="user-tab-btn" [class.active]="selectedRole === 'ADMIN'" (click)="filterByRole('ADMIN')">
+          Admins <span class="tab-badge visitor">{{ getRoleCount('ADMIN') }}</span>
+        </button>
+      </div>
       <div class="search-box">
         <i class="bi bi-search"></i>
         <input type="text" class="form-control border-0 shadow-none" placeholder="Rechercher un utilisateur..." (input)="onSearch($event)">
@@ -92,7 +77,6 @@
                   </div>
                   <div>
                     <div class="fw-bold text-dark">{{ user.firstName }} {{ user.lastName }}</div>
-                    <div class="text-muted small">ID: #{{ user.id }}</div>
                   </div>
                 </div>
               </td>
@@ -112,20 +96,20 @@
                   <span class="pending-row-hint text-muted small">Validation via la carte ci-dessus</span>
                 </ng-container>
                 <ng-template #userCrudActions>
-                  <div class="d-flex justify-content-end align-items-center gap-2 flex-wrap">
-                    <button class="btn btn-outline-info btn-sm rounded-circle" (click)="openViewModal(user.id)" title="Consulter">
+                  <div class="admin-icon-actions justify-content-end">
+                    <button type="button" class="admin-icon-btn admin-icon-btn--view" (click)="openViewModal(user.id)" title="Consulter">
                       <i class="bi bi-eye"></i>
                     </button>
                     <ng-container *ngIf="user.role !== 'ADMIN'">
                       <button
                         type="button"
-                        class="btn btn-outline-primary btn-sm rounded-circle"
+                        class="admin-icon-btn admin-icon-btn--edit"
                         [disabled]="isRegistrationRefused(user)"
                         (click)="openEditModal(user.id)"
                         [attr.title]="isRegistrationRefused(user) ? 'Modification impossible : inscription refusée' : 'Modifier'">
                         <i class="bi bi-pencil"></i>
                       </button>
-                      <button class="btn btn-outline-danger btn-sm rounded-circle" (click)="confirmDelete(user.id)" title="Supprimer">
+                      <button type="button" class="admin-icon-btn admin-icon-btn--delete" (click)="confirmDelete(user.id)" title="Supprimer">
                         <i class="bi bi-trash"></i>
                       </button>
                     </ng-container>
@@ -155,7 +139,7 @@
       </nav>
     </div>
   </div>
-</main>
+</div>
 
 <!-- Modals (kept same as original logic) -->
 <div class="modal fade" id="userFormModal" tabindex="-1" aria-hidden="true">

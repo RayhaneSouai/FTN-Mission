@@ -10,6 +10,19 @@ export const adminGuard: CanActivateFn = (_route, state) => {
   if (isPlatformBrowser(platformId)) {
     const token = localStorage.getItem('token');
     const isAdmin = localStorage.getItem('isAdmin') === 'true';
+
+    const userStr = localStorage.getItem('user');
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        if (user && (user.role === 'ADMIN' || user.role === 'ADMINISTRATEUR')) {
+          return true;
+        }
+      } catch (e) {
+        console.error('Error parsing user from localStorage', e);
+      }
+    }
+
     if (token && isAdmin) {
       return true;
     }

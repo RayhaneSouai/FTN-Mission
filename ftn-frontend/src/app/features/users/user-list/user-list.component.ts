@@ -41,6 +41,8 @@ export class UserListComponent implements OnInit, AfterViewInit, OnDestroy {
   currentPage = 1;
   pageSize = 10;
   totalPages = 1;
+  searchTerm = '';
+  selectedRole = 'ALL';
 
   private pendingReviewModalEl: HTMLElement | null = null;
   private readonly onPendingModalHidden = () => {
@@ -427,10 +429,36 @@ export class UserListComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  // Filtering and Search logic
+  get filteredUsers() {
+    return this.users.filter(u => {
+      const matchRole = this.selectedRole === 'ALL' || u.role === this.selectedRole;
+      const term = this.searchTerm.toLowerCase().trim();
+      const matchSearch = !term || 
+        (u.firstName ?? '').toLowerCase().includes(term) || 
+        (u.lastName ?? '').toLowerCase().includes(term) || 
+        (u.email ?? '').toLowerCase().includes(term);
+      return matchRole && matchSearch;
+    });
+  }
+
+  filterByRole(role: string) {
+    this.selectedRole = role;
+    this.currentPage = 1;
+    this.updateTotalPages();
+  }
+
+  getRoleCount(role: string): number {
+    if (role === 'ALL') {
+      return this.users.length;
+    }
+    return this.users.filter(u => u.role === role).length;
+  }
+
   // Pagination methods
   get paginatedUsers() {
     const start = (this.currentPage - 1) * this.pageSize;
-    return this.users.slice(start, start + this.pageSize);
+    return this.filteredUsers.slice(start, start + this.pageSize);
   }
 
   nextPage() {
@@ -450,7 +478,7 @@ export class UserListComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   updateTotalPages() {
-    this.totalPages = Math.ceil(this.users.length / this.pageSize);
+    this.totalPages = Math.ceil(this.filteredUsers.length / this.pageSize);
     if (this.currentPage > this.totalPages && this.totalPages > 0) {
       this.currentPage = this.totalPages;
     }
@@ -461,17 +489,8 @@ export class UserListComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onSearch(event: any) {
-    const searchTerm = event.target.value.toLowerCase();
-    if (!searchTerm) {
-      this.loadUsers();
-      return;
-    }
-    this.users = this.users.filter(u => 
-      u.firstName?.toLowerCase().includes(searchTerm) || 
-      u.lastName?.toLowerCase().includes(searchTerm) || 
-      u.email?.toLowerCase().includes(searchTerm)
-    );
-    this.updateTotalPages();
+    this.searchTerm = event.target.value;
     this.currentPage = 1;
+    this.updateTotalPages();
   }
 }

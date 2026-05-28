@@ -11,7 +11,8 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^18.2.0",
+    "@angular/animations": "^18.2.14",
+    "@angular/cdk": "^18.2.0",
     "@angular/common": "^18.2.0",
     "@angular/compiler": "^18.2.0",
     "@angular/core": "^18.2.0",
@@ -21,6 +22,7 @@
     "@angular/platform-server": "^18.2.0",
     "@angular/router": "^18.2.0",
     "@angular/ssr": "^18.2.21",
+    "@swimlane/ngx-charts": "^20.0.0",
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.1",
     "express": "^4.18.2",

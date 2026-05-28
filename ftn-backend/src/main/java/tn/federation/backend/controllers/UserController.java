@@ -8,8 +8,14 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import tn.federation.backend.dto.RegisterRequestDTO;
+import tn.federation.backend.dto.AdminUserCreateRequestDTO;
+import tn.federation.backend.dto.AdminUserCreateResponseDTO;
+import tn.federation.backend.dto.BulkUserImportRequestDTO;
+import tn.federation.backend.dto.BulkUserImportResponseDTO;
 import tn.federation.backend.dto.UserDTO;
+import tn.federation.backend.dto.ChangePasswordRequestDTO;
+import tn.federation.backend.dto.PasswordResetRequestDTO;
+import tn.federation.backend.services.Abstraction.IAuthService;
 import tn.federation.backend.services.Abstraction.IUserService;
 
 import java.util.List;
@@ -19,9 +25,11 @@ import java.util.List;
 @Tag(name = "User Management", description = "Gestion des utilisateurs - Administration")
 public class UserController {
     private final IUserService userService;
+    private final IAuthService authService;
 
-    public UserController(IUserService userService) {
+    public UserController(IUserService userService, IAuthService authService) {
         this.userService = userService;
+        this.authService = authService;
     }
 
     @GetMapping
@@ -62,12 +70,21 @@ public class UserController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Créer un nouvel utilisateur", description = "Ajoute un nouvel utilisateur au système (Admin uniquement)")
-    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody RegisterRequestDTO request) {
+    public ResponseEntity<AdminUserCreateResponseDTO> createUser(@Valid @RequestBody AdminUserCreateRequestDTO request) {
         return ResponseEntity.ok(userService.createUser(request));
     }
 
-    @PutMapping("/{id}")
+    @PostMapping("/import")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Importer des utilisateurs en masse", description = "Crée plusieurs utilisateurs à partir d'un import CSV validé (Admin uniquement)")
+    public ResponseEntity<BulkUserImportResponseDTO> importUsers(@Valid @RequestBody BulkUserImportRequestDTO request) {
+        return ResponseEntity.ok(userService.importUsers(request.getUsers()));
+    }
+
+
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or isAuthenticated()")
     @Operation(summary = "Mettre à jour un utilisateur", description = "Modifie les informations d'un utilisateur existant (Admin uniquement)")
     public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @Valid @RequestBody UserDTO dto) {
         return ResponseEntity.ok(userService.updateUser(id, dto));
@@ -93,5 +110,17 @@ public class UserController {
     @Operation(summary = "Refuser une inscription", description = "Refuse l'inscription d'un utilisateur (Admin uniquement)")
     public ResponseEntity<UserDTO> rejectUser(@PathVariable Long id) {
         return ResponseEntity.ok(userService.rejectUser(id));
+    }
+
+    @PostMapping("/request-password-change")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Demander le changement de mot de passe", description = "Envoie un email avec un lien de réinitialisation du mot de passe")
+    public ResponseEntity<Void> requestPasswordChange() {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = auth.getName();
+        tn.federation.backend.dto.PasswordResetRequestDTO dto = new tn.federation.backend.dto.PasswordResetRequestDTO();
+        dto.setEmail(currentEmail);
+        authService.requestPasswordReset(dto);
+        return ResponseEntity.ok().build();
     }
 }

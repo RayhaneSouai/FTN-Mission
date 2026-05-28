@@ -1,0 +1,19 @@
+<div
+  class="admin-stat-card"
+  [ngClass]="'admin-stat-card--' + variant"
+  [class.admin-stat-card--clickable]="clickable"
+  [class.admin-stat-card--highlight]="highlight"
+  [attr.tabindex]="clickable ? 0 : null"
+  [attr.role]="clickable ? 'button' : null">
+  <div class="admin-stat-card__main">
+    <div class="admin-stat-card__info">
+      <span class="admin-stat-card__label">{{ label }}</span>
+      <span class="admin-stat-card__value">{{ value }}</span>
+    </div>
+    <div class="admin-stat-card__icon" *ngIf="icon">
+      <i class="bi" [ngClass]="icon"></i>
+    </div>
+  </div>
+  <p class="admin-stat-card__detail" *ngIf="detail">{{ detail }}</p>
+  <ng-content></ng-content>
+</div>

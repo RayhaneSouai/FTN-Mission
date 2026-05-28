@@ -27,7 +27,7 @@ export class LicenseListComponent implements OnInit {
   pageSize = 10;
   totalPages = 1;
 
-  constructor(private licenseService: LicenseService) { }
+  constructor(private licenseService: LicenseService) {}
 
   ngOnInit(): void {
     this.loadLicenses();
@@ -136,10 +136,34 @@ export class LicenseListComponent implements OnInit {
     });
   }
 
+  searchTerm: string = '';
+
   // Pagination methods
+  get filteredLicenses() {
+    if (!this.searchTerm) {
+      return this.licenses;
+    }
+    const term = this.searchTerm.toLowerCase().trim();
+    return this.licenses.filter(l => 
+      (l.licenseNumber && l.licenseNumber.toLowerCase().includes(term)) ||
+      (l.season && l.season.toLowerCase().includes(term)) ||
+      (l.clubId && l.clubId.toString().includes(term))
+    );
+  }
+
+  onSearchChange() {
+    this.currentPage = 1;
+    this.updateTotalPages();
+  }
+
+  clearSearch() {
+    this.searchTerm = '';
+    this.onSearchChange();
+  }
+
   get paginatedLicenses() {
     const start = (this.currentPage - 1) * this.pageSize;
-    return this.licenses.slice(start, start + this.pageSize);
+    return this.filteredLicenses.slice(start, start + this.pageSize);
   }
 
   nextPage() {
@@ -159,7 +183,7 @@ export class LicenseListComponent implements OnInit {
   }
 
   updateTotalPages() {
-    this.totalPages = Math.ceil(this.licenses.length / this.pageSize);
+    this.totalPages = Math.ceil(this.filteredLicenses.length / this.pageSize) || 1;
     if (this.currentPage > this.totalPages && this.totalPages > 0) {
       this.currentPage = this.totalPages;
     }

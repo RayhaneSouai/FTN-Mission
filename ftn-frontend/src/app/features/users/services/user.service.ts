@@ -1,12 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { apiUrl } from '../../../core/config/api.config';
+import { AdminUserCreateRequest, AdminUserCreateResponse } from '../models/admin-user-create.model';
+import { BulkImportResponse } from '../user-import/models/user-import.types';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = 'http://localhost:8083/ftn/api/users';
+  private readonly apiUrl = apiUrl('users');
 
   constructor(private http: HttpClient) { }
 
@@ -34,8 +37,14 @@ export class UserService {
     });
   }
 
-  createUser(userData: any): Observable<any> {
-    return this.http.post<any>(this.apiUrl, userData, { 
+  createUser(userData: AdminUserCreateRequest): Observable<AdminUserCreateResponse> {
+    return this.http.post<AdminUserCreateResponse>(this.apiUrl, userData, {
+      headers: this.getHeaders()
+    });
+  }
+
+  bulkImportUsers(users: AdminUserCreateRequest[]): Observable<BulkImportResponse> {
+    return this.http.post<BulkImportResponse>(`${this.apiUrl}/import`, { users }, {
       headers: this.getHeaders()
     });
   }
@@ -60,6 +69,18 @@ export class UserService {
 
   rejectUser(id: number): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/${id}/reject`, {}, { 
+      headers: this.getHeaders()
+    });
+  }
+
+  changePassword(changePasswordData: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/change-password`, changePasswordData, { 
+      headers: this.getHeaders()
+    });
+  }
+
+  requestPasswordChange(): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/request-password-change`, {}, { 
       headers: this.getHeaders()
     });
   }

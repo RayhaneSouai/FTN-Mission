@@ -1,0 +1,10 @@
+<nav class="admin-breadcrumb" aria-label="Fil d'Ariane">
+  <a routerLink="/admin" class="admin-breadcrumb__home" title="Tableau de bord">
+    <i class="bi bi-house-door"></i>
+  </a>
+  <ng-container *ngFor="let item of items; let last = last">
+    <i class="bi bi-chevron-right admin-breadcrumb__sep"></i>
+    <a *ngIf="item.path && !last" [routerLink]="item.path" class="admin-breadcrumb__link">{{ item.label }}</a>
+    <span *ngIf="!item.path || last" class="admin-breadcrumb__current" [class.admin-breadcrumb__current--active]="last">{{ item.label }}</span>
+  </ng-container>
+</nav>

@@ -1,89 +1,183 @@
-<div class="rich-container p-4 animate__animated animate__fadeIn" *ngIf="user">
-  <div class="row">
-    <div class="col-lg-4">
-      <div class="card border-0 shadow-sm rounded-4 text-center p-4 mb-4">
-        <div class="position-relative d-inline-block mx-auto mb-3">
-          <img [src]="'https://ui-avatars.com/api/?name=' + user?.firstName + '+' + user?.lastName + '&background=random&size=128&color=fff'" 
-               class="rounded-circle shadow" width="120" height="120" alt="Avatar">
-          <button *ngIf="!isReadOnly" class="btn btn-primary btn-sm rounded-circle position-absolute bottom-0 end-0 p-2 shadow-sm border-white border-2">
-            <i class="bi bi-camera"></i>
-          </button>
-        </div>
-        <h4 class="fw-bold text-dark mb-1">{{ user?.firstName }} {{ user?.lastName }}</h4>
-        <p class="text-muted small mb-3">{{ user?.email }}</p>
-        <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary px-3 py-2 mb-3">
-          {{ user?.role }}
-        </span>
-        <div class="border-top pt-3 mt-3">
-          <div class="row text-start g-2">
-            <div class="col-6">
-              <small class="text-muted d-block">Statut</small>
-              <span class="fw-bold text-success" *ngIf="user?.active"><i class="bi bi-check-circle-fill me-1"></i> Actif</span>
-              <span class="fw-bold text-danger" *ngIf="!user?.active"><i class="bi bi-x-circle-fill me-1"></i> Inactif</span>
-            </div>
-            <div class="col-6 text-end">
-              <small class="text-muted d-block">ID #</small>
-              <span class="fw-bold text-dark">{{ user?.id }}</span>
-            </div>
-          </div>
+<div class="admin-page" *ngIf="user">
+  <app-admin-page-header
+    title="Mon profil"
+    subtitle="Gérez vos informations personnelles et la sécurité de votre compte.">
+  </app-admin-page-header>
+
+  <div class="admin-profile-tabs">
+    <button type="button" class="admin-profile-tab" [class.active]="activeTab === 'info'" (click)="activeTab = 'info'">
+      <i class="bi bi-person me-1"></i> Informations
+    </button>
+    <button type="button" class="admin-profile-tab" [class.active]="activeTab === 'security'" (click)="activeTab = 'security'">
+      <i class="bi bi-shield-lock me-1"></i> Sécurité
+    </button>
+  </div>
+
+  <!-- ── Info tab ── -->
+  <div class="admin-profile-grid" *ngIf="activeTab === 'info'">
+
+    <!-- Avatar card -->
+    <app-admin-panel>
+      <div class="admin-profile-identity">
+        <img
+          [src]="'https://ui-avatars.com/api/?name=' + user?.firstName + '+' + user?.lastName + '&background=004da3&size=128&color=fff'"
+          class="admin-profile-avatar"
+          alt="Avatar">
+        <h2 class="admin-profile-name">{{ user?.firstName }} {{ user?.lastName }}</h2>
+        <p class="admin-profile-email">{{ user?.email }}</p>
+        <span class="admin-role-badge">{{ user?.role }}</span>
+        <div class="mt-4 pt-3 border-top text-start w-100">
+          <small class="text-muted d-block mb-1">Statut du compte</small>
+          <span class="fw-semibold text-success" *ngIf="user?.active">
+            <i class="bi bi-check-circle-fill me-1"></i> Actif
+          </span>
+          <span class="fw-semibold text-danger" *ngIf="!user?.active">
+            <i class="bi bi-x-circle-fill me-1"></i> Inactif
+          </span>
         </div>
       </div>
+    </app-admin-panel>
+
+    <!-- Edit form card -->
+    <app-admin-panel title="Informations personnelles" subtitle="Mettez à jour vos coordonnées">
+
+      <div *ngIf="error" class="admin-alert admin-alert--danger mb-3">
+        <i class="bi bi-exclamation-octagon-fill"></i>
+        <span>{{ error }}</span>
+      </div>
+      <div *ngIf="success" class="admin-alert admin-alert--success mb-3">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>{{ success }}</span>
+      </div>
+
+      <form (ngSubmit)="saveProfile()">
+        <div class="row g-3">
+
+          <div class="col-md-6">
+            <label class="admin-form-label">Prénom</label>
+            <input type="text" class="form-control admin-form-control"
+                   [(ngModel)]="user.firstName" name="firstName" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="admin-form-label">Nom</label>
+            <input type="text" class="form-control admin-form-control"
+                   [(ngModel)]="user.lastName" name="lastName" required>
+          </div>
+
+          <div class="col-12">
+            <label class="admin-form-label">Email</label>
+            <input type="email" class="form-control admin-form-control"
+                   [(ngModel)]="user.email" name="email" required readonly>
+            <div class="form-text small">L'email ne peut pas être modifié.</div>
+          </div>
+
+          <div class="col-md-6" *ngIf="user?.birthDate">
+            <label class="admin-form-label">Date de naissance</label>
+            <input type="date" class="form-control admin-form-control"
+                   [(ngModel)]="user.birthDate" name="birthDate" readonly>
+          </div>
+
+          <div class="col-md-6" *ngIf="user?.gender">
+            <label class="admin-form-label">Genre</label>
+            <select class="form-select admin-form-control"
+                    [(ngModel)]="user.gender" name="gender" disabled>
+              <option value="HOMME">Homme</option>
+              <option value="FEMME">Femme</option>
+            </select>
+          </div>
+
+        </div>
+
+        <div class="mt-4 pt-3 border-top text-end">
+          <button type="submit" class="admin-btn admin-btn--primary" [disabled]="loading">
+            <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+            Enregistrer les modifications
+          </button>
+        </div>
+      </form>
+
+    </app-admin-panel>
+  </div>
+
+  <!-- ── Security tab ── -->
+  <div *ngIf="activeTab === 'security'">
+    <app-admin-panel title="Sécurité du compte" subtitle="Protégez l'accès à votre espace administrateur">
+      <div class="admin-security-block">
+        <div class="admin-security-block__icon"><i class="bi bi-key"></i></div>
+        <div>
+          <h4 class="admin-security-block__title">Mot de passe</h4>
+          <p class="admin-security-block__text">
+            Un e-mail sécurisé vous sera envoyé pour définir un nouveau mot de passe conforme à la politique FTN.
+          </p>
+        </div>
+        <button type="button" class="admin-btn admin-btn--primary" (click)="openConfirmModal()">
+          Réinitialiser le mot de passe
+        </button>
+      </div>
+      <ul class="admin-security-tips">
+        <li><i class="bi bi-check2"></i> 8 caractères minimum avec majuscule, minuscule, chiffre et symbole</li>
+        <li><i class="bi bi-check2"></i> Ne partagez jamais vos identifiants administrateur</li>
+        <li><i class="bi bi-check2"></i> Déconnectez-vous sur les postes partagés</li>
+      </ul>
+    </app-admin-panel>
+  </div>
+
+</div>
+
+<!-- ── Confirm modal ── -->
+<div class="modal fade show" tabindex="-1"
+     style="display: block; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);"
+     *ngIf="showConfirmModal">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header border-0 bg-light p-4">
+        <h5 class="modal-title fw-bold text-dark d-flex align-items-center">
+          <i class="bi bi-exclamation-triangle-fill text-warning me-2 fs-4"></i>
+          Confirmer l'action
+        </h5>
+        <button type="button" class="btn-close" (click)="closeConfirmModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <p class="mb-0 text-muted">
+          Un e-mail de réinitialisation sera envoyé à <strong>{{ user?.email }}</strong>.
+        </p>
+        <div *ngIf="resetError" class="admin-alert admin-alert--danger mt-3 mb-0">
+          <i class="bi bi-exclamation-octagon-fill"></i>
+          <span>{{ resetError }}</span>
+        </div>
+      </div>
+      <div class="modal-footer border-0 p-4 pt-0">
+        <button type="button" class="admin-btn admin-btn--ghost"
+                (click)="closeConfirmModal()" [disabled]="confirmLoading">Annuler</button>
+        <button type="button" class="admin-btn admin-btn--primary"
+                (click)="triggerPasswordReset()" [disabled]="confirmLoading">
+          <span *ngIf="confirmLoading" class="spinner-border spinner-border-sm me-2"></span>
+          Confirmer
+        </button>
+      </div>
     </div>
+  </div>
+</div>
 
-    <div class="col-lg-8">
-      <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-        <div class="card-header bg-white border-bottom p-4">
-          <h5 class="fw-bold mb-0">Informations Personnelles</h5>
-          <p class="text-muted small mb-0">Gérez vos informations de compte</p>
-        </div>
-        <div class="card-body p-4">
-          <div *ngIf="error" class="alert alert-danger border-0 rounded-3 mb-4 d-flex align-items-center">
-            <i class="bi bi-exclamation-octagon-fill me-2"></i>
-            {{ error }}
+<!-- ── Success modal ── -->
+<div class="modal fade show" tabindex="-1"
+     style="display: block; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);"
+     *ngIf="showSuccessModal">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-body text-center p-5">
+        <div class="mb-4">
+          <div class="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex align-items-center justify-content-center"
+               style="width: 80px; height: 80px;">
+            <i class="bi bi-envelope-check-fill fs-1"></i>
           </div>
-          <div *ngIf="success" class="alert alert-success border-0 rounded-3 mb-4 d-flex align-items-center">
-            <i class="bi bi-check-circle-fill me-2"></i>
-            {{ success }}
-          </div>
-
-          <form (ngSubmit)="saveProfile()">
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label fw-bold small text-muted text-uppercase">Prénom</label>
-                <input type="text" class="form-control rounded-3" [(ngModel)]="user.firstName" name="firstName" required [readonly]="isReadOnly">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-bold small text-muted text-uppercase">Nom</label>
-                <input type="text" class="form-control rounded-3" [(ngModel)]="user.lastName" name="lastName" required [readonly]="isReadOnly">
-              </div>
-              <div class="col-md-12">
-                <label class="form-label fw-bold small text-muted text-uppercase">Email</label>
-                <input type="email" class="form-control rounded-3" [(ngModel)]="user.email" name="email" required readonly>
-                <div class="form-text small">L'email ne peut pas être modifié.</div>
-              </div>
-              
-              <div class="col-md-6" *ngIf="user?.birthDate">
-                <label class="form-label fw-bold small text-muted text-uppercase">Date de naissance</label>
-                <input type="date" class="form-control rounded-3" [(ngModel)]="user.birthDate" name="birthDate" [readonly]="isReadOnly">
-              </div>
-              
-              <div class="col-md-6" *ngIf="user?.gender">
-                <label class="form-label fw-bold small text-muted text-uppercase">Genre</label>
-                <select class="form-select rounded-3" [(ngModel)]="user.gender" name="gender" [disabled]="isReadOnly">
-                  <option value="HOMME">Homme</option>
-                  <option value="FEMME">Femme</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="mt-4 pt-4 border-top text-end" *ngIf="!isReadOnly">
-              <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 fw-bold" [disabled]="loading">
-                <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                Enregistrer les modifications
-              </button>
-            </div>
-          </form>
         </div>
+        <h4 class="fw-bold text-dark mb-2">E-mail envoyé</h4>
+        <p class="text-muted mb-4">
+          Vérifiez votre boîte de réception à <strong>{{ user?.email }}</strong>.
+        </p>
+        <button type="button" class="admin-btn admin-btn--primary" (click)="closeSuccessModal()">D'accord</button>
       </div>
     </div>
   </div>

@@ -6,6 +6,7 @@ import { PublicLayoutComponent } from './layout/public/public-layout.component';
 import { AdminLayoutComponent } from './layout/admin/admin-layout.component';
 import { DashboardComponent } from './features/admin/dashboard/dashboard.component';
 import { adminGuard } from './core/guards/admin.guard';
+import { publicGuard } from './core/guards/public.guard';
 
 import { AdminCompetitionsComponent } from './features/admin/admin-competitions/admin-competitions.component';
 import { AdminProgrammeComponent } from './features/admin/admin-programme/admin-programme.component';
@@ -77,6 +78,7 @@ const routes: Routes = [
   {
     path: '',
     component: PublicLayoutComponent,
+    canActivate: [publicGuard],
     children: [
       { path: '', component: HomeComponent },
       {

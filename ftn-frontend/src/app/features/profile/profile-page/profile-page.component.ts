@@ -12,6 +12,11 @@ export class ProfilePageComponent implements OnInit {
   loading = true;
   error = '';
   success = '';
+  activeTab: 'info' | 'security' = 'info';
+  showConfirmModal = false;
+  showSuccessModal = false;
+  resetError = '';
+  confirmLoading = false;
   isReadOnly = false;
 
   constructor(
@@ -69,5 +74,35 @@ export class ProfilePageComponent implements OnInit {
         }
       });
     }
+  }
+
+  openConfirmModal() {
+    this.showConfirmModal = true;
+    this.resetError = '';
+  }
+
+  closeConfirmModal() {
+    this.showConfirmModal = false;
+  }
+
+  closeSuccessModal() {
+    this.showSuccessModal = false;
+  }
+
+  triggerPasswordReset() {
+    this.confirmLoading = true;
+    this.resetError = '';
+    this.userService.requestPasswordChange().subscribe({
+      next: () => {
+        this.confirmLoading = false;
+        this.showConfirmModal = false;
+        this.showSuccessModal = true;
+      },
+      error: (err) => {
+        this.confirmLoading = false;
+        this.resetError = err?.error?.message || "Erreur lors de l'envoi de l'e-mail de réinitialisation.";
+        console.error(err);
+      }
+    });
   }
 }
