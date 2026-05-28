@@ -1,0 +1,12 @@
+<div class="dashboard-activity" *ngIf="chartVm$ | async as vm">
+  <app-filter-toolbar (rangeChange)="onRangeChange($event)"></app-filter-toolbar>
+
+  <div class="chart-panel" [class.is-loading]="vm.loading">
+    <div class="chart-loading" *ngIf="vm.loading">
+      <span class="spinner"></span>
+      <span>Chargement des inscriptions…</span>
+    </div>
+
+    <app-line-chart *ngIf="!vm.loading" [chartData]="vm.series"></app-line-chart>
+  </div>
+</div>

@@ -1,0 +1,48 @@
+<button type="button" class="admin-search-trigger" (click)="toggle()" title="Recherche rapide (Ctrl+K)">
+  <i class="bi bi-search"></i>
+  <span class="admin-search-trigger__label">Rechercher…</span>
+  <kbd class="admin-search-trigger__kbd">Ctrl K</kbd>
+</button>
+
+<div class="admin-search-overlay" *ngIf="open" (click)="close()">
+  <div class="admin-search-dialog" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-label="Recherche rapide">
+    <div class="admin-search-dialog__head">
+      <i class="bi bi-search"></i>
+      <input
+        id="adminQuickSearchInput"
+        type="text"
+        class="admin-search-dialog__input"
+        placeholder="Aller à une page admin…"
+        [(ngModel)]="query"
+        (ngModelChange)="onQueryChange()" />
+      <button type="button" class="admin-search-dialog__close" (click)="close()" aria-label="Fermer">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <ul class="admin-search-dialog__list" *ngIf="filtered.length; else noResults">
+      <li *ngFor="let item of filtered; let i = index">
+        <button
+          type="button"
+          class="admin-search-dialog__item"
+          [class.active]="i === activeIndex"
+          (click)="navigate(item)"
+          (mouseenter)="activeIndex = i">
+          <i class="bi" [ngClass]="item.icon"></i>
+          <div>
+            <span class="admin-search-dialog__item-label">{{ item.label }}</span>
+            <span class="admin-search-dialog__item-sub">{{ item.subtitle }}</span>
+          </div>
+          <i class="bi bi-arrow-return-left admin-search-dialog__enter"></i>
+        </button>
+      </li>
+    </ul>
+    <ng-template #noResults>
+      <p class="admin-search-dialog__empty">Aucun résultat pour « {{ query }} »</p>
+    </ng-template>
+    <div class="admin-search-dialog__foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> naviguer</span>
+      <span><kbd>Entrée</kbd> ouvrir</span>
+      <span><kbd>Échap</kbd> fermer</span>
+    </div>
+  </div>
+</div>

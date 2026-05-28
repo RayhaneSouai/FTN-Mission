@@ -1,6 +1,8 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
 import { UserService } from '../services/user.service';
+import { AdminUserCreateRequest } from '../models/admin-user-create.model';
+
+type UserRole = 'ADMIN' | 'COACH' | 'SWIMMER' | 'VISITOR';
 
 @Component({
   selector: 'app-user-form',
@@ -18,59 +20,85 @@ export class UserFormComponent implements OnInit {
       this.resetForm();
     }
   }
-  
+
   @Input() isViewOnly: boolean = false;
-  
+
   @Output() formSaved = new EventEmitter<void>();
   @Output() formClosed = new EventEmitter<void>();
 
   private _userId: number | null = null;
   isEditMode = false;
-  
-  userData: any = {
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    role: 'VISITOR',
-    active: true,
-    birthDate: null,
-    gender: '',
-    niveau: '',
-    discipline: '',
-    anciennete: null
-  };
-  
+
+  userData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: UserRole;
+    active: boolean;
+    birthDate: string | null;
+    gender: string;
+    niveau: string;
+    discipline: string;
+    anciennete: number | null;
+  } = this.emptyUserData();
+
   error = '';
   success = '';
   submitting = false;
 
-  constructor(private userService: UserService) { }
+  constructor(private userService: UserService) {}
 
-  ngOnInit(): void {
-    // Initialization is handled by the @Input setter
+  ngOnInit(): void {}
+
+  get isSwimmer(): boolean {
+    return this.userData.role === 'SWIMMER';
   }
 
-  resetForm() {
+  get isCoach(): boolean {
+    return this.userData.role === 'COACH';
+  }
+
+  get showSportSection(): boolean {
+    return this.isSwimmer || this.isCoach;
+  }
+
+  onRoleChange(role: UserRole): void {
+    this.userData.role = role;
+    if (role === 'COACH') {
+      this.userData.discipline = '';
+      this.userData.niveau = '';
+    } else if (role === 'SWIMMER') {
+      this.userData.anciennete = null;
+    } else {
+      this.userData.discipline = '';
+      this.userData.niveau = '';
+      this.userData.anciennete = null;
+    }
+  }
+
+  resetForm(): void {
     this.error = '';
     this.success = '';
     this.submitting = false;
-    this.userData = {
+    this.userData = this.emptyUserData();
+  }
+
+  private emptyUserData() {
+    return {
       firstName: '',
       lastName: '',
       email: '',
-      password: '',
-      role: 'VISITOR',
+      role: 'SWIMMER' as UserRole,
       active: true,
-      birthDate: null,
+      birthDate: null as string | null,
       gender: '',
       niveau: '',
       discipline: '',
-      anciennete: null
+      anciennete: null as number | null
     };
   }
 
-  loadUser(id: number) {
+  loadUser(id: number): void {
     this.error = '';
     this.userService.getUserById(id).subscribe({
       next: (data) => {
@@ -78,15 +106,15 @@ export class UserFormComponent implements OnInit {
           firstName: data.firstName ?? data.first_name ?? '',
           lastName: data.lastName ?? data.last_name ?? '',
           email: data.email ?? '',
-          password: '',
-          role: data.role ?? 'VISITOR',
+          role: (data.role ?? 'VISITOR') as UserRole,
           active: data.active ?? false,
           birthDate: data.birthDate || null,
           gender: data.gender || '',
           niveau: data.niveau || '',
           discipline: data.discipline || '',
-          anciennete: data.anciennete || null
+          anciennete: data.anciennete ?? null
         };
+        this.onRoleChange(this.userData.role);
       },
       error: (err) => {
         this.error = 'Erreur lors du chargement de l\'utilisateur';
@@ -95,53 +123,21 @@ export class UserFormComponent implements OnInit {
     });
   }
 
-  saveUser() {
+  saveUser(): void {
     if (this.isViewOnly) return;
 
     this.error = '';
     this.success = '';
 
-    if (!this.userData.firstName?.trim() || 
-        !this.userData.lastName?.trim() || 
-        !this.userData.email?.trim() || 
-        !this.userData.role || 
-        !this.userData.birthDate || 
-        !this.userData.gender || 
-        !this.userData.niveau || 
-        !this.userData.discipline || 
-        this.userData.anciennete === null) {
-      this.error = 'Tous les champs sont obligatoires.';
-      return;
-    }
-
-    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailPattern.test(this.userData.email)) {
-      this.error = 'Le format de l\'email est incorrect.';
-      return;
-    }
-
-    if (!this.isEditMode && !this.userData.password?.trim()) {
-      this.error = 'Le mot de passe est obligatoire.';
+    const validationError = this.validateForm();
+    if (validationError) {
+      this.error = validationError;
       return;
     }
 
     this.submitting = true;
-
     if (this.isEditMode && this._userId) {
-      const updateData = {
-        firstName: this.userData.firstName.trim(),
-        lastName: this.userData.lastName.trim(),
-        email: this.userData.email.trim(),
-        role: this.userData.role,
-        active: this.userData.active === true || this.userData.active === 'true',
-        birthDate: this.userData.birthDate || null,
-        gender: this.userData.gender || null,
-        niveau: this.userData.niveau || null,
-        discipline: this.userData.discipline || null,
-        anciennete: this.userData.anciennete || null
-      };
-
-      this.userService.updateUser(this._userId, updateData).subscribe({
+      this.userService.updateUser(this._userId, this.buildUpdatePayload()).subscribe({
         next: () => {
           this.success = 'Utilisateur mis à jour avec succès.';
           this.submitting = false;
@@ -149,40 +145,114 @@ export class UserFormComponent implements OnInit {
         },
         error: (err) => {
           this.submitting = false;
-          this.error = 'Erreur lors de la mise à jour: ' + (err?.error?.message || 'Une erreur est survenue');
+          this.error = this.extractErrorMessage(err, 'Erreur lors de la mise à jour.');
           console.error(err);
         }
       });
     } else {
-      const createData = {
-        firstName: this.userData.firstName.trim(),
-        lastName: this.userData.lastName.trim(),
-        email: this.userData.email.trim(),
-        password: this.userData.password,
-        role: this.userData.role,
-        birthDate: this.userData.birthDate || null,
-        gender: this.userData.gender || null,
-        niveau: this.userData.niveau || null,
-        discipline: this.userData.discipline || null,
-        anciennete: this.userData.anciennete || null
-      };
-
-      this.userService.createUser(createData).subscribe({
-        next: () => {
-          this.success = 'Utilisateur créé avec succès.';
+      this.userService.createUser(this.buildCreatePayload()).subscribe({
+        next: (res) => {
+          this.success = res.message || 'Utilisateur créé avec succès.';
           this.submitting = false;
-          setTimeout(() => this.formSaved.emit(), 1000);
+          setTimeout(() => this.formSaved.emit(), 1200);
         },
         error: (err) => {
           this.submitting = false;
-          this.error = 'Erreur lors de la création: ' + (err?.error?.message || 'Une erreur est survenue');
+          this.error = this.extractErrorMessage(err, 'Erreur lors de la création.');
           console.error(err);
         }
       });
     }
   }
 
-  cancel() {
+  private validateForm(): string | null {
+    if (!this.userData.firstName?.trim() || !this.userData.lastName?.trim() || !this.userData.email?.trim()) {
+      return 'Le prénom, le nom et l\'email sont obligatoires.';
+    }
+
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailPattern.test(this.userData.email)) {
+      return 'Le format de l\'email est incorrect.';
+    }
+
+    if (!this.userData.role) {
+      return 'Le rôle est obligatoire.';
+    }
+
+    if (this.userData.role === 'SWIMMER') {
+      if (!this.userData.gender || !this.userData.birthDate || !this.userData.discipline || !this.userData.niveau) {
+        return 'Pour un nageur : genre, date de naissance, discipline et niveau sont obligatoires.';
+      }
+    } else if (this.userData.role === 'COACH') {
+      if (!this.userData.gender || !this.userData.birthDate) {
+        return 'Pour un coach : genre et date de naissance sont obligatoires.';
+      }
+      if (this.userData.anciennete === null || this.userData.anciennete === undefined || this.userData.anciennete < 0) {
+        return 'L\'ancienneté est obligatoire pour un coach.';
+      }
+    }
+
+    return null;
+  }
+
+  private buildCreatePayload(): AdminUserCreateRequest {
+    const sport = this.sportFieldsForRole();
+    return {
+      firstName: this.userData.firstName.trim(),
+      lastName: this.userData.lastName.trim(),
+      email: this.userData.email.trim(),
+      role: this.userData.role,
+      birthDate: this.userData.birthDate || null,
+      gender: this.userData.gender || null,
+      ...sport
+    };
+  }
+
+  private buildUpdatePayload(): Record<string, unknown> {
+    const sport = this.sportFieldsForRole();
+    return {
+      firstName: this.userData.firstName.trim(),
+      lastName: this.userData.lastName.trim(),
+      email: this.userData.email.trim(),
+      role: this.userData.role,
+      active: this.userData.active,
+      birthDate: this.userData.birthDate || null,
+      gender: this.userData.gender || null,
+      ...sport
+    };
+  }
+
+  private sportFieldsForRole(): {
+    discipline: string | null;
+    niveau: string | null;
+    anciennete: number | null;
+  } {
+    if (this.userData.role === 'SWIMMER') {
+      return {
+        discipline: this.userData.discipline || null,
+        niveau: this.userData.niveau || null,
+        anciennete: null
+      };
+    }
+    if (this.userData.role === 'COACH') {
+      return {
+        discipline: null,
+        niveau: null,
+        anciennete: this.userData.anciennete
+      };
+    }
+    return { discipline: null, niveau: null, anciennete: null };
+  }
+
+  private extractErrorMessage(err: any, fallback: string): string {
+    const msg = err?.error?.message ?? err?.error?.details ?? err?.message;
+    if (typeof msg === 'string' && msg.length > 0) {
+      return msg.startsWith('Erreur:') ? msg.replace(/^Erreur:\s*/, '') : msg;
+    }
+    return fallback;
+  }
+
+  cancel(): void {
     this.formClosed.emit();
   }
 }

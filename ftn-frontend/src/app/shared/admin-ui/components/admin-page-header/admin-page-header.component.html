@@ -1,0 +1,12 @@
+<header class="admin-page-header">
+  <div class="admin-page-header__text">
+    <h1 class="admin-page-header__title">
+      {{ title }}
+      <span class="admin-page-header__accent" *ngIf="accent">{{ accent }}</span>
+    </h1>
+    <p class="admin-page-header__subtitle" *ngIf="subtitle">{{ subtitle }}</p>
+  </div>
+  <div class="admin-page-header__actions">
+    <ng-content select="[actions]"></ng-content>
+  </div>
+</header>

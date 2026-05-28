@@ -1,0 +1,196 @@
+.admin-search-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--admin-border, #e2e8f0);
+  border-radius: 999px;
+  background: var(--admin-surface-muted, #f8fafc);
+  color: var(--admin-text-muted, #64748b);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  max-width: 220px;
+}
+
+.admin-search-trigger:hover {
+  border-color: #cbd5e1;
+  color: var(--admin-primary, #003a80);
+  background: #fff;
+}
+
+.admin-search-trigger__label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-search-trigger__kbd {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  border: 1px solid var(--admin-border, #e2e8f0);
+  background: #fff;
+  color: var(--admin-text-subtle, #94a3b8);
+  font-family: inherit;
+}
+
+.admin-search-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 3000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 12vh 1rem 1rem;
+  animation: adminOverlayIn 0.2s ease;
+}
+
+@keyframes adminOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.admin-search-dialog {
+  width: min(520px, 100%);
+  background: #fff;
+  border-radius: var(--admin-radius-lg, 16px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  animation: adminDialogIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes adminDialogIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.admin-search-dialog__head {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--admin-border-light, #f1f5f9);
+}
+
+.admin-search-dialog__input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  color: var(--admin-text, #1e293b);
+}
+
+.admin-search-dialog__close {
+  border: none;
+  background: transparent;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.admin-search-dialog__list {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.admin-search-dialog__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border: none;
+  border-radius: var(--admin-radius-md, 12px);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease;
+}
+
+.admin-search-dialog__item i.bi:first-child {
+  font-size: 1.1rem;
+  color: var(--admin-primary, #003a80);
+  width: 28px;
+  text-align: center;
+}
+
+.admin-search-dialog__item.active,
+.admin-search-dialog__item:hover {
+  background: var(--admin-primary-light, #eff6ff);
+}
+
+.admin-search-dialog__item-label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--admin-text, #1e293b);
+}
+
+.admin-search-dialog__item-sub {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--admin-text-muted, #64748b);
+}
+
+.admin-search-dialog__enter {
+  margin-left: auto;
+  opacity: 0;
+  color: var(--admin-text-subtle);
+  font-size: 0.85rem;
+}
+
+.admin-search-dialog__item.active .admin-search-dialog__enter {
+  opacity: 1;
+}
+
+.admin-search-dialog__empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--admin-text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.admin-search-dialog__foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  border-top: 1px solid var(--admin-border-light, #f1f5f9);
+  background: var(--admin-surface-muted, #f8fafc);
+  font-size: 0.72rem;
+  color: var(--admin-text-subtle, #94a3b8);
+}
+
+.admin-search-dialog__foot kbd {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  border: 1px solid var(--admin-border, #e2e8f0);
+  background: #fff;
+  margin-right: 0.2rem;
+}
+
+@media (max-width: 768px) {
+  .admin-search-trigger__label,
+  .admin-search-trigger__kbd {
+    display: none;
+  }
+  .admin-search-trigger {
+    max-width: 40px;
+    padding: 0.45rem;
+    justify-content: center;
+  }
+}

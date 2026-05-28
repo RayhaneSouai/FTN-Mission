@@ -1,0 +1,11 @@
+<div class="admin-welcome">
+  <div class="admin-welcome__content">
+    <p class="admin-welcome__greeting">{{ greeting }}<span *ngIf="firstName">, {{ firstName }}</span></p>
+    <p class="admin-welcome__date"><i class="bi bi-calendar3"></i> {{ todayLabel }}</p>
+  </div>
+  <a *ngIf="pendingCount > 0" routerLink="/admin/utilisateurs" class="admin-welcome__alert">
+    <span class="admin-welcome__alert-dot"></span>
+    <span><strong>{{ pendingCount }}</strong> inscription(s) à valider</span>
+    <i class="bi bi-arrow-right"></i>
+  </a>
+</div>

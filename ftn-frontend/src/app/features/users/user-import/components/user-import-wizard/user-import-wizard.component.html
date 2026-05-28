@@ -1,0 +1,270 @@
+<div class="admin-page iw">
+  <header class="iw-toolbar">
+    <nav class="iw-crumb" aria-label="Fil d'Ariane">
+      <a routerLink="/admin/utilisateurs"><i class="bi bi-arrow-left"></i> Utilisateurs</a>
+      <span class="iw-crumb__sep">/</span>
+      <span>Import CSV</span>
+    </nav>
+    <div class="iw-toolbar__actions">
+      <button type="button" class="admin-btn admin-btn--ghost" (click)="downloadTemplate()">
+        <i class="bi bi-download"></i> Modèle
+      </button>
+      <button type="button" class="admin-btn admin-btn--ghost" (click)="cancel()">Annuler</button>
+    </div>
+  </header>
+
+  <div class="iw-hero">
+    <div class="iw-hero__text">
+      <h1 class="iw-hero__title">{{ stepTitle }}</h1>
+      <p class="iw-hero__sub">{{ stepSubtitle }}</p>
+    </div>
+    <div class="iw-hero__progress">
+      <span class="iw-hero__pct">{{ progressPercent }}%</span>
+      <div class="iw-hero__bar"><span class="iw-hero__fill" [style.width.%]="progressPercent"></span></div>
+    </div>
+  </div>
+
+  <div class="iw-layout" *ngIf="facade.step !== 'result'">
+    <aside class="iw-nav" aria-label="Étapes">
+      <ol class="iw-nav__list">
+        <li
+          *ngFor="let s of wizardSteps; let last = last"
+          class="iw-nav__item"
+          [class.iw-nav__item--done]="stepState(s.id) === 'done'"
+          [class.iw-nav__item--active]="stepState(s.id) === 'active'"
+          [class.iw-nav__item--upcoming]="stepState(s.id) === 'upcoming'">
+          <div class="iw-nav__track">
+            <span class="iw-nav__dot">
+              <i class="bi bi-check-lg" *ngIf="stepState(s.id) === 'done'"></i>
+              <i class="bi" [ngClass]="s.icon" *ngIf="stepState(s.id) !== 'done'"></i>
+            </span>
+            <span class="iw-nav__line" *ngIf="!last"></span>
+          </div>
+          <div class="iw-nav__meta">
+            <span class="iw-nav__label">{{ s.label }}</span>
+            <span class="iw-nav__hint">{{ s.hint }}</span>
+          </div>
+        </li>
+      </ol>
+    </aside>
+
+    <div class="iw-body">
+      <div class="iw-card">
+        <!-- Upload -->
+        <section *ngIf="facade.step === 'upload'" class="iw-content">
+          <div
+            class="iw-upload"
+            [class.iw-upload--drag]="isDragging"
+            [class.iw-upload--ok]="facade.parsed && !facade.fileError"
+            (drop)="onDrop($event)"
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave()">
+            <div class="iw-upload__visual">
+              <i class="bi bi-filetype-csv"></i>
+            </div>
+            <h2 class="iw-upload__title">Déposez votre fichier ici</h2>
+            <p class="iw-upload__sub">CSV uniquement · {{ maxSizeLabel }} max · sans colonne statut</p>
+            <input type="file" [accept]="accept" class="iw-upload__input" (change)="onFileInput($event)" />
+            <span class="iw-upload__btn">Parcourir les fichiers</span>
+          </div>
+
+          <div *ngIf="facade.fileError" class="iw-alert iw-alert--error">
+            <i class="bi bi-x-circle-fill"></i>{{ facade.fileError }}
+          </div>
+
+          <div *ngIf="facade.parsed && !facade.fileError" class="iw-file">
+            <div class="iw-file__icon"><i class="bi bi-file-earmark-check-fill"></i></div>
+            <div class="iw-file__info">
+              <strong>{{ facade.parsed.fileName }}</strong>
+              <span>{{ facade.formatFileSize(facade.parsed.fileSize) }} · {{ facade.parsed.rows.length }} lignes</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Mapping -->
+        <section *ngIf="facade.step === 'mapping'" class="iw-content">
+          <div class="iw-checks">
+            <div class="iw-check" [class.iw-check--on]="mappingStatus.identity">
+              <i class="bi" [ngClass]="mappingStatus.identity ? 'bi-check-circle-fill' : 'bi-circle'"></i>
+              <span>Identité</span>
+            </div>
+            <div class="iw-check" [class.iw-check--on]="mappingStatus.email">
+              <i class="bi" [ngClass]="mappingStatus.email ? 'bi-check-circle-fill' : 'bi-circle'"></i>
+              <span>E-mail</span>
+            </div>
+            <div class="iw-check" [class.iw-check--on]="mappingStatus.role">
+              <i class="bi" [ngClass]="mappingStatus.role ? 'bi-check-circle-fill' : 'bi-circle'"></i>
+              <span>Rôle</span>
+            </div>
+          </div>
+
+          <div class="iw-tabs">
+            <button type="button" [class.iw-tabs__on]="identityMode === 'full'" (click)="setIdentityMode('full')">Nom complet</button>
+            <button type="button" [class.iw-tabs__on]="identityMode === 'split'" (click)="setIdentityMode('split')">Prénom + Nom</button>
+          </div>
+
+          <div class="iw-map-list">
+            <div class="iw-map-row" *ngFor="let row of coreMappingRows" [class.iw-map-row--done]="!!getFieldValue(row.field)">
+              <div class="iw-map-row__left">
+                <span class="iw-map-row__ico"><i class="bi" [ngClass]="row.icon"></i></span>
+                <span class="iw-map-row__lbl">{{ row.label }}<em *ngIf="row.required">*</em></span>
+              </div>
+              <i class="bi bi-arrow-right iw-map-row__arrow"></i>
+              <select
+                class="iw-map-row__sel"
+                [ngModel]="getFieldValue(row.field)"
+                (ngModelChange)="onFieldSelect(row.field, $event)"
+                [ngModelOptions]="{ standalone: true }"
+                [attr.name]="'map_' + row.field">
+                <option value="">Colonne CSV…</option>
+                <option *ngFor="let col of availableColumns" [value]="col">{{ col }}</option>
+              </select>
+              <i class="bi bi-check-lg iw-map-row__tick" *ngIf="getFieldValue(row.field)"></i>
+            </div>
+          </div>
+
+          <button type="button" class="iw-more" (click)="showOptionalFields = !showOptionalFields">
+            Champs optionnels
+            <i class="bi" [ngClass]="showOptionalFields ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+          </button>
+
+          <div class="iw-map-list iw-map-list--soft" *ngIf="showOptionalFields">
+            <div class="iw-map-row" *ngFor="let row of optionalMappingRows" [class.iw-map-row--done]="!!getFieldValue(row.field)">
+              <div class="iw-map-row__left">
+                <span class="iw-map-row__ico"><i class="bi" [ngClass]="row.icon"></i></span>
+                <span class="iw-map-row__lbl">{{ row.label }}</span>
+              </div>
+              <i class="bi bi-arrow-right iw-map-row__arrow"></i>
+              <select
+                class="iw-map-row__sel"
+                [ngModel]="getFieldValue(row.field)"
+                (ngModelChange)="onFieldSelect(row.field, $event)"
+                [ngModelOptions]="{ standalone: true }"
+                [attr.name]="'map_opt_' + row.field">
+                <option value="">—</option>
+                <option *ngFor="let col of availableColumns" [value]="col">{{ col }}</option>
+              </select>
+              <i class="bi bi-check-lg iw-map-row__tick" *ngIf="getFieldValue(row.field)"></i>
+            </div>
+          </div>
+
+          <p class="iw-tip" *ngIf="!mappingStatus.complete">
+            <i class="bi bi-info-circle"></i> {{ mappingStatus.missing.join(' · ') }}
+          </p>
+        </section>
+
+        <!-- Validation -->
+        <section *ngIf="facade.step === 'validation'" class="iw-content">
+          <div class="iw-kpis" *ngIf="facade.validation">
+            <div class="iw-kpi iw-kpi--ok"><span>{{ facade.validation.validRows }}</span><small>Valides</small></div>
+            <div class="iw-kpi iw-kpi--err"><span>{{ facade.validation.errorRows }}</span><small>Erreurs</small></div>
+            <div class="iw-kpi"><span>{{ facade.validation.warningRows }}</span><small>Alertes</small></div>
+            <div class="iw-kpi"><span>{{ facade.validation.totalRows }}</span><small>Total</small></div>
+          </div>
+          <div *ngIf="facade.validation && !facade.validation.canImport" class="iw-alert iw-alert--error">
+            <i class="bi bi-shield-x"></i> Corrigez les erreurs dans le CSV puis recommencez.
+          </div>
+          <div class="iw-table-wrap" *ngIf="facade.validation">
+            <table class="iw-table">
+              <thead>
+                <tr><th>Ligne</th><th>Identité</th><th>E-mail</th><th></th><th>Détail</th></tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of facade.validation.rows" [class.iw-table__err]="row.hasCriticalError">
+                  <td>{{ row.rowNumber }}</td>
+                  <td>{{ row.displayName }}</td>
+                  <td>{{ row.email || '—' }}</td>
+                  <td><span class="iw-tag" [class.iw-tag--ok]="!row.hasCriticalError">{{ row.hasCriticalError ? 'Erreur' : 'OK' }}</span></td>
+                  <td class="iw-table__detail">
+                    <span *ngFor="let issue of row.issues" [class.iw-table__e]="issue.severity === 'error'">{{ issue.message }}</span>
+                    <span *ngIf="!row.issues.length" class="iw-table__muted">—</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Preview -->
+        <section *ngIf="facade.step === 'preview'" class="iw-content">
+          <p class="iw-lead">{{ previewLimit }} premières lignes sur {{ facade.validation?.validRows }} retenues</p>
+          <div class="iw-table-wrap">
+            <table class="iw-table">
+              <thead>
+                <tr><th>#</th><th>Prénom</th><th>Nom</th><th>E-mail</th><th>Rôle</th><th>Genre</th></tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of previewRows">
+                  <td class="muted">{{ row.rowNumber }}</td>
+                  <td>{{ row.resolvedFirstName || '—' }}</td>
+                  <td>{{ row.resolvedLastName || '—' }}</td>
+                  <td>{{ row.mapped.email || '—' }}</td>
+                  <td>{{ roleDisplay(row.mapped.role) }}</td>
+                  <td>{{ row.mapped.gender || '—' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Confirm -->
+        <section *ngIf="facade.step === 'confirm'" class="iw-content">
+          <div class="iw-confirm">
+            <div class="iw-confirm__icon"><i class="bi bi-people-fill"></i></div>
+            <div class="iw-confirm__body">
+              <h2>{{ facade.validation?.validRows }} comptes à créer</h2>
+              <p>Statut initial : en attente de validation par l'administrateur.</p>
+            </div>
+          </div>
+          <label class="iw-confirm__box">
+            <input type="checkbox" [(ngModel)]="facade.confirmChecked" />
+            <span>Je confirme l'import de ces utilisateurs</span>
+          </label>
+        </section>
+
+        <!-- Loading -->
+        <section *ngIf="facade.step === 'import'" class="iw-content iw-content--center">
+          <div class="iw-loader">
+            <div class="iw-loader__ring"></div>
+            <p>Création des comptes…</p>
+          </div>
+        </section>
+      </div>
+
+      <footer class="iw-foot" *ngIf="facade.step !== 'import'">
+        <button type="button" class="admin-btn admin-btn--ghost" (click)="back()" [disabled]="facade.step === 'upload'">
+          <i class="bi bi-arrow-left"></i> Retour
+        </button>
+        <button type="button" class="admin-btn admin-btn--primary" (click)="next()" [disabled]="!canGoNextStep">
+          {{ nextButtonLabel }} <i class="bi bi-arrow-right"></i>
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Result full width -->
+  <div class="iw-result" *ngIf="facade.step === 'result'">
+    <div class="iw-result__hero">
+      <i class="bi bi-check-circle-fill"></i>
+      <h1>Import terminé</h1>
+      <p *ngIf="facade.importResult">{{ facade.importResult.successCount }} réussi(s) · {{ facade.importResult.failureCount }} échec(s)</p>
+    </div>
+    <div class="iw-table-wrap" *ngIf="facade.importResult?.results?.length">
+      <table class="iw-table">
+        <thead><tr><th>Ligne</th><th>E-mail</th><th></th><th>Message</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let r of facade.importResult!.results" [class.iw-table__err]="!r.success">
+            <td>{{ r.rowNumber }}</td>
+            <td>{{ r.email }}</td>
+            <td><span class="iw-tag" [class.iw-tag--ok]="r.success">{{ r.success ? 'Créé' : 'Échec' }}</span></td>
+            <td class="muted">{{ r.message }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <footer class="iw-foot iw-foot--solo">
+      <button type="button" class="admin-btn admin-btn--ghost" (click)="facade.reset()">Nouvel import</button>
+      <button type="button" class="admin-btn admin-btn--primary" (click)="finish()"><i class="bi bi-people"></i> Liste utilisateurs</button>
+    </footer>
+  </div>
+</div>

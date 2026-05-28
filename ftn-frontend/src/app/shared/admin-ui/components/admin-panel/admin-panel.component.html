@@ -1,0 +1,14 @@
+<section class="admin-panel">
+  <header class="admin-panel__header" *ngIf="title">
+    <div>
+      <h3 class="admin-panel__title">{{ title }}</h3>
+      <p class="admin-panel__subtitle" *ngIf="subtitle">{{ subtitle }}</p>
+    </div>
+    <div class="admin-panel__header-actions">
+      <ng-content select="[headerActions]"></ng-content>
+    </div>
+  </header>
+  <div class="admin-panel__body" [class.admin-panel__body--flush]="noPadding">
+    <ng-content></ng-content>
+  </div>
+</section>

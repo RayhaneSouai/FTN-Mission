@@ -1,0 +1,80 @@
+.admin-welcome {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
+  border-radius: var(--admin-radius-xl);
+  background: linear-gradient(135deg, #003a80 0%, #0056b8 45%, #0ea5e9 100%);
+  color: #fff;
+  box-shadow: var(--admin-shadow-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-welcome::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.15) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.admin-welcome__content {
+  position: relative;
+  z-index: 1;
+}
+
+.admin-welcome__greeting {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.admin-welcome__date {
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.admin-welcome__alert {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  backdrop-filter: blur(6px);
+  transition: all 0.2s ease;
+}
+
+.admin-welcome__alert:hover {
+  background: rgba(255, 255, 255, 0.28);
+  transform: translateY(-1px);
+  color: #fff;
+}
+
+.admin-welcome__alert-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fbbf24;
+  box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.35);
+  animation: adminPulseDot 1.5s ease infinite;
+}
+
+@keyframes adminPulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.15); }
+}

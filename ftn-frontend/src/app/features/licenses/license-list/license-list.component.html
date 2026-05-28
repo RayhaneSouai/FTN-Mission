@@ -1,71 +1,64 @@
-<main class="dashboard">
-  <!-- Hero Banner -->
-  <section class="license-hero">
-    <div class="hero-overlay"></div>
-    <div class="hero-content">
-      <h1>Gestion des Licences</h1>
-      <p>Visualisez et gérez les licences sportives de la fédération pour chaque saison.</p>
-    </div>
-  </section>
-
-  <!-- Actions Section -->
-  <div class="hero-actions">
-    <div class="d-flex gap-3 align-items-center">
+<div class="admin-page">
+  <app-admin-page-header
+    title="Gestion des licences"
+    subtitle="Visualisez et gérez les licences sportives pour chaque saison.">
+    <div actions class="admin-toolbar-actions">
       <div class="search-box season-search">
         <i class="bi bi-calendar-range"></i>
-        <input type="text" class="form-control border-0 shadow-none" [(ngModel)]="season" placeholder="Saison (ex: 2026-2027)">
+        <input type="text" class="form-control border-0 shadow-none admin-form-control" [(ngModel)]="season" placeholder="Saison (ex: 2026-2027)">
       </div>
-      <button class="btn-secondary" (click)="generateForSeason()" [disabled]="actionInProgress">
+      <button type="button" class="admin-btn admin-btn--secondary" (click)="generateForSeason()" [disabled]="actionInProgress">
         <i class="bi bi-magic" *ngIf="!actionInProgress"></i>
         <span class="spinner-border spinner-border-sm" *ngIf="actionInProgress"></span>
-        Générer Saison
+        Générer saison
       </button>
-      <button class="btn-primary" data-bs-toggle="modal" data-bs-target="#licenseFormModal" (click)="openAddModal()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Nouvelle Licence
+      <button type="button" class="admin-btn admin-btn--primary" (click)="openAddModal()">
+        <i class="bi bi-plus-lg"></i>
+        Nouvelle licence
       </button>
     </div>
+  </app-admin-page-header>
+
+  <div *ngIf="error" class="admin-alert admin-alert--danger">
+    <i class="bi bi-exclamation-octagon-fill"></i>
+    <span>{{ error }}</span>
+  </div>
+  <div *ngIf="success" class="admin-alert admin-alert--success">
+    <i class="bi bi-check-circle-fill"></i>
+    <span>{{ success }}</span>
   </div>
 
-  <!-- Messages -->
-  <div class="mx-4 mt-3">
-    <div *ngIf="error" class="alert alert-danger border-0 shadow-sm rounded-4 d-flex align-items-center mb-3 animate__animated animate__fadeIn">
-      <i class="bi bi-exclamation-octagon-fill me-3 fs-4"></i>
-      <div>{{ error }}</div>
-    </div>
-    <div *ngIf="success" class="alert alert-success border-0 shadow-sm rounded-4 d-flex align-items-center mb-3 animate__animated animate__fadeIn">
-      <i class="bi bi-check-circle-fill me-3 fs-4"></i>
-      <div>{{ success }}</div>
-    </div>
-  </div>
-
-  <!-- Stats Section -->
-  <section class="stats-section">
-    <div class="stats-grid">
-      <div class="stat-card stat-card--accent">
-        <div class="stat-info">
-          <span class="stat-label">Total Licences</span>
-          <span class="stat-value">{{ licenses.length }}</span>
-        </div>
-        <div class="stat-icon">
-          <i class="bi bi-card-checklist"></i>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-info">
-          <span class="stat-label">Saison Active</span>
-          <span class="stat-value text-primary">{{ season || '2025-2026' }}</span>
-        </div>
-        <div class="stat-icon">
-          <i class="bi bi-calendar-event"></i>
-        </div>
-      </div>
-    </div>
+  <section class="admin-stats-row">
+    <app-admin-stat-card
+      label="Total licences"
+      [value]="licenses.length"
+      icon="bi-card-checklist"
+      variant="blue">
+    </app-admin-stat-card>
+    <app-admin-stat-card
+      label="Saison active"
+      [value]="season || '2025-2026'"
+      icon="bi-calendar-event"
+      variant="azure">
+    </app-admin-stat-card>
   </section>
 
-  <!-- Table Card -->
-  <div class="card border-0 shadow-sm rounded-4 overflow-hidden mx-4 mb-5">
-    <div class="card-body p-0">
+  <app-admin-panel title="Liste des licences" [noPadding]="true">
+    <div class="admin-table-card">
+      <div class="card-header bg-white border-bottom p-3">
+        <div class="admin-search-field" style="max-width: 280px;">
+          <i class="bi bi-search admin-search-field__icon"></i>
+          <input
+            type="text"
+            class="form-control admin-search-field__input"
+            placeholder="Filtrer par numéro, saison…"
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="onSearchChange()" />
+          <button type="button" class="admin-search-field__clear" *ngIf="searchTerm" (click)="clearSearch()">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+      </div>
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
           <thead class="bg-light text-muted text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05rem;">
@@ -74,7 +67,7 @@
               <th class="py-3">Saison</th>
               <th class="py-3">Période de validité</th>
               <th class="py-3">Club</th>
-              <th class="text-end pe-4 py-3">Actions</th>
+              <th class="text-center py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -86,7 +79,6 @@
                   </div>
                   <div>
                     <div class="fw-bold text-dark">{{ license.licenseNumber }}</div>
-                    <div class="text-muted small">ID: #{{ license.id }}</div>
                   </div>
                 </div>
               </td>
@@ -111,15 +103,15 @@
                   <span class="fw-medium text-dark">Club #{{ license.clubId || 'N/A' }}</span>
                 </div>
               </td>
-              <td class="text-end pe-4">
-                <div class="d-flex justify-content-end gap-2">
-                  <button class="btn btn-outline-info btn-sm rounded-circle" data-bs-toggle="modal" data-bs-target="#licenseFormModal" (click)="openViewModal(license.id)" title="Consulter">
+              <td class="text-center">
+                <div class="admin-icon-actions">
+                  <button type="button" class="admin-icon-btn admin-icon-btn--view" (click)="openViewModal(license.id)" title="Voir">
                     <i class="bi bi-eye"></i>
                   </button>
-                  <button class="btn btn-outline-primary btn-sm rounded-circle" data-bs-toggle="modal" data-bs-target="#licenseFormModal" (click)="openEditModal(license.id)" title="Modifier">
+                  <button type="button" class="admin-icon-btn admin-icon-btn--edit" (click)="openEditModal(license.id)" title="Modifier">
                     <i class="bi bi-pencil"></i>
                   </button>
-                  <button class="btn btn-outline-danger btn-sm rounded-circle" (click)="confirmDelete(license.id)" title="Supprimer">
+                  <button type="button" class="admin-icon-btn admin-icon-btn--delete" (click)="confirmDelete(license.id)" title="Supprimer">
                     <i class="bi bi-trash"></i>
                   </button>
                 </div>
@@ -132,34 +124,36 @@
               </td>
             </tr>
             <tr *ngIf="!loading && licenses.length === 0">
-              <td colspan="5" class="py-5 text-center text-muted">
-                <i class="bi bi-inbox display-1 opacity-25"></i>
-                <h5 class="mt-3">Aucune licence trouvée</h5>
+              <td colspan="5" class="p-0 border-0">
+                <app-admin-empty-state
+                  icon="bi-inbox"
+                  title="Aucune licence trouvée"
+                  message="Créez une licence ou générez une saison pour commencer.">
+                </app-admin-empty-state>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
+      <div class="admin-pagination" *ngIf="!loading && filteredLicenses.length > 0">
+        <span class="admin-pagination__info">{{ paginatedLicenses.length }} sur {{ filteredLicenses.length }} licence(s)</span>
+        <nav class="admin-pagination__nav" aria-label="Pagination">
+          <ul class="pagination pagination-sm mb-0">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <button class="page-link" (click)="prevPage()">Précédent</button>
+            </li>
+            <li class="page-item" *ngFor="let page of pages" [class.active]="page === currentPage">
+              <button class="page-link" (click)="setPage(page)">{{ page }}</button>
+            </li>
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <button class="page-link" (click)="nextPage()">Suivant</button>
+            </li>
+          </ul>
+        </nav>
+      </div>
     </div>
-    <!-- Pagination -->
-    <div class="card-footer bg-white border-top p-3 d-flex justify-content-between align-items-center" *ngIf="!loading && licenses.length > 0">
-      <span class="text-muted small">Affichage de {{ paginatedLicenses.length }} sur {{ licenses.length }} licences</span>
-      <nav aria-label="Page navigation">
-        <ul class="pagination pagination-sm mb-0">
-          <li class="page-item" [class.disabled]="currentPage === 1">
-            <button class="page-link" (click)="prevPage()">Précédent</button>
-          </li>
-          <li class="page-item" *ngFor="let page of pages" [class.active]="page === currentPage">
-            <button class="page-link" (click)="setPage(page)">{{ page }}</button>
-          </li>
-          <li class="page-item" [class.disabled]="currentPage === totalPages">
-            <button class="page-link" (click)="nextPage()">Suivant</button>
-          </li>
-        </ul>
-      </nav>
-    </div>
-  </div>
-</main>
+  </app-admin-panel>
+</div>
 
 <!-- Modal Form -->
 <div class="modal fade" id="licenseFormModal" tabindex="-1" aria-hidden="true">

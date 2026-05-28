@@ -65,6 +65,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     private RegistrationStatus registrationStatus;
 
+    @Column(nullable = false)
+    private Boolean mustChangePassword = false;
+
     @JsonIgnore
     @OneToMany(mappedBy = "swimmer")
     private List<Performance> performances;

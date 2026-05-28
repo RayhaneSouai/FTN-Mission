@@ -19,6 +19,15 @@ public class UserDTO {
     private Integer anciennete;
     private String registrationStatus;
     private LocalDateTime createdAt;
+    private Boolean mustChangePassword;
+
+    public Boolean getMustChangePassword() {
+        return mustChangePassword;
+    }
+
+    public void setMustChangePassword(Boolean mustChangePassword) {
+        this.mustChangePassword = mustChangePassword;
+    }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;

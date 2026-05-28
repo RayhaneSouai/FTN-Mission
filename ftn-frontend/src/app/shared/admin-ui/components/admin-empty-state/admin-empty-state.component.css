@@ -1,0 +1,29 @@
+.admin-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem 1.25rem;
+  gap: 0.5rem;
+}
+
+.admin-empty-state__icon {
+  font-size: 2rem;
+  color: var(--admin-text-subtle);
+  opacity: 0.85;
+}
+
+.admin-empty-state__title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--admin-text-muted);
+}
+
+.admin-empty-state__message {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--admin-text-subtle);
+  max-width: 280px;
+}

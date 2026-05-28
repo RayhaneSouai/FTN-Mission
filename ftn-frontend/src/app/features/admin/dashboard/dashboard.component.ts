@@ -1,7 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, PLATFORM_ID, ViewChild } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Router } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { UserService } from '../../users/services/user.service';
 import { LicenseService } from '../../licenses/services/license.service';
 import { ClubService } from '../../clubs/services/club.service';
+import { DashboardActivityComponent } from '../../../dashboard/dashboard-activity/dashboard-activity.component';
+import { AdminStatVariant } from '../../../shared/admin-ui/components/admin-stat-card/admin-stat-card.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -9,174 +15,149 @@ import { ClubService } from '../../clubs/services/club.service';
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
-  stats = [
-    { label: 'Utilisateurs Totaux', value: '...', icon: 'users', color: 'blue', detail: 'Membres enregistrés' },
-    { label: 'Licences Actives', value: '...', icon: 'license', color: 'azure', detail: 'Validées cette saison' },
-    { label: 'Demandes en Attente', value: '...', icon: 'pending', color: 'orange', detail: 'À traiter rapidement' },
-    { label: 'Clubs Affiliés', value: '...', icon: 'club', color: 'indigo', detail: 'Réseau partenaire FTN' }
+  @ViewChild('activityChart') activityChart?: DashboardActivityComponent;
+  refreshing = false;
+  statsLoading = true;
+  pendingCount = 0;
+  adminFirstName = '';
+  stats: { label: string; value: string; icon: string; color: AdminStatVariant; detail: string }[] = [
+    { label: 'Utilisateurs totaux', value: '—', icon: 'users', color: 'blue', detail: 'Membres enregistrés' },
+    { label: 'Licences actives', value: '—', icon: 'license', color: 'azure', detail: 'Validées cette saison' },
+    { label: 'Demandes en attente', value: '—', icon: 'pending', color: 'orange', detail: 'À traiter rapidement' },
+    { label: 'Clubs affiliés', value: '—', icon: 'club', color: 'indigo', detail: 'Réseau partenaire FTN' }
   ];
 
-  recentActivities: any[] = [];
-  chartData: any[] = [];
+  recentActivities: { type: string; title: string; description: string; time: string; sortKey: number }[] = [];
 
   constructor(
     private userService: UserService,
     private licenseService: LicenseService,
-    private clubService: ClubService
-  ) { }
+    private clubService: ClubService,
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
   ngOnInit(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        this.adminFirstName = u.firstName ?? '';
+      }
+    }
     this.loadStats();
   }
 
+  statIcon(key: string): string {
+    const map: Record<string, string> = {
+      users: 'bi-people-fill',
+      license: 'bi-card-checklist',
+      pending: 'bi-hourglass-split',
+      club: 'bi-building'
+    };
+    return map[key] ?? 'bi-graph-up';
+  }
+
+  onStatNavigate(index: number): void {
+    if (index === 0 || index === 2) {
+      this.router.navigate(['/admin/utilisateurs']);
+      return;
+    }
+    if (index === 1) {
+      this.router.navigate(['/admin/licences']);
+    }
+  }
+
+  refresh(): void {
+    this.refreshing = true;
+    this.loadStats();
+    this.activityChart?.reload();
+    setTimeout(() => (this.refreshing = false), 600);
+  }
+
   loadStats(): void {
-    this.recentActivities = []; // clear activities before loading
+    this.statsLoading = true;
+    this.recentActivities = [];
 
-    this.userService.getAllUsers().subscribe({
-      next: (users) => {
-        this.stats[0].value = users.length.toString();
-        const pending = users.filter((u: any) => u.registrationStatus === 'EN_ATTENTE').length;
-        this.stats[2].value = pending.toString();
+    forkJoin({
+      users: this.userService.getAllUsers().pipe(catchError(() => of([]))),
+      licenses: this.licenseService.getAllLicenses().pipe(catchError(() => of([]))),
+      clubs: this.clubService.getAll().pipe(catchError(() => of([])))
+    }).subscribe(({ users, licenses, clubs }) => {
+      this.stats[0].value = users.length.toString();
+      this.pendingCount = users.filter((u: { registrationStatus?: string }) => u.registrationStatus === 'EN_ATTENTE').length;
+      this.stats[2].value = this.pendingCount.toString();
+      this.stats[2].detail =
+        this.pendingCount > 0 ? `${this.pendingCount} demande(s) à examiner` : 'Aucune demande en attente';
 
-        // Mettre à jour le graphique
-        this.generateChartData(users);
+      this.stats[1].value = licenses.length.toString();
+      this.stats[3].value = clubs.length.toString();
 
-        // Activités: 2 derniers utilisateurs inscrits
-        const sortedUsers = [...users].sort((a: any, b: any) => b.id - a.id);
-        sortedUsers.slice(0, 2).forEach(u => {
-          const roleStr = u.role ? u.role.charAt(0).toUpperCase() + u.role.slice(1).toLowerCase() : 'Utilisateur';
-          this.recentActivities.push({
-            type: 'user',
-            title: u.registrationStatus === 'EN_ATTENTE' ? 'Nouvelle demande' : 'Nouvel utilisateur',
-            description: `${u.firstName} ${u.lastName} s'est inscrit(e) comme ${roleStr}.`,
-            time: u.createdAt ? this.getRelativeTime(u.createdAt) : 'Récemment'
-          });
+      const activities: typeof this.recentActivities = [];
+
+      const sortedUsers = [...users].sort((a: { id: number }, b: { id: number }) => b.id - a.id);
+      sortedUsers.slice(0, 3).forEach((u: Record<string, unknown>) => {
+        const roleStr = u['role']
+          ? String(u['role']).charAt(0).toUpperCase() + String(u['role']).slice(1).toLowerCase()
+          : 'Utilisateur';
+        const created = u['createdAt'];
+        activities.push({
+          type: 'user',
+          title: u['registrationStatus'] === 'EN_ATTENTE' ? 'Nouvelle demande' : 'Nouvel utilisateur',
+          description: `${u['firstName']} ${u['lastName']} — ${roleStr}`,
+          time: created ? this.getRelativeTime(created) : 'Récemment',
+          sortKey: this.toTimestamp(created)
         });
-      },
-      error: (err) => console.error('Erreur chargement utilisateurs', err)
-    });
+      });
 
-    this.licenseService.getAllLicenses().subscribe({
-      next: (licenses) => {
-        this.stats[1].value = licenses.length.toString();
+      const sortedLicenses = [...licenses].sort((a: { id: number }, b: { id: number }) => b.id - a.id);
+      if (sortedLicenses.length > 0) {
+        const l = sortedLicenses[0] as Record<string, unknown>;
+        const issueDate = l['issueDate'];
+        activities.push({
+          type: 'license',
+          title: 'Nouvelle licence',
+          description: `Licence ${l['licenseNumber']} enregistrée`,
+          time: issueDate ? this.getRelativeTime(issueDate) : 'Récemment',
+          sortKey: this.toTimestamp(issueDate)
+        });
+      }
 
-        // Activités: dernière licence
-        const sortedLicenses = [...licenses].sort((a: any, b: any) => b.id - a.id);
-        if (sortedLicenses.length > 0) {
-          const l = sortedLicenses[0];
-          this.recentActivities.push({
-            type: 'license',
-            title: 'Nouvelle licence',
-            description: `La licence ${l.licenseNumber} a été enregistrée.`,
-            time: l.issueDate ? this.getRelativeTime(l.issueDate) : 'Récemment'
-          });
-        }
-      },
-      error: (err) => console.error('Erreur chargement licences', err)
-    });
-
-    this.clubService.getAll().subscribe({
-      next: (clubs) => {
-        this.stats[3].value = clubs.length.toString();
-      },
-      error: (err) => console.error('Erreur chargement clubs', err)
+      this.recentActivities = activities.sort((a, b) => b.sortKey - a.sortKey).slice(0, 5);
+      this.statsLoading = false;
     });
   }
 
-  getRelativeTime(dateString: any): string {
+  private toTimestamp(dateInput: unknown): number {
+    if (!dateInput) return 0;
+    if (Array.isArray(dateInput)) {
+      const d = dateInput as number[];
+      return new Date(d[0], d[1] - 1, d[2], d[3] || 0, d[4] || 0).getTime();
+    }
+    return new Date(dateInput as string).getTime() || 0;
+  }
+
+  getRelativeTime(dateString: unknown): string {
     if (!dateString) return 'Récemment';
-    
+
     let date: Date;
     if (Array.isArray(dateString)) {
-      // Format [year, month, day, hour, minute]
       date = new Date(dateString[0], dateString[1] - 1, dateString[2], dateString[3] || 0, dateString[4] || 0);
     } else {
-      date = new Date(dateString);
+      date = new Date(dateString as string);
     }
 
     if (isNaN(date.getTime())) return 'Récemment';
 
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
+    const diffMs = Date.now() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
 
-    if (diffMins < 1) return 'à l\'instant';
+    if (diffMins < 1) return "à l'instant";
     if (diffMins < 60) return `il y a ${diffMins} min`;
     if (diffHours < 24) return `il y a ${diffHours}h`;
     if (diffDays === 1) return 'hier';
     return `il y a ${diffDays} jours`;
-  }
-
-  generateChartData(users: any[]): void {
-    this.chartData = [];
-    const daysStr = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-    const now = new Date();
-    const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
-    // Structure pour stocker les rôles par jour
-    // rolesByDay[diffDays] = { SWIMMER: count, COACH: count, ... }
-    const rolesByDay: any[] = Array.from({ length: 7 }, () => ({
-      SWIMMER: 0, COACH: 0, ADMIN: 0, VISITOR: 0, total: 0
-    }));
-
-    const labels = new Array(7).fill('');
-
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(now.getDate() - i);
-      labels[6 - i] = daysStr[d.getDay()];
-    }
-
-    users.forEach(u => {
-      const rawDate = u.createdAt || u.created_at;
-      if (rawDate) {
-        let created: Date;
-        if (Array.isArray(rawDate)) {
-          created = new Date(rawDate[0], rawDate[1] - 1, rawDate[2]);
-        } else if (typeof rawDate === 'string') {
-          created = new Date(rawDate.replace(' ', 'T'));
-        } else {
-          created = new Date(rawDate);
-        }
-
-        if (!isNaN(created.getTime())) {
-          const createdMidnight = new Date(created.getFullYear(), created.getMonth(), created.getDate());
-          const diffMs = todayMidnight.getTime() - createdMidnight.getTime();
-          const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-          
-          if (diffDays >= 0 && diffDays < 7) {
-            const dayIndex = 6 - diffDays;
-            const role = u.role || 'VISITOR';
-            if (rolesByDay[dayIndex][role] !== undefined) {
-              rolesByDay[dayIndex][role]++;
-              rolesByDay[dayIndex].total++;
-            }
-          }
-        }
-      }
-    });
-
-    const maxTotal = Math.max(...rolesByDay.map(d => d.total), 1);
-
-    for (let i = 0; i < 7; i++) {
-      const d = rolesByDay[i];
-      // Couleurs pro pour chaque rôle
-      const roleSegments = [
-        { role: 'Swimmer', count: d.SWIMMER, color: '#3b82f6', height: (d.SWIMMER / maxTotal) * 100 },
-        { role: 'Coach', count: d.COACH, color: '#10b981', height: (d.COACH / maxTotal) * 100 },
-        { role: 'Admin', count: d.ADMIN, color: '#f59e0b', height: (d.ADMIN / maxTotal) * 100 },
-        { role: 'Visitor', count: d.VISITOR, color: '#94a3b8', height: (d.VISITOR / maxTotal) * 100 }
-      ].filter(s => s.count > 0);
-
-      this.chartData.push({
-        label: labels[i],
-        total: d.total,
-        percentage: (d.total / maxTotal) * 100,
-        active: i === 6,
-        roles: roleSegments
-      });
-    }
   }
 }
