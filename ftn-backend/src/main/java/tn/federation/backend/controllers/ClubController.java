@@ -64,6 +64,11 @@ public class ClubController {
         return ResponseEntity.ok(clubService.addClub(club));
     }
 
+    @GetMapping(params = "name")
+    public ResponseEntity<Club> getClubByName(@RequestParam String name) {
+        return ResponseEntity.ok(clubService.findByName(name).orElse(null));
+    }
+
     @GetMapping
     public ResponseEntity<List<Club>> getAllClubs() {
         return ResponseEntity.ok(clubService.getAllClubs());

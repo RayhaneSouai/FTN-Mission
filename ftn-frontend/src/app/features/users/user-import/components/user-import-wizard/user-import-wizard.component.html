@@ -28,7 +28,7 @@
     <aside class="iw-nav" aria-label="Étapes">
       <ol class="iw-nav__list">
         <li
-          *ngFor="let s of wizardSteps; let last = last"
+          *ngFor="let s of wizardSteps; let last = last; trackBy: trackStep"
           class="iw-nav__item"
           [class.iw-nav__item--done]="stepState(s.id) === 'done'"
           [class.iw-nav__item--active]="stepState(s.id) === 'active'"
@@ -68,6 +68,10 @@
             <span class="iw-upload__btn">Parcourir les fichiers</span>
           </div>
 
+          <p class="description iw-upload-description">
+            Importez un fichier CSV contenant uniquement les membres d’un seul club. Le système détectera le club, l’associera aux utilisateurs importés, ou proposera de le créer s’il n’existe pas encore.
+          </p>
+
           <div *ngIf="facade.fileError" class="iw-alert iw-alert--error">
             <i class="bi bi-x-circle-fill"></i>{{ facade.fileError }}
           </div>
@@ -79,6 +83,41 @@
               <span>{{ facade.formatFileSize(facade.parsed.fileSize) }} · {{ facade.parsed.rows.length }} lignes</span>
             </div>
           </div>
+        </section>
+
+        <!-- Club information -->
+        <section *ngIf="facade.step === 'club-info'" class="iw-content">
+          <div *ngIf="facade.clubResolution?.error" class="iw-alert iw-alert--error">
+            <i class="bi bi-exclamation-octagon-fill"></i>
+            {{ facade.clubResolution?.error }}
+          </div>
+
+          <div class="iw-club-card" *ngIf="facade.clubResolution && !facade.clubResolution.error">
+            <div class="iw-club-card__icon">
+              <i class="bi bi-building"></i>
+            </div>
+            <div class="iw-club-card__body">
+              <span class="iw-club-card__eyebrow">Club détecté</span>
+              <h2>{{ facade.clubResolution.clubName }}</h2>
+              <p *ngIf="facade.clubResolution.clubId">
+                Ce club existe déjà. Tous les utilisateurs importés seront associés à ce club.
+              </p>
+              <p *ngIf="facade.clubResolution.needsCreation">
+                Aucun club existant ne correspond à ce nom. Confirmez la création avant de poursuivre.
+              </p>
+            </div>
+            <span class="iw-club-card__status" [class.iw-club-card__status--new]="facade.clubResolution.needsCreation">
+              {{ facade.clubResolution.needsCreation ? 'Nouveau club' : 'Club existant' }}
+            </span>
+          </div>
+
+          <label class="iw-club-toggle" *ngIf="facade.clubResolution?.needsCreation">
+            <input
+              type="checkbox"
+              [checked]="facade.clubResolution?.createIfMissing"
+              (change)="onCreateClubToggle($event)" />
+            <span>Créer le club s’il n’existe pas</span>
+          </label>
         </section>
 
         <!-- Mapping -->
@@ -104,7 +143,7 @@
           </div>
 
           <div class="iw-map-list">
-            <div class="iw-map-row" *ngFor="let row of coreMappingRows" [class.iw-map-row--done]="!!getFieldValue(row.field)">
+            <div class="iw-map-row" *ngFor="let row of coreMappingRows; trackBy: trackMappingRow" [class.iw-map-row--done]="!!getFieldValue(row.field)">
               <div class="iw-map-row__left">
                 <span class="iw-map-row__ico"><i class="bi" [ngClass]="row.icon"></i></span>
                 <span class="iw-map-row__lbl">{{ row.label }}<em *ngIf="row.required">*</em></span>
@@ -117,7 +156,7 @@
                 [ngModelOptions]="{ standalone: true }"
                 [attr.name]="'map_' + row.field">
                 <option value="">Colonne CSV…</option>
-                <option *ngFor="let col of availableColumns" [value]="col">{{ col }}</option>
+                <option *ngFor="let col of availableColumns; trackBy: trackCsvColumn" [value]="col">{{ col }}</option>
               </select>
               <i class="bi bi-check-lg iw-map-row__tick" *ngIf="getFieldValue(row.field)"></i>
             </div>
@@ -129,7 +168,7 @@
           </button>
 
           <div class="iw-map-list iw-map-list--soft" *ngIf="showOptionalFields">
-            <div class="iw-map-row" *ngFor="let row of optionalMappingRows" [class.iw-map-row--done]="!!getFieldValue(row.field)">
+            <div class="iw-map-row" *ngFor="let row of optionalMappingRows; trackBy: trackMappingRow" [class.iw-map-row--done]="!!getFieldValue(row.field)">
               <div class="iw-map-row__left">
                 <span class="iw-map-row__ico"><i class="bi" [ngClass]="row.icon"></i></span>
                 <span class="iw-map-row__lbl">{{ row.label }}</span>
@@ -142,7 +181,7 @@
                 [ngModelOptions]="{ standalone: true }"
                 [attr.name]="'map_opt_' + row.field">
                 <option value="">—</option>
-                <option *ngFor="let col of availableColumns" [value]="col">{{ col }}</option>
+                <option *ngFor="let col of availableColumns; trackBy: trackCsvColumn" [value]="col">{{ col }}</option>
               </select>
               <i class="bi bi-check-lg iw-map-row__tick" *ngIf="getFieldValue(row.field)"></i>
             </div>
@@ -155,14 +194,27 @@
 
         <!-- Validation -->
         <section *ngIf="facade.step === 'validation'" class="iw-content">
+          <div class="iw-validation-loading" *ngIf="facade.validating || !facade.validation">
+            <div class="iw-loader__ring"></div>
+            <h2>Validation du fichier en cours…</h2>
+            <p>Les lignes sont analysées par lots pour garder l’application réactive.</p>
+            <div class="iw-validation-loading__bar">
+              <span [style.width.%]="facade.validationProgress"></span>
+            </div>
+            <small>{{ facade.validationProgress }}%</small>
+          </div>
+
           <div class="iw-kpis" *ngIf="facade.validation">
             <div class="iw-kpi iw-kpi--ok"><span>{{ facade.validation.validRows }}</span><small>Valides</small></div>
             <div class="iw-kpi iw-kpi--err"><span>{{ facade.validation.errorRows }}</span><small>Erreurs</small></div>
             <div class="iw-kpi"><span>{{ facade.validation.warningRows }}</span><small>Alertes</small></div>
             <div class="iw-kpi"><span>{{ facade.validation.totalRows }}</span><small>Total</small></div>
           </div>
-          <div *ngIf="facade.validation && !facade.validation.canImport" class="iw-alert iw-alert--error">
-            <i class="bi bi-shield-x"></i> Corrigez les erreurs dans le CSV puis recommencez.
+          <div *ngIf="facade.validation && facade.validation.errorRows > 0" class="iw-alert iw-alert--warning">
+            <i class="bi bi-exclamation-triangle-fill"></i> Certaines lignes comportent des erreurs critiques et seront ignorées lors de l'import.
+          </div>
+          <div *ngIf="facade.validation && facade.validation.validRows === 0" class="iw-alert iw-alert--error">
+            <i class="bi bi-shield-x"></i> Aucune ligne valide à importer. Corrigez les erreurs dans le CSV.
           </div>
           <div class="iw-table-wrap" *ngIf="facade.validation">
             <table class="iw-table">
@@ -170,7 +222,7 @@
                 <tr><th>Ligne</th><th>Identité</th><th>E-mail</th><th></th><th>Détail</th></tr>
               </thead>
               <tbody>
-                <tr *ngFor="let row of facade.validation.rows" [class.iw-table__err]="row.hasCriticalError">
+                <tr *ngFor="let row of validationRows; trackBy: trackValidationRow" [class.iw-table__err]="row.hasCriticalError">
                   <td>{{ row.rowNumber }}</td>
                   <td>{{ row.displayName }}</td>
                   <td>{{ row.email || '—' }}</td>
@@ -183,6 +235,10 @@
               </tbody>
             </table>
           </div>
+          <p class="iw-tip" *ngIf="hiddenValidationRows > 0">
+            <i class="bi bi-info-circle"></i>
+            {{ hiddenValidationRows }} ligne(s) supplémentaire(s) masquée(s) pour garder la page fluide.
+          </p>
         </section>
 
         <!-- Preview -->
@@ -194,7 +250,7 @@
                 <tr><th>#</th><th>Prénom</th><th>Nom</th><th>E-mail</th><th>Rôle</th><th>Genre</th></tr>
               </thead>
               <tbody>
-                <tr *ngFor="let row of previewRows">
+                <tr *ngFor="let row of previewRows; trackBy: trackMappedRow">
                   <td class="muted">{{ row.rowNumber }}</td>
                   <td>{{ row.resolvedFirstName || '—' }}</td>
                   <td>{{ row.resolvedLastName || '—' }}</td>
@@ -213,9 +269,16 @@
             <div class="iw-confirm__icon"><i class="bi bi-people-fill"></i></div>
             <div class="iw-confirm__body">
               <h2>{{ facade.validation?.validRows }} comptes à créer</h2>
-              <p>Statut initial : en attente de validation par l'administrateur.</p>
+              <p>
+                Club : {{ facade.clubResolution?.clubName || '—' }} · Statut initial : en attente de validation par l'administrateur.
+              </p>
             </div>
           </div>
+          
+          <div *ngIf="facade.fileError" class="iw-alert iw-alert--error" style="margin-top: 1rem;">
+            <i class="bi bi-x-circle-fill"></i> {{ facade.fileError }}
+          </div>
+
           <label class="iw-confirm__box">
             <input type="checkbox" [(ngModel)]="facade.confirmChecked" />
             <span>Je confirme l'import de ces utilisateurs</span>
@@ -232,11 +295,12 @@
       </div>
 
       <footer class="iw-foot" *ngIf="facade.step !== 'import'">
-        <button type="button" class="admin-btn admin-btn--ghost" (click)="back()" [disabled]="facade.step === 'upload'">
+        <button type="button" class="admin-btn admin-btn--ghost" (click)="back()" [disabled]="facade.step === 'upload' || loading">
           <i class="bi bi-arrow-left"></i> Retour
         </button>
-        <button type="button" class="admin-btn admin-btn--primary" (click)="next()" [disabled]="!canGoNextStep">
-          {{ nextButtonLabel }} <i class="bi bi-arrow-right"></i>
+        <button type="button" class="admin-btn admin-btn--primary" (click)="next()" [disabled]="!canGoNextStep || loading">
+          <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          {{ loading ? 'Validation...' : nextButtonLabel }} <i class="bi bi-arrow-right" *ngIf="!loading"></i>
         </button>
       </footer>
     </div>

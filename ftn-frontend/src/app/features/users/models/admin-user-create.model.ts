@@ -8,6 +8,7 @@ export interface AdminUserCreateRequest {
   niveau?: string | null;
   discipline?: string | null;
   anciennete?: number | null;
+  clubId?: number | null; // Added clubId field for associating user with a club
 }
 
 export interface AdminUserCreateResponse {

@@ -6,6 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tn.federation.backend.dto.AthleteProgressDTO;
 import tn.federation.backend.dto.PerformanceDTO;
 import tn.federation.backend.config.AppSecurityProperties;
@@ -19,6 +20,7 @@ import tn.federation.backend.services.Abstraction.IPasswordTokenService;
 import tn.federation.backend.util.PasswordPolicyValidator;
 import tn.federation.backend.util.SecurePasswordGenerator;
 import tn.federation.backend.entities.Performance;
+import tn.federation.backend.entities.Club;
 import tn.federation.backend.entities.Role;
 import tn.federation.backend.entities.User;
 import tn.federation.backend.entities.RegistrationStatus;
@@ -130,6 +132,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
+    @Transactional
     public BulkUserImportResponseDTO importUsers(List<AdminUserCreateRequestDTO> users) {
         BulkUserImportResponseDTO response = new BulkUserImportResponseDTO();
         response.setTotal(users.size());
@@ -405,7 +408,15 @@ public class UserServiceImpl implements IUserService {
         user.setNiveau(convertToNiveau(request.getNiveau()));
         user.setDiscipline(convertToDiscipline(request.getDiscipline()));
         user.setAnciennete(request.getAnciennete());
+        if (request.getClubId() != null) {
+            user.setClub(resolveClub(request.getClubId()));
+        }
         return user;
+    }
+
+    private Club resolveClub(Long clubId) {
+        return clubRepository.findById(clubId)
+                .orElseThrow(() -> new IllegalArgumentException("Club introuvable avec id: " + clubId));
     }
 
     public void changePassword(String currentEmail, String oldPassword, String newPassword) {

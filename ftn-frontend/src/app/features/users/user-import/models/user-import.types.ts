@@ -15,12 +15,21 @@ export type UserImportField =
 
 export type UserImportStep =
   | 'upload'
+  | 'club-info'
   | 'mapping'
   | 'validation'
   | 'preview'
   | 'confirm'
   | 'import'
   | 'result';
+
+export interface ClubImportResolution {
+  clubId?: number;
+  clubName: string;
+  needsCreation: boolean;
+  createIfMissing: boolean;
+  error: string;
+}
 
 export type ValidationSeverity = 'error' | 'warning';
 
@@ -99,6 +108,7 @@ export const USER_IMPORT_FIELD_LABELS: Record<UserImportField, string> = {
 
 export const USER_IMPORT_STEP_ORDER: UserImportStep[] = [
   'upload',
+  'club-info',
   'mapping',
   'validation',
   'preview',

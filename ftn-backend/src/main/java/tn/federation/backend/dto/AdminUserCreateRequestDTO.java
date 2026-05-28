@@ -32,6 +32,7 @@ public class AdminUserCreateRequestDTO {
     private String niveau;
     private String discipline;
     private Integer anciennete;
+    private Long clubId;
 
     public String getFirstName() {
         return firstName;
@@ -111,5 +112,13 @@ public class AdminUserCreateRequestDTO {
 
     public void setAnciennete(Integer anciennete) {
         this.anciennete = anciennete;
+    }
+
+    public Long getClubId() {
+        return clubId;
+    }
+
+    public void setClubId(Long clubId) {
+        this.clubId = clubId;
     }
 }

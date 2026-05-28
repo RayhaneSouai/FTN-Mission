@@ -9,7 +9,7 @@
   <aside class="admin-sidebar">
     <div class="sidebar-header">
       <img src="assets/logo-ftn.png" alt="Logo" class="sidebar-logo">
-      <span class="sidebar-title" *ngIf="!isSidebarCollapsed">Backoffice</span>
+      <span class="sidebar-title" *ngIf="!isSidebarCollapsed">Espace Admin</span>
     </div>
 
     <nav class="sidebar-nav">
@@ -60,13 +60,7 @@
 
 
 
-      <div class="nav-section">
-        <span class="section-label" *ngIf="!isSidebarCollapsed">MON COMPTE</span>
-        <a routerLink="/admin/mon-profil" routerLinkActive="active" class="sidebar-link" title="Mon Profil">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <span class="link-text" *ngIf="!isSidebarCollapsed">Mon Profil</span>
-        </a>
-      </div>
+
     </nav>
 
     <div class="sidebar-footer">
@@ -214,7 +208,7 @@
     </button>
 
     <footer class="admin-footer">
-      <span>FTN Backoffice</span>
+      <span>Espace Admin</span>
       <span class="admin-footer__dot">·</span>
       <span>Fédération Tunisienne de Natation</span>
     </footer>

@@ -35,62 +35,162 @@ export class UserImportValidatorService {
     const results: RowValidationResult[] = [];
 
     for (const row of rows) {
-      const issues: RowValidationIssue[] = [];
-      const emailRaw = (row.mapped.email ?? '').trim().toLowerCase();
-
-      this.validateIdentity(row, issues);
-      this.validateEmail(row, emailRaw, issues);
-      this.validateRole(row, issues);
-      this.validateDuplicates(emailRaw, emailInFile, row.rowNumber, issues);
-      this.validateExistingEmail(emailRaw, existingEmails, issues);
-
-      const roleRaw = (row.mapped.role ?? '').trim();
-      const role = roleRaw ? this.normalizeRole(roleRaw) : null;
-      if (roleRaw && !role) {
-        issues.push({
-          field: 'role',
-          severity: 'error',
-          message: 'Rôle invalide (SWIMMER, COACH ou VISITOR)'
-        });
-      } else if (role === 'ADMIN') {
-        issues.push({
-          field: 'role',
-          severity: 'error',
-          message: 'Le rôle Administrateur est interdit à l\'import CSV'
-        });
-      } else if (role) {
-        row.mapped.role = role;
-        this.validateRoleSpecific(row, role, issues);
-      }
-
-      const payload = issues.some((i) => i.severity === 'error')
-        ? null
-        : this.toPayload(row, role as ImportableRole);
-
-      row.payload = payload;
-
-      results.push({
-        rowNumber: row.rowNumber,
-        email: emailRaw,
-        displayName: `${row.resolvedFirstName} ${row.resolvedLastName}`.trim() || '—',
-        issues,
-        hasCriticalError: issues.some((i) => i.severity === 'error')
-      });
+      results.push(this.validateRow(row, existingEmails, emailInFile));
     }
 
+    return this.toSummary(rows.length, results);
+  }
+
+  async validateAsync(
+    rows: MappedUserRow[],
+    existingEmails: Set<string>,
+    onProgress?: (progress: number) => void
+  ): Promise<ImportValidationSummary> {
+    if (typeof Worker !== 'undefined') {
+      try {
+        return await this.validateInWorker(rows, existingEmails, onProgress);
+      } catch (err) {
+        console.warn('CSV validation worker failed. Falling back to chunked validation.', err);
+      }
+    }
+
+    const emailInFile = new Map<string, number>();
+    const results: RowValidationResult[] = [];
+    const batchSize = 25;
+
+    onProgress?.(0);
+    for (let i = 0; i < rows.length; i++) {
+      results.push(this.validateRow(rows[i], existingEmails, emailInFile));
+
+      if ((i + 1) % batchSize === 0 || i === rows.length - 1) {
+        onProgress?.(Math.round(((i + 1) / Math.max(rows.length, 1)) * 100));
+        await this.yieldToBrowser();
+      }
+    }
+
+    return this.toSummary(rows.length, results);
+  }
+
+  private validateInWorker(
+    rows: MappedUserRow[],
+    existingEmails: Set<string>,
+    onProgress?: (progress: number) => void
+  ): Promise<ImportValidationSummary> {
+    return new Promise((resolve, reject) => {
+      const worker = new Worker(new URL('./user-import-validation.worker', import.meta.url), { type: 'module' });
+
+      worker.onmessage = ({ data }) => {
+        if (data.type === 'progress') {
+          onProgress?.(data.progress);
+          return;
+        }
+
+        worker.terminate();
+        if (data.type === 'error') {
+          reject(new Error(data.error));
+          return;
+        }
+
+        const payloads = data.payloads as Array<AdminUserCreateRequest | null>;
+        payloads.forEach((payload, index) => {
+          rows[index].payload = payload;
+          if (payload?.role) {
+            rows[index].mapped.role = payload.role;
+          }
+          if (payload?.gender) {
+            rows[index].mapped.gender = payload.gender;
+          }
+          if (payload?.birthDate) {
+            rows[index].mapped.birthDate = payload.birthDate;
+          }
+          if (payload?.discipline) {
+            rows[index].mapped.discipline = payload.discipline;
+          }
+          if (payload?.niveau) {
+            rows[index].mapped.niveau = payload.niveau;
+          }
+        });
+        resolve(data.summary as ImportValidationSummary);
+      };
+
+      worker.onerror = () => {
+        worker.terminate();
+        reject(new Error('Impossible de valider le fichier CSV.'));
+      };
+
+      worker.postMessage({
+        rows,
+        existingEmails: Array.from(existingEmails)
+      });
+    });
+  }
+
+  private validateRow(
+    row: MappedUserRow,
+    existingEmails: Set<string>,
+    emailInFile: Map<string, number>
+  ): RowValidationResult {
+    const issues: RowValidationIssue[] = [];
+    const emailRaw = (row.mapped.email ?? '').trim().toLowerCase();
+
+    this.validateIdentity(row, issues);
+    this.validateEmail(row, emailRaw, issues);
+    this.validateRole(row, issues);
+    this.validateDuplicates(emailRaw, emailInFile, row.rowNumber, issues);
+    this.validateExistingEmail(emailRaw, existingEmails, issues);
+
+    const roleRaw = (row.mapped.role ?? '').trim();
+    const role = roleRaw ? this.normalizeRole(roleRaw) : null;
+    if (roleRaw && !role) {
+      issues.push({
+        field: 'role',
+        severity: 'error',
+        message: 'Rôle invalide (SWIMMER, COACH ou VISITOR)'
+      });
+    } else if (role === 'ADMIN') {
+      issues.push({
+        field: 'role',
+        severity: 'error',
+        message: 'Le rôle Administrateur est interdit à l\'import CSV'
+      });
+    } else if (role) {
+      row.mapped.role = role;
+      this.validateRoleSpecific(row, role, issues);
+    }
+
+    const payload = issues.some((i) => i.severity === 'error')
+      ? null
+      : this.toPayload(row, role as ImportableRole);
+
+    row.payload = payload;
+
+    return {
+      rowNumber: row.rowNumber,
+      email: emailRaw,
+      displayName: `${row.resolvedFirstName} ${row.resolvedLastName}`.trim() || '—',
+      issues,
+      hasCriticalError: issues.some((i) => i.severity === 'error')
+    };
+  }
+
+  private toSummary(totalRows: number, results: RowValidationResult[]): ImportValidationSummary {
     const errorRows = results.filter((r) => r.hasCriticalError).length;
     const warningRows = results.filter(
       (r) => !r.hasCriticalError && r.issues.some((i) => i.severity === 'warning')
     ).length;
 
     return {
-      totalRows: results.length,
-      validRows: results.length - errorRows,
+      totalRows,
+      validRows: totalRows - errorRows,
       errorRows,
       warningRows,
-      canImport: errorRows === 0 && results.length > 0,
+      canImport: (totalRows - errorRows) > 0,
       rows: results
     };
+  }
+
+  private yieldToBrowser(): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, 0));
   }
 
   private validateIdentity(row: MappedUserRow, issues: RowValidationIssue[]): void {

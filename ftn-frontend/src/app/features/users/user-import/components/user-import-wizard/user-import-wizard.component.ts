@@ -1,4 +1,5 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, PLATFORM_ID, NgZone } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { UserImportFacadeService } from '../../services/user-import-facade.service';
 import { UserImportColumnMapperService } from '../../services/user-import-column-mapper.service';
@@ -11,6 +12,7 @@ import {
   USER_IMPORT_FIELD_LABELS,
   UserImportField,
   MappedUserRow,
+  RowValidationResult,
   RowValidationIssue,
   UserImportStep
 } from '../../models/user-import.types';
@@ -43,24 +45,31 @@ export class UserImportWizardComponent {
   readonly fieldLabels = USER_IMPORT_FIELD_LABELS;
   readonly wizardSteps: WizardStepDef[] = [
     { id: 'upload', label: 'Fichier', hint: 'CSV', icon: 'bi-cloud-arrow-up' },
+    { id: 'club-info', label: 'Club', hint: 'Affiliation', icon: 'bi-building' },
     { id: 'mapping', label: 'Colonnes', hint: 'Association', icon: 'bi-diagram-3' },
-    { id: 'validation', label: 'Contrôle', hint: 'Erreurs', icon: 'bi-shield-check' },
     { id: 'preview', label: 'Aperçu', hint: 'Données', icon: 'bi-table' },
     { id: 'confirm', label: 'Validation', hint: 'Confirmation', icon: 'bi-check2-square' },
     { id: 'import', label: 'Import', hint: 'Exécution', icon: 'bi-box-arrow-in-down' }
   ];
 
   selectedFile: File | null = null;
+  loading = false;
   isDragging = false;
   identityMode: 'full' | 'split' = 'full';
   showOptionalFields = false;
+
+  isBrowser = false;
 
   constructor(
     readonly facade: UserImportFacadeService,
     readonly columnMapper: UserImportColumnMapperService,
     private readonly router: Router,
-    private readonly cdr: ChangeDetectorRef
-  ) {}
+    private readonly cdr: ChangeDetectorRef,
+    private readonly ngZone: NgZone,
+    @Inject(PLATFORM_ID) private readonly platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
 
   get availableColumns(): string[] {
     return this.facade.parsed?.headers ?? [];
@@ -71,7 +80,7 @@ export class UserImportWizardComponent {
   }
 
   get progressPercent(): number {
-    const order: UserImportStep[] = ['upload', 'mapping', 'validation', 'preview', 'confirm', 'import'];
+    const order: UserImportStep[] = ['upload', 'club-info', 'mapping', 'preview', 'confirm', 'import'];
     const current = this.facade.step === 'result' ? 'import' : this.facade.step;
     const idx = order.indexOf(current);
     if (idx < 0) return 100;
@@ -79,9 +88,12 @@ export class UserImportWizardComponent {
   }
 
   get canGoNextStep(): boolean {
+    if (this.loading) return false;
     switch (this.facade.step) {
       case 'upload':
         return !!this.facade.parsed && !this.facade.fileError;
+      case 'club-info':
+        return this.facade.canConfirmClub();
       case 'mapping':
         return this.mappingStatus.complete;
       case 'validation':
@@ -98,6 +110,7 @@ export class UserImportWizardComponent {
   get stepTitle(): string {
     const titles: Record<UserImportStep, string> = {
       upload: 'Importer un fichier CSV',
+      'club-info': 'Vérifier le club',
       mapping: 'Associer les colonnes',
       validation: 'Vérifier les données',
       preview: 'Prévisualiser l\'import',
@@ -111,6 +124,7 @@ export class UserImportWizardComponent {
   get stepSubtitle(): string {
     const subs: Record<UserImportStep, string> = {
       upload: `Format .csv · max ${this.maxSizeLabel} · 500 lignes`,
+      'club-info': 'Un fichier CSV doit contenir les membres d’un seul club',
       mapping: `${this.availableColumns.length} colonnes détectées dans votre fichier`,
       validation: 'Analyse ligne par ligne avant création des comptes',
       preview: `${this.facade.validation?.validRows ?? 0} utilisateur(s) prêt(s)`,
@@ -153,13 +167,42 @@ export class UserImportWizardComponent {
       .slice(0, this.previewLimit);
   }
 
+  get validationRows() {
+    return this.facade.validation?.rows.slice(0, 100) ?? [];
+  }
+
+  get hiddenValidationRows(): number {
+    const total = this.facade.validation?.rows.length ?? 0;
+    return Math.max(total - this.validationRows.length, 0);
+  }
+
   get nextButtonLabel(): string {
     if (this.facade.step === 'confirm') return 'Lancer l\'import';
     return 'Continuer';
   }
 
+  trackStep(_: number, step: WizardStepDef): UserImportStep {
+    return step.id;
+  }
+
+  trackMappingRow(_: number, row: MappingRowDef): UserImportField {
+    return row.field;
+  }
+
+  trackCsvColumn(_: number, column: string): string {
+    return column;
+  }
+
+  trackMappedRow(_: number, row: MappedUserRow): number {
+    return row.rowNumber;
+  }
+
+  trackValidationRow(_: number, row: RowValidationResult): number {
+    return row.rowNumber;
+  }
+
   stepState(stepId: UserImportStep): 'done' | 'active' | 'upcoming' {
-    const order: UserImportStep[] = ['upload', 'mapping', 'validation', 'preview', 'confirm', 'import'];
+    const order: UserImportStep[] = ['upload', 'club-info', 'mapping', 'preview', 'confirm', 'import'];
     const current = this.facade.step === 'result' ? 'import' : this.facade.step;
     const curIdx = order.indexOf(current);
     const stepIdx = order.indexOf(stepId);
@@ -185,13 +228,15 @@ export class UserImportWizardComponent {
 
   onFileInput(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.applyFile(input.files?.[0] ?? null);
+    const file = input.files?.[0] ?? null;
+    this.applyFile(file);
   }
 
   onDrop(event: DragEvent): void {
     event.preventDefault();
     this.isDragging = false;
-    this.applyFile(event.dataTransfer?.files?.[0] ?? null);
+    const file = event.dataTransfer?.files?.[0] ?? null;
+    this.applyFile(file);
   }
 
   onDragOver(event: DragEvent): void {
@@ -205,9 +250,19 @@ export class UserImportWizardComponent {
 
   private async applyFile(file: File | null): Promise<void> {
     this.selectedFile = file;
-    await this.facade.handleFileSelected(file);
-    if (this.facade.parsed) this.syncIdentityMode();
-    this.cdr.markForCheck();
+    this.loading = true;
+    try {
+      await this.facade.handleFileSelected(file);
+      if (this.facade.parsed) {
+        this.syncIdentityMode();
+        await this.facade.goNext();
+      }
+    } catch (err) {
+      this.facade.fileError = err instanceof Error ? err.message : 'Impossible de lire le fichier CSV.';
+    } finally {
+      this.loading = false;
+      this.cdr.detectChanges();
+    }
   }
 
   private syncIdentityMode(): void {
@@ -218,7 +273,7 @@ export class UserImportWizardComponent {
     if (this.identityMode === mode) return;
     this.identityMode = mode;
     this.facade.clearIdentityFields(mode);
-    this.cdr.markForCheck();
+    this.cdr.detectChanges();
   }
 
   onFieldSelect(field: UserImportField, value: string): void {
@@ -230,17 +285,38 @@ export class UserImportWizardComponent {
     return this.facade.fieldMap[field] ?? '';
   }
 
+  onCreateClubToggle(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.facade.setCreateClubIfMissing(input.checked);
+    this.cdr.detectChanges();
+  }
+
   async next(): Promise<void> {
-    if (this.facade.step === 'mapping' && !this.mappingStatus.complete) return;
-    if (this.facade.step === 'upload') this.syncIdentityMode();
-    await this.facade.goNext();
-    this.cdr.markForCheck();
+    if (this.facade.step === 'mapping' && !this.mappingStatus.complete) {
+      return;
+    }
+    if (this.facade.step === 'upload') {
+      this.syncIdentityMode();
+    }
+    if (this.loading) {
+      return;
+    }
+    this.loading = true;
+    this.cdr.detectChanges();
+    try {
+      await this.facade.goNext();
+    } catch (err) {
+      console.error('UserImportWizard: error in next()', err);
+    } finally {
+      this.loading = false;
+      this.ngZone.run(() => this.cdr.detectChanges());
+    }
   }
 
   back(): void {
     this.facade.goBack();
     if (this.facade.step === 'mapping') this.syncIdentityMode();
-    this.cdr.markForCheck();
+    this.cdr.detectChanges();
   }
 
   cancel(): void {
@@ -252,8 +328,8 @@ export class UserImportWizardComponent {
   }
 
   downloadTemplate(): void {
-    const headers = ['nom_complet', 'email', 'role', 'genre', 'date_naissance', 'discipline', 'niveau', 'anciennete'];
-    const sample = ['Ben Ali, Ahmed', 'ahmed.benali@example.com', 'SWIMMER', 'Homme', '2010-05-15', 'NATATION', 'MINIME', ''];
+    const headers = ['nom_club', 'nom_complet', 'email', 'role', 'genre', 'date_naissance', 'discipline', 'niveau', 'anciennete'];
+    const sample = ['Club Tunis Natation', 'Ben Ali, Ahmed', 'ahmed.benali@example.com', 'SWIMMER', 'Homme', '2010-05-15', 'NATATION', 'MINIME', ''];
     const csv = [headers.join(';'), sample.join(';')].join('\n');
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
