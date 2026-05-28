@@ -34,6 +34,15 @@ export interface RankingEntry {
 }
 
 export interface CompetitionResult {
+  position: number;
+  swimmerId: number;
+  swimmerFirstName: string;
+  swimmerLastName: string;
+  officialTime: number;
+  disqualified: boolean;
+  recordedAt: string;
+}
+
 export interface RecordDTO {
   distance: number;
   stroke: string;
