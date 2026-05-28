@@ -20,8 +20,10 @@ import { ToastContainerComponent } from '../../competitions/components/toast-con
           <h2>Demandes de Participation</h2>
           <p class="subtitle">Gérez les demandes de participation des nageurs aux compétitions.</p>
         </div>
+       
       </div>
 
+      <!-- Demandes tab only -->
       <div class="table-wrap">
         <table class="req-table">
           <thead>
@@ -29,8 +31,8 @@ import { ToastContainerComponent } from '../../competitions/components/toast-con
               <th>Nageur</th>
               <th>Compétition</th>
               <th>Date de demande</th>
-              <th>Conditions à vérifier</th>
               <th>Statut</th>
+              <th>Motif</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -41,19 +43,19 @@ import { ToastContainerComponent } from '../../competitions/components/toast-con
                 <td>{{ req.competitionName }}</td>
                 <td>{{ req.requestedAt | date:'dd/MM/yyyy HH:mm' }}</td>
                 <td>
-                  @if (req.customConditions) {
-                    <div class="custom-conditions-cell">{{ req.customConditions }}</div>
-                  } @else {
-                    <span class="no-conditions">Aucune</span>
-                  }
-                </td>
-                <td>
                   <span class="badge"
                     [class.pending]="req.status === 'PENDING'"
                     [class.approved]="req.status === 'APPROVED'"
                     [class.rejected]="req.status === 'REJECTED'">
-                    {{ req.status === 'PENDING' ? 'Vérification manuelle' : statusLabel(req.status) }}
+                    {{ statusLabel(req.status) }}
                   </span>
+                </td>
+                <td>
+                  @if (req.rejectionReason) {
+                    <div class="reason-cell">{{ req.rejectionReason }}</div>
+                  } @else {
+                    <span class="no-conditions">—</span>
+                  }
                 </td>
                 <td class="action-cell">
                   @if (req.status === 'PENDING') {
@@ -80,6 +82,9 @@ import { ToastContainerComponent } from '../../competitions/components/toast-con
       @if (requests().length === 0) {
         <div class="empty">Aucune demande de participation.</div>
       }
+      
+
+
     </div>
   `,
   styles: [`
@@ -115,6 +120,16 @@ import { ToastContainerComponent } from '../../competitions/components/toast-con
       border-radius: 6px; max-width: 250px; line-height: 1.4; white-space: pre-wrap;
     }
     .no-conditions { color: #9e9e9e; font-size: 0.8rem; font-style: italic; }
+    .reason-cell {
+      font-size: 0.8rem; color: #5d4037; background: #fffde7; padding: 6px 10px;
+      border-radius: 6px; max-width: 250px; line-height: 1.4; white-space: pre-wrap;
+    }
+    .tab-bar { display: flex; gap: 0.5rem; }
+    .tab {
+      padding: 0.4rem 1rem; border: 1px solid #dee2e6; border-radius: 6px;
+      background: white; cursor: pointer; font-size: 0.85rem; font-weight: 600;
+      &.active { background: #e7f1ff; border-color: #0d6efd; color: #0d6efd; }
+    }
   `]
 })
 export class AdminParticipationsComponent implements OnInit {
@@ -123,6 +138,8 @@ export class AdminParticipationsComponent implements OnInit {
 
   requests = signal<ParticipationResponseDTO[]>([]);
   processing = signal<Set<number>>(new Set());
+  activeTab = signal<'requests' | 'audit'>('requests');
+  auditTrail = signal<any[]>([]);
 
   ngOnInit(): void {
     this.loadAll();
@@ -134,6 +151,10 @@ export class AdminParticipationsComponent implements OnInit {
 
   statusLabel(s: string): string {
     return (PARTICIPATION_STATUS_LABELS as Record<string, string>)[s] ?? s;
+  }
+
+  loadAudit(): void {
+    this.api.getAuditTrail().subscribe(trail => this.auditTrail.set(trail));
   }
 
   approve(req: ParticipationResponseDTO): void {

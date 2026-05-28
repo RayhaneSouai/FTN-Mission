@@ -9,5 +9,7 @@ public record ProgramItemResponse(
         String label,
         @JsonFormat(pattern = "HH:mm") LocalTime time,
         String type,
-        Integer numberOfParticipants) {
+        Integer numberOfParticipants,
+        String swimmerCategory,
+        String seriesGender) {
 }

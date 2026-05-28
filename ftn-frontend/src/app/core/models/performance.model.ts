@@ -23,3 +23,13 @@ export interface RankingEntry {
   stroke: string;
   isNationalRecord: boolean;
 }
+
+export interface CompetitionResult {
+  position: number;
+  swimmerId: number;
+  swimmerFirstName: string;
+  swimmerLastName: string;
+  officialTime: number;
+  disqualified: boolean;
+  recordedAt: string;
+}

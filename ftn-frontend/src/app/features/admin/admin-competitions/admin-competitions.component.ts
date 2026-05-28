@@ -22,9 +22,14 @@ function dateRangeValidator(control: AbstractControl): ValidationErrors | null {
   const start = control.get('startDate')?.value;
   const end = control.get('endDate')?.value;
   const deadline = control.get('participationDeadline')?.value;
+  const hasMinimas = control.get('hasMinimas')?.value;
+  const minimaTime = control.get('minimaTime')?.value;
   const errors: ValidationErrors = {};
   if (start && end && end < start) errors['dateRange'] = true;
   if (deadline && start && deadline >= start) errors['deadlineAfterStart'] = true;
+  if (hasMinimas && (minimaTime === null || minimaTime === undefined || minimaTime <= 0)) {
+    errors['minimaRequired'] = true;
+  }
   return Object.keys(errors).length ? errors : null;
 }
 
@@ -69,8 +74,13 @@ function dateRangeValidator(control: AbstractControl): ValidationErrors | null {
                 </td>
                 <td class="action-cell">
                   <a [routerLink]="['/admin/competitions', comp.id, 'programme']" class="btn-action btn-prog">Programme</a>
-                  <button class="btn-action btn-edit" (click)="openEdit(comp)">Modifier</button>
-                  <button class="btn-action btn-del" (click)="confirmDelete(comp)">Supprimer</button>
+                  <a [routerLink]="['/admin/competitions', comp.id, 'distribution']" class="btn-action btn-dist">Répartition</a>
+                  @if (comp.programmeStatus !== 'APPROVED') {
+                    <button class="btn-action btn-edit" (click)="openEdit(comp)">Modifier</button>
+                    <button class="btn-action btn-del" (click)="confirmDelete(comp)">Supprimer</button>
+                  } @else {
+                    <span class="lock-badge">🔒 Verrouillée</span>
+                  }
                 </td>
               </tr>
             }
@@ -220,6 +230,45 @@ function dateRangeValidator(control: AbstractControl): ValidationErrors | null {
               <textarea formControlName="customConditions" rows="3" placeholder="Ex: Doit être membre de l'équipe nationale, qualification régionale requise..."></textarea>
             </div>
 
+            <!-- New Competition Conditions -->
+            <div class="section-divider">
+              <span class="divider-label">Conditions Spéciales</span>
+            </div>
+            <div class="form-row">
+              <div class="form-group form-group--checkbox">
+                <label>
+                  <input type="checkbox" formControlName="licenseRequired" />
+                  Licence obligatoire
+                </label>
+              </div>
+              <div class="form-group form-group--checkbox">
+                <label>
+                  <input type="checkbox" formControlName="medicalCertificateRequired" />
+                  Certificat médical requis
+                </label>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group form-group--checkbox">
+                <label>
+                  <input type="checkbox" formControlName="hasMinimas" />
+                  Avec Minimas
+                </label>
+              </div>
+              @if (form.controls.hasMinimas.value) {
+                <div class="form-group">
+                  <label>Temps Minima (secondes) *</label>
+                  <input type="number" formControlName="minimaTime" step="0.01" min="0" placeholder="Ex: 58.32 (pour 00:58:32)" />
+                  @if (form.controls.minimaTime.touched && form.controls.minimaTime.hasError('required')) {
+                    <span class="field-error">Le temps minima est obligatoire quand les minimas sont activés.</span>
+                  }
+                  @if (form.hasError('minimaRequired')) {
+                    <span class="field-error">Veuillez saisir la valeur des minima avant de continuer.</span>
+                  }
+                </div>
+              }
+            </div>
+
             <div class="form-actions">
               <button type="button" class="btn-cancel" (click)="closeModal()">Annuler</button>
               <button type="submit" class="btn-submit" [disabled]="form.invalid">
@@ -274,8 +323,13 @@ function dateRangeValidator(control: AbstractControl): ValidationErrors | null {
       text-decoration: none; border: none; cursor: pointer;
     }
     .btn-prog { background: #1565C0; color: white; &:hover { background: #0d47a1; } }
+    .btn-dist { background: #e8f5e9; color: #2e7d32; &:hover { background: #c8e6c9; } }
     .btn-edit { background: #e3f2fd; color: #1565C0; &:hover { background: #bbdefb; } }
     .btn-del { background: #fce4ec; color: #c62828; &:hover { background: #ffcdd2; } }
+    .lock-badge {
+      font-size: 0.7rem; font-weight: 600; color: #6c757d; padding: 0.3rem 0.6rem;
+      background: #f1f3f5; border-radius: 6px; white-space: nowrap;
+    }
     .empty { text-align: center; padding: 3rem; color: #6c757d; font-size: 0.9rem; }
 
     /* Modal */
@@ -369,6 +423,12 @@ function dateRangeValidator(control: AbstractControl): ValidationErrors | null {
       border-color: #d32f2f !important;
       &:focus { box-shadow: 0 0 0 2px rgba(211,47,47,0.15) !important; }
     }
+    .form-group--checkbox {
+      label {
+        display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: 500; color: #333; cursor: pointer;
+        input[type="checkbox"] { width: 16px; height: 16px; accent-color: #1565C0; cursor: pointer; }
+      }
+    }
   `]
 })
 export class AdminCompetitionsComponent implements OnInit {
@@ -406,6 +466,10 @@ export class AdminCompetitionsComponent implements OnInit {
     participationDeadline: this.fb.control<string>(''),
     maxEvents: this.fb.control<number | null>(null),
     customConditions: this.fb.control(''),
+    licenseRequired: this.fb.control<boolean>(false),
+    medicalCertificateRequired: this.fb.control<boolean>(false),
+    hasMinimas: this.fb.control<boolean>(false),
+    minimaTime: this.fb.control<number | null>(null),
   }, { validators: dateRangeValidator });
 
   /** Selected age categories (multi-select dropdown) */
@@ -455,7 +519,7 @@ export class AdminCompetitionsComponent implements OnInit {
 
   openCreate(): void {
     this.editingComp.set(null);
-    this.form.reset({ discipline: Discipline.NATATION, region: '', lieu: '', allowedGender: '', participationDeadline: '', maxEvents: null, customConditions: '' });
+    this.form.reset({ discipline: Discipline.NATATION, region: '', lieu: '', allowedGender: '', participationDeadline: '', maxEvents: null, customConditions: '', licenseRequired: false, medicalCertificateRequired: false, hasMinimas: false, minimaTime: null });
     this.selectedCategories.set(new Set());
     this.filteredPiscines.set([]);
     this.modalOpen.set(true);
@@ -479,6 +543,10 @@ export class AdminCompetitionsComponent implements OnInit {
       participationDeadline: comp.participationDeadline ?? '',
       maxEvents: comp.maxEvents ?? null,
       customConditions: comp.customConditions ?? '',
+      licenseRequired: comp.licenseRequired ?? false,
+      medicalCertificateRequired: comp.medicalCertificateRequired ?? false,
+      hasMinimas: comp.hasMinimas ?? false,
+      minimaTime: comp.minimaTime ?? null,
     });
     this.modalOpen.set(true);
   }
@@ -505,6 +573,10 @@ export class AdminCompetitionsComponent implements OnInit {
       allowedGender: raw.allowedGender || null,
       maxEvents: raw.maxEvents || null,
       customConditions: raw.customConditions || null,
+      licenseRequired: raw.licenseRequired ?? false,
+      medicalCertificateRequired: raw.medicalCertificateRequired ?? false,
+      hasMinimas: raw.hasMinimas ?? false,
+      minimaTime: raw.hasMinimas ? raw.minimaTime : null,
     };
 
     if (this.editingComp()) {

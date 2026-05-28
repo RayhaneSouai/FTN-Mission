@@ -23,4 +23,8 @@ export class AdminParticipationApiService {
     reject(id: number): Observable<ParticipationResponseDTO> {
         return this.http.put<ParticipationResponseDTO>(`${this.baseUrl}/${id}/reject`, {});
     }
+
+    getAuditTrail(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.baseUrl}/audit`);
+    }
 }
