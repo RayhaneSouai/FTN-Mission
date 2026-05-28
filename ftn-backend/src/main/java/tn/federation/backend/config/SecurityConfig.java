@@ -45,6 +45,9 @@ public class SecurityConfig {
                                 "/api/competitions/*/programme",
                                 "/api/competitions/*/programme/participants",
                                 "/api/clubs/**",
+                                "/api/performances/**",
+                                "/api/rankings/**",
+                                "/api/records/**",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**")

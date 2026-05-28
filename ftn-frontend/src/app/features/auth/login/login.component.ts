@@ -29,8 +29,7 @@ export class LoginComponent {
       next: (res) => {
         if (isPlatformBrowser(this.platformId)) {
           localStorage.setItem('token', res.token);
-          localStorage.setItem('user', JSON.stringify(res.user));
-
+          this.authService.setUser(res.user);
           const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
 
           if (res.user.role === 'ADMIN' || res.user.role === 'ADMINISTRATEUR') {

@@ -1,7 +1,7 @@
 package tn.federation.backend.services.Abstraction;
 
-import tn.federation.backend.dtos.CompetitionResultDTO;
-import tn.federation.backend.dtos.RankingEntryDTO;
+import tn.federation.backend.dto.CompetitionResultDTO;
+import tn.federation.backend.dto.RankingEntryDTO;
 import tn.federation.backend.entities.Gender;
 import tn.federation.backend.entities.Niveau;
 import tn.federation.backend.entities.StrokeType;

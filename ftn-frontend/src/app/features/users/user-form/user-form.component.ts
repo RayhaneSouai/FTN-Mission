@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserService } from '../services/user.service';
+import { ClubService } from '../../clubs/services/club.service';
 
 @Component({
   selector: 'app-user-form',
@@ -38,17 +39,29 @@ export class UserFormComponent implements OnInit {
     gender: '',
     niveau: '',
     discipline: '',
-    anciennete: null
+    anciennete: null,
+    clubId: null
   };
   
+  clubs: any[] = [];
   error = '';
   success = '';
   submitting = false;
 
-  constructor(private userService: UserService) { }
+  constructor(
+    private userService: UserService,
+    private clubService: ClubService
+  ) { }
 
   ngOnInit(): void {
-    // Initialization is handled by the @Input setter
+    this.loadClubs();
+  }
+
+  loadClubs() {
+    this.clubService.getAll().subscribe({
+      next: (data) => this.clubs = data,
+      error: (err) => console.error('Erreur lors du chargement des clubs', err)
+    });
   }
 
   resetForm() {
@@ -66,7 +79,8 @@ export class UserFormComponent implements OnInit {
       gender: '',
       niveau: '',
       discipline: '',
-      anciennete: null
+      anciennete: null,
+      clubId: null
     };
   }
 
@@ -85,7 +99,8 @@ export class UserFormComponent implements OnInit {
           gender: data.gender || '',
           niveau: data.niveau || '',
           discipline: data.discipline || '',
-          anciennete: data.anciennete || null
+          anciennete: data.anciennete || null,
+          clubId: data.clubId || null
         };
       },
       error: (err) => {
@@ -138,7 +153,8 @@ export class UserFormComponent implements OnInit {
         gender: this.userData.gender || null,
         niveau: this.userData.niveau || null,
         discipline: this.userData.discipline || null,
-        anciennete: this.userData.anciennete || null
+        anciennete: this.userData.anciennete || null,
+        clubId: this.userData.clubId || null
       };
 
       this.userService.updateUser(this._userId, updateData).subscribe({
@@ -164,7 +180,8 @@ export class UserFormComponent implements OnInit {
         gender: this.userData.gender || null,
         niveau: this.userData.niveau || null,
         discipline: this.userData.discipline || null,
-        anciennete: this.userData.anciennete || null
+        anciennete: this.userData.anciennete || null,
+        clubId: this.userData.clubId || null
       };
 
       this.userService.createUser(createData).subscribe({

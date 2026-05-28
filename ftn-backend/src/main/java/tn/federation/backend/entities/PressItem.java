@@ -44,6 +44,30 @@ public class PressItem {
     @Column(length = 20) // Augmente la taille pour éviter "Data truncated"
     private PressStatus status;
 
+    @Column(columnDefinition = "TEXT")
+    private String summary;
+
+    private String author;
+
+    @Builder.Default
+    private Long views = 0L;
+
+    private LocalDateTime scheduledAt;
+
+    @Builder.Default
+    private String importance = "NORMAL"; // NORMAL, A_LA_UNE, URGENT, IMPORTANT
+
+    @Builder.Default
+    private Integer readTime = 0; // Temps moyen de lecture en minutes
+
+    @Builder.Default
+    private Long downloadsCount = 0L;
+
+    @Column(columnDefinition = "TEXT")
+    private String gallery; // Liste de liens d'images séparés par des virgules
+
+    @Column(columnDefinition = "TEXT")
+    private String documents; // Liste de liens PDF séparés par des virgules
 
     private LocalDateTime publishedAt;
 
@@ -57,6 +81,10 @@ public class PressItem {
     protected void onCreate() {
         createdAt = LocalDateTime.now(); // Horodatage automatique à la création
         if (status == null) status = PressStatus.DRAFT; // Statut par défaut si non précisé
+        if (views == null) views = 0L;
+        if (downloadsCount == null) downloadsCount = 0L;
+        if (importance == null) importance = "NORMAL";
+        if (readTime == null) readTime = 0;
     }
 
     // Exécuté automatiquement AVANT un UPDATE : protège createdAt contre l'écrasement

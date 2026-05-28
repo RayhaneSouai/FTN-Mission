@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { PressItem, PressStatus } from '../models/press-item.model';
 import { PressStats } from '../models/press-stats.model';
 
@@ -44,8 +45,34 @@ export class PressService {
     return this.http.put<PressItem>(`${this.baseUrl}/draft/${id}`, {});
   }
 
+
+
+  schedule(id: number, scheduledAt: string): Observable<PressItem> {
+    return this.http.put<PressItem>(`${this.baseUrl}/schedule/${id}?scheduledAt=${encodeURIComponent(scheduledAt)}`, {});
+  }
+
+  incrementViews(id: number): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/views/${id}`, {});
+  }
+
+  incrementDownloads(id: number): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/downloads/${id}`, {});
+  }
+
+  getPopular(limit: number = 5): Observable<PressItem[]> {
+    return this.http.get<PressItem[]>(`${this.baseUrl}/popular?limit=${limit}`);
+  }
+
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/delete/${id}`);
+  }
+
+  getFavoritesByUserId(userId: number): Observable<PressItem[]> {
+    return this.http.get<PressItem[]>(`${this.baseUrl}/favorites/${userId}`);
+  }
+
+  getPinsByUserId(userId: number): Observable<PressItem[]> {
+    return this.http.get<PressItem[]>(`${this.baseUrl}/pins/${userId}`);
   }
 
   getEmbedUrl(url: string): string {
@@ -90,8 +117,38 @@ export class PressService {
     if (url) window.open(url, '_blank');
   }
 
-  fetchMetadata(url: string): Observable<{ title?: string; description?: string; image?: string }> {
-    return this.http.get<{ title?: string; description?: string; image?: string }>(
+
+  translateText(text: string, targetLang: string): Observable<string> {
+    const langNames: any = { 'fr': 'Français', 'en': 'Anglais', 'ar': 'Arabe', 'it': 'Italien' };
+    const cleanText = text ? text.replace(/<[^>]*>/g, '').substring(0, 500) : '';
+    const translatedMock = `<div style="padding:15px; background:#e0f2fe; border-left:4px solid #0284c7; margin-bottom:20px; border-radius:8px;">
+      <strong style="color:#0369a1;">✅ Traduction automatique en ${langNames[targetLang] || targetLang} réussie.</strong><br>
+      <small style="color:#0ea5e9;">Ceci est une simulation pour l'interface de démonstration basée sur votre texte.</small>
+    </div>
+    <p style="font-style:italic;">[Texte traduit simulé] : ${cleanText}...</p>`;
+    return new Observable(subscriber => {
+      setTimeout(() => {
+        subscriber.next(translatedMock);
+        subscriber.complete();
+      }, 1500);
+    });
+  }
+
+  generateAiRecap(id: number): Observable<string> {
+    return this.http.get(`${this.baseUrl}/${id}/claude-summary`, { responseType: 'text' }).pipe(
+      catchError(error => {
+        console.error('Erreur IA Claude:', error);
+        return of('<div style="color:red;">Erreur de communication avec l\'IA Claude. Vérifiez si la clé API est configurée côté backend.</div>');
+      })
+    );
+  }
+
+  togglePin(pressItemId: number, userId: number): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/${pressItemId}/pin?userId=${userId}`, {});
+  }
+
+  fetchMetadata(url: string): Observable<{ title?: string; description?: string; image?: string; videoUrl?: string; content?: string; error?: string }> {
+    return this.http.get<{ title?: string; description?: string; image?: string; videoUrl?: string; content?: string; error?: string }>(
       `${this.baseUrl}/fetch-metadata`,
       { params: { url } }
     );
@@ -101,5 +158,24 @@ export class PressService {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<{ url: string }>(`${this.baseUrl}/upload`, formData);
+  }
+
+  // --- INTERACTIONS ---
+
+  getInteractions(pressItemId: number, userId: number | null): Observable<any> {
+    const params = userId ? `?userId=${userId}` : '';
+    return this.http.get<any>(`${this.baseUrl}/${pressItemId}/interactions${params}`);
+  }
+
+  addComment(pressItemId: number, userId: number, text: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/${pressItemId}/comment?userId=${userId}`, { text });
+  }
+
+  toggleReaction(pressItemId: number, userId: number, type: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/${pressItemId}/react?userId=${userId}&type=${type}`, {});
+  }
+
+  toggleFavorite(pressItemId: number, userId: number): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/${pressItemId}/favorite?userId=${userId}`, {});
   }
 }

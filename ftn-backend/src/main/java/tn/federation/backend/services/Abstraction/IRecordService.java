@@ -1,6 +1,6 @@
 package tn.federation.backend.services.Abstraction;
 
-import tn.federation.backend.dtos.RecordDTO;
+import tn.federation.backend.dto.RecordDTO;
 import tn.federation.backend.entities.Gender;
 import tn.federation.backend.entities.StrokeType;
 import java.util.List;

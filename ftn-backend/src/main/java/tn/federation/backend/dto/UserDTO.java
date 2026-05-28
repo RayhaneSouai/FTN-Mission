@@ -19,6 +19,32 @@ public class UserDTO {
     private Integer anciennete;
     private String registrationStatus;
     private LocalDateTime createdAt;
+    
+    // Club related fields
+    private Long clubId;
+    private String clubName;
+    private String clubRegion;
+    private String clubManager;
+    private String clubContact;
+    private LocalDate clubAffiliationDate;
+
+    public Long getClubId() { return clubId; }
+    public void setClubId(Long clubId) { this.clubId = clubId; }
+
+    public String getClubName() { return clubName; }
+    public void setClubName(String clubName) { this.clubName = clubName; }
+
+    public String getClubRegion() { return clubRegion; }
+    public void setClubRegion(String clubRegion) { this.clubRegion = clubRegion; }
+
+    public String getClubManager() { return clubManager; }
+    public void setClubManager(String clubManager) { this.clubManager = clubManager; }
+
+    public String getClubContact() { return clubContact; }
+    public void setClubContact(String clubContact) { this.clubContact = clubContact; }
+
+    public LocalDate getClubAffiliationDate() { return clubAffiliationDate; }
+    public void setClubAffiliationDate(LocalDate clubAffiliationDate) { this.clubAffiliationDate = clubAffiliationDate; }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;

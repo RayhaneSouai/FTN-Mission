@@ -11,20 +11,25 @@ import tn.federation.backend.entities.PressItem;
 import tn.federation.backend.entities.PressType;
 import tn.federation.backend.dto.PressStatsDTO;
 import tn.federation.backend.services.Abstraction.IPressService;
+import tn.federation.backend.services.ServiceImpl.GeminiService;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import tn.federation.backend.dto.PressInteractionDTO;
+
 @RestController
 @RequestMapping("/api/press")
-
 @Tag(name = "Press", description = "Gestion des articles de presse (CRUD + publication/archivage)")
 public class PressController {
 
     @Autowired
     IPressService pressService;
+
+    @Autowired
+    GeminiService geminiService;
 
     private final Path root = Paths.get("uploads");
 
@@ -178,6 +183,35 @@ public class PressController {
         }
     }
 
+    @Operation(summary = "Programmer un article")
+    @PutMapping("/schedule/{id}")
+    public org.springframework.http.ResponseEntity<?> schedule(@PathVariable long id, @RequestParam("scheduledAt") String scheduledAtStr) {
+        try {
+            java.time.LocalDateTime scheduledAt = java.time.LocalDateTime.parse(scheduledAtStr);
+            return org.springframework.http.ResponseEntity.ok(pressService.schedule(id, scheduledAt));
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.internalServerError().body("Erreur Programmation: " + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "Incrémenter le compteur de vues")
+    @PutMapping("/views/{id}")
+    public void incrementViews(@PathVariable long id) {
+        pressService.incrementViews(id);
+    }
+
+    @Operation(summary = "Incrémenter le compteur de téléchargements")
+    @PutMapping("/downloads/{id}")
+    public void incrementDownloads(@PathVariable long id) {
+        pressService.incrementDownloads(id);
+    }
+
+    @Operation(summary = "Obtenir les articles les plus populaires")
+    @GetMapping("/popular")
+    public List<PressItem> getPopular(@RequestParam(defaultValue = "5") int limit) {
+        return pressService.getPopular(limit);
+    }
+
     @Operation(summary = "Archiver un article")
     @PutMapping("/archive/{id}")
     public org.springframework.http.ResponseEntity<?> archive(@PathVariable long id) {
@@ -206,6 +240,94 @@ public class PressController {
             return org.springframework.http.ResponseEntity.ok().build();
         } catch (Exception e) {
             return org.springframework.http.ResponseEntity.internalServerError().body("Erreur Delete: " + e.getMessage());
+        }
+    }
+
+    // =====================================================================
+    // INTERACTIONS (Commentaires, Réactions, Favoris)
+    // =====================================================================
+
+    @Operation(summary = "Obtenir les articles favoris d'un nageur")
+    @GetMapping("/favorites/{userId}")
+    public org.springframework.http.ResponseEntity<List<PressItem>> getFavoritesByUserId(@PathVariable Long userId) {
+        return org.springframework.http.ResponseEntity.ok(pressService.getFavoritesByUserId(userId));
+    }
+
+    @Operation(summary = "Obtenir les articles épinglés d'un nageur")
+    @GetMapping("/pins/{userId}")
+    public org.springframework.http.ResponseEntity<List<PressItem>> getPinsByUserId(@PathVariable Long userId) {
+        return org.springframework.http.ResponseEntity.ok(pressService.getPinsByUserId(userId));
+    }
+
+    @Operation(summary = "Obtenir les interactions (commentaires, réactions, favoris) d'un article")
+    @GetMapping("/{id}/interactions")
+    public org.springframework.http.ResponseEntity<PressInteractionDTO> getInteractions(
+            @PathVariable long id, 
+            @RequestParam(required = false) Long userId) {
+        return org.springframework.http.ResponseEntity.ok(pressService.getInteractions(id, userId));
+    }
+
+    @Operation(summary = "Générer un résumé IA (Gemini) d'un article")
+    @GetMapping(value = "/{id}/claude-summary", produces = "text/html;charset=UTF-8")
+    public String generateSummary(@PathVariable("id") Long id) {
+        PressItem item = pressService.getPressItemById(id);
+        if (item == null) {
+            return "<i>Article introuvable pour générer un résumé.</i>";
+        }
+        return geminiService.generateSummary(item.getTitle(), item.getSummary(), item.getContent(), item.getLinkUrl());
+    }
+
+    @Operation(summary = "Ajouter un commentaire")
+    @PostMapping("/{id}/comment")
+    public org.springframework.http.ResponseEntity<?> addComment(
+            @PathVariable long id, 
+            @RequestParam Long userId, 
+            @RequestBody Map<String, String> payload) {
+        try {
+            pressService.addComment(id, userId, payload.get("text"));
+            return org.springframework.http.ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.internalServerError().body("Erreur Comment: " + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "Ajouter/Modifier/Supprimer une réaction")
+    @PostMapping("/{id}/react")
+    public org.springframework.http.ResponseEntity<?> toggleReaction(
+            @PathVariable long id, 
+            @RequestParam Long userId, 
+            @RequestParam String type) {
+        try {
+            pressService.toggleReaction(id, userId, type);
+            return org.springframework.http.ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.internalServerError().body("Erreur Reaction: " + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "Ajouter/Supprimer un favori")
+    @PostMapping("/{id}/favorite")
+    public org.springframework.http.ResponseEntity<?> toggleFavorite(
+            @PathVariable long id, 
+            @RequestParam Long userId) {
+        try {
+            pressService.toggleFavorite(id, userId);
+            return org.springframework.http.ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.internalServerError().body("Erreur Favorite: " + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "Ajouter/Supprimer une épingle (Pin)")
+    @PostMapping("/{id}/pin")
+    public org.springframework.http.ResponseEntity<?> togglePin(
+            @PathVariable long id, 
+            @RequestParam Long userId) {
+        try {
+            pressService.togglePin(id, userId);
+            return org.springframework.http.ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.internalServerError().body("Erreur Pin: " + e.getMessage());
         }
     }
 }
