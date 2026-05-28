@@ -39,6 +39,9 @@ public class SecurityConfig {
                                 "/api/press/fetch-metadata",
                                 "/api/press/upload",
                                 "/api/press/images/**",
+                                "/api/partners",
+                                "/api/partners/requests",
+                                "/api/partners/sponsorships",
                                 // Public competition endpoints (read-only)
                                 "/api/competitions/getAll",
                                 "/api/competitions/get/**",

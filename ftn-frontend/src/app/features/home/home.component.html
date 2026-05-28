@@ -30,17 +30,26 @@
 </section>
 
 <section class="partners-section" id="partenaires">
-  <div class="news-header" style="margin-bottom:18px;">
+  <div class="news-header">
     <h2>Nos Partenaires</h2>
-    <button class="btn-link" type="button" (click)="openPartnerPopup()">Devenir partenaire</button>
+
+    <button class="btn-link" type="button"  routerLink="/partenaires" (click)="openPartnerPopup()">
+      Devenir partenaire
+    </button>
   </div>
 
   <div class="premium-grid">
     <article *ngFor="let p of partners" class="premium-card">
       <div class="premium-image-wrapper">
-        <div class="premium-placeholder">{{ p.initials }}</div>
-        <span class="category-badge cat-sport">{{ p.category }}</span>
+        <div class="premium-placeholder">
+          {{ p.initials }}
+        </div>
+
+        <span class="category-badge">
+          {{ p.category }}
+        </span>
       </div>
+
       <div class="premium-content">
         <h3 class="premium-title">{{ p.name }}</h3>
         <p class="premium-excerpt">{{ p.description }}</p>
@@ -49,20 +58,9 @@
   </div>
 </section>
 
-<div class="modal-backdrop" *ngIf="partnerPopupOpen" (click)="closePartnerPopup()"></div>
-<div class="modal" *ngIf="partnerPopupOpen">
-  <div class="modal-header">
-    <h3>Partenariat & Sponsoring</h3>
-    <button class="modal-close" (click)="closePartnerPopup()">✕</button>
-  </div>
-  <div class="modal-body">
-    <p>Vous voulez être une partenaire de la fédération / sponsoriser un nageur ?</p>
-    <div class="modal-actions">
-      <button class="btn-primary" routerLink="/partenaires/demande" (click)="closePartnerPopup()">Devenir partenaire</button>
-      <button class="btn-outline" routerLink="/partenaires/sponsoring" (click)="closePartnerPopup()">Sponsoriser un nageur</button>
-    </div>
-  </div>
-</div>
+<!-- MODAL -->
+
+
 
 <section class="news-section">
   <div class="news-header">
@@ -83,7 +81,7 @@
         <div *ngIf="item.type === 'VIDEO'" class="video-overlay">
           <div class="play-icon">▶</div>
         </div>
-        
+
         <img *ngIf="item.mediaUrl && item.type !== 'VIDEO'" [src]="item.mediaUrl" [alt]="item.title" (error)="item.mediaUrl = 'assets/default-news.jpg'">
         <img *ngIf="item.type === 'VIDEO'" [src]="pressService.getVideoThumbnail(item.mediaUrl || '')" [alt]="item.title">
         <div *ngIf="!item.mediaUrl && item.type !== 'VIDEO'" class="premium-placeholder">📰</div>
@@ -100,7 +98,7 @@
         </div>
         <h3 class="premium-title">{{ item.title }}</h3>
         <p class="premium-excerpt">{{ (item.content || '') | slice:0:100 }}...</p>
-        
+
         <div class="premium-footer">
           <button class="premium-read-more" (click)="openLink(item.linkUrl || item.mediaUrl)">
             <span>{{ item.type === 'VIDEO' ? 'Regarder' : 'Lire la suite' }}</span>

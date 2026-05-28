@@ -29,6 +29,7 @@ export class DashboardComponent implements OnInit {
         this.stats = [
           { label: 'Utilisateurs Totaux', value: data.totalUsers.toString(), icon: 'users', color: 'blue', trend: '+0%' },
           { label: 'Licences Actives', value: data.activeLicenses.toString(), icon: 'license', color: 'azure', trend: '+0%' },
+          { label: 'Partenariats en attente', value: data.pendingPartnerships?.toString() || '0', icon: 'pending', color: 'orange', trend: '+0' },
           { label: 'Demandes en Attente', value: data.pendingRequests.toString(), icon: 'pending', color: 'orange', trend: '+0' },
           { label: 'Clubs Affiliés', value: data.affiliatedClubs.toString(), icon: 'club', color: 'indigo', trend: 'Stable' }
         ];
@@ -40,6 +41,7 @@ export class DashboardComponent implements OnInit {
         this.stats = [
           { label: 'Utilisateurs Totaux', value: '...', icon: 'users', color: 'blue', trend: '' },
           { label: 'Licences Actives', value: '...', icon: 'license', color: 'azure', trend: '' },
+          { label: 'Partenariats en attente', value: '0', icon: 'pending', color: 'orange', trend: '' },
           { label: 'Demandes en Attente', value: '...', icon: 'pending', color: 'orange', trend: '' },
           { label: 'Clubs Affiliés', value: '...', icon: 'club', color: 'indigo', trend: '' }
         ];

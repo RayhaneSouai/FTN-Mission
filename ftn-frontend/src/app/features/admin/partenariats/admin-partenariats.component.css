@@ -1,0 +1,83 @@
+.container {
+  padding: 24px;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.header p {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+/* TABS */
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tabs button {
+  padding: 10px 16px;
+  border: none;
+  background: #eee;
+  cursor: pointer;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.tabs button.active {
+  background: #003a80;
+  color: white;
+}
+
+/* TABLE */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+th, td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+
+/* BUTTONS */
+.approve {
+  background: #16a34a;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  margin-right: 6px;
+  border-radius: 6px;
+}
+
+.reject {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+/* STATUS BADGES */
+.PENDING {
+  color: orange;
+  font-weight: bold;
+}
+
+.APPROVED {
+  color: green;
+  font-weight: bold;
+}
+
+.REJECTED {
+  color: red;
+  font-weight: bold;
+}

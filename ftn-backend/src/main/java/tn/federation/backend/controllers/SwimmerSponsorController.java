@@ -2,9 +2,7 @@ package tn.federation.backend.controllers;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import tn.federation.backend.entities.SponsorshipRequest;
 import tn.federation.backend.entities.SponsorshipRequestStatus;
 import tn.federation.backend.entities.User;
@@ -20,23 +18,30 @@ public class SwimmerSponsorController {
     private final SponsorshipRequestRepository sponsorshipRequestRepository;
     private final UserRepository userRepository;
 
-    public SwimmerSponsorController(SponsorshipRequestRepository sponsorshipRequestRepository,
-                                     UserRepository userRepository) {
+    public SwimmerSponsorController(
+            SponsorshipRequestRepository sponsorshipRequestRepository,
+            UserRepository userRepository) {
         this.sponsorshipRequestRepository = sponsorshipRequestRepository;
         this.userRepository = userRepository;
     }
 
     @GetMapping("/me/sponsors")
     public List<SponsorshipRequest> getMyApprovedSponsors() {
+
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName();
-        User me = userRepository.findByEmail(email)
+
+        if (auth == null || auth.getName() == null) {
+            throw new IllegalArgumentException("Non authentifié");
+        }
+
+        User me = userRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
 
-        return sponsorshipRequestRepository.findAll().stream()
-                .filter(r -> r.getSwimmer() != null && r.getSwimmer().getId().equals(me.getId()))
+        return sponsorshipRequestRepository.findAll()
+                .stream()
+                .filter(r -> r.getSwimmer() != null)
+                .filter(r -> r.getSwimmer().getId().equals(me.getId()))
                 .filter(r -> r.getStatut() == SponsorshipRequestStatus.APPROVED)
                 .toList();
     }
 }
-

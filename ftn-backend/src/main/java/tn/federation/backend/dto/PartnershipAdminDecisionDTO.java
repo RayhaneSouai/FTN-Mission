@@ -2,6 +2,7 @@ package tn.federation.backend.dto;
 
 public class PartnershipAdminDecisionDTO {
     private boolean approved;
+    private String notes;
 
     public boolean isApproved() {
         return approved;
@@ -9,6 +10,15 @@ public class PartnershipAdminDecisionDTO {
 
     public void setApproved(boolean approved) {
         this.approved = approved;
+    }
+
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 }
 

@@ -10,7 +10,7 @@ import tn.federation.backend.repositories.SponsorshipRequestRepository;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/admin/partners")
+@RequestMapping("/api/admin/partners/sponsorships")
 public class AdminSponsorshipController {
 
     private final SponsorshipRequestRepository sponsorshipRequestRepository;
@@ -19,29 +19,49 @@ public class AdminSponsorshipController {
         this.sponsorshipRequestRepository = sponsorshipRequestRepository;
     }
 
-    @GetMapping("/sponsorships")
-    public List<SponsorshipRequest> listPendingSponsorshipRequests() {
-        return sponsorshipRequestRepository.findAll().stream()
-                .filter(r -> r.getStatut() == SponsorshipRequestStatus.PENDING)
-                .toList();
+    // =========================
+    // GET ALL REQUESTS
+    // =========================
+    @GetMapping
+    public List<SponsorshipRequest> getAll() {
+        return sponsorshipRequestRepository.findAll();
     }
 
-    @PostMapping("/sponsorships/{id}/approve")
-    public ResponseEntity<?> approve(@PathVariable Long id, @RequestBody SponsorshipAdminDecisionDTO dto) {
+    // =========================
+    // APPROVE
+    // =========================
+    @PostMapping("/{id}/approve")
+    public ResponseEntity<?> approve(
+            @PathVariable Long id,
+            @RequestBody SponsorshipAdminDecisionDTO dto) {
+
         SponsorshipRequest req = sponsorshipRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Demande introuvable"));
+
         req.setStatut(SponsorshipRequestStatus.APPROVED);
+        req.setDecisionNotes(dto.getNotes());
+
         sponsorshipRequestRepository.save(req);
+
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/sponsorships/{id}/reject")
-    public ResponseEntity<?> reject(@PathVariable Long id, @RequestBody SponsorshipAdminDecisionDTO dto) {
+    // =========================
+    // REJECT
+    // =========================
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<?> reject(
+            @PathVariable Long id,
+            @RequestBody SponsorshipAdminDecisionDTO dto) {
+
         SponsorshipRequest req = sponsorshipRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Demande introuvable"));
+
         req.setStatut(SponsorshipRequestStatus.REJECTED);
+        req.setDecisionNotes(dto.getNotes());
+
         sponsorshipRequestRepository.save(req);
+
         return ResponseEntity.ok().build();
     }
 }
-

@@ -267,8 +267,8 @@ public class PerformanceServiceImpl implements IPerformanceService {
                 performanceRepository.findNationalRecord(
                         entity.getDistance(),
                         entity.getStroke(),
-                        entity.getSwimmer().getGender(),
-                        PageRequest.of(0, 1)
+                        entity.getSwimmer().getGender()
+
                 );
 
         boolean isNationalRecord = nationalRecords.stream()

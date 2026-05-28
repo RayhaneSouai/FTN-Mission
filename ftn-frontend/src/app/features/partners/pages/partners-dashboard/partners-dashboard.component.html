@@ -1,21 +1,28 @@
 <div class="dashboard-container">
   <header class="dashboard-header">
     <div class="header-titles">
-      <h1 class="welcome-text">Espace <span class="accent">Partenaire</span></h1>
-      <p class="subtitle">Soumettez vos demandes de partenariat et sponsorisez des nageurs.</p>
+      <h1 class="welcome-text">
+        Espace <span class="accent">Partenaire</span>
+      </h1>
+      <p class="subtitle">
+        Soumettez une demande ou sponsorisez un nageur de la fédération.
+      </p>
     </div>
   </header>
 
-  <section class="quick-links">
-    <div class="link-card" routerLink="/partenaires/demande">
-      <div class="link-icon"><i class="bi bi-building"></i></div>
-      <span>Demande de partenariat</span>
+  <section class="cards-grid">
+    <div class="choice-card" routerLink="/partenaires/demande">
+      <div class="icon">🏢</div>
+      <h3>Demande de partenariat</h3>
+      <p>Devenez partenaire officiel de la Fédération Tunisienne de Natation.</p>
+      <button>Accéder</button>
     </div>
 
-    <div class="link-card" routerLink="/partenaires/sponsoring">
-      <div class="link-icon"><i class="bi bi-trophy"></i></div>
-      <span>Sponsoriser un nageur</span>
+    <div class="choice-card" routerLink="/partenaires/sponsoring">
+      <div class="icon">🏊</div>
+      <h3>Sponsoriser un nageur</h3>
+      <p>Soutenez directement un athlète et participez à sa réussite.</p>
+      <button>Accéder</button>
     </div>
   </section>
 </div>
-

@@ -31,23 +31,20 @@ public class RankingServiceImpl implements IRankingService {
             Integer limit
     ) {
 
-        Pageable pageable = PageRequest.of(0, limit != null ? limit : 10);
 
         List<Performance> performances =
-                performanceRepository.findNationalRanking(
+                performanceRepository.findTop50ByDistanceAndStrokeAndSwimmerGenderOrderByTimeAsc(
                         distance,
                         stroke,
                         gender,
-                        niveau,
-                        pageable
+                        niveau
                 );
 
         List<Performance> nationalRecords =
                 performanceRepository.findNationalRecord(
                         distance,
                         stroke,
-                        gender,
-                        PageRequest.of(0, 1)
+                        gender
                 );
 
         AtomicInteger rankCounter = new AtomicInteger(1);

@@ -50,6 +50,12 @@ const routes: Routes = [
         loadComponent: () =>
           import('./features/performances/performance-form/performance-form.component').then(m => m.PerformanceFormComponent),
       },
+      {
+        path: 'partenariats',
+        loadComponent: () =>
+          import('./features/admin/partenariats/admin-partenariats.component')
+            .then(m => m.AdminPartenariatsComponent)
+      },
 
       { path: '**', redirectTo: '' },
     ],

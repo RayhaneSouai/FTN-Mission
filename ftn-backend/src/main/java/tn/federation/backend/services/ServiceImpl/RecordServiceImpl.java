@@ -54,8 +54,7 @@ public class RecordServiceImpl implements IRecordService {
                 performanceRepository.findNationalRecord(
                         distance,
                         stroke,
-                        gender,
-                        pageable
+                        gender
                 );
 
         Performance record = records.stream()

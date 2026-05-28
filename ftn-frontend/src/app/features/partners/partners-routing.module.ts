@@ -8,13 +8,16 @@ import { partnerGuard } from '../../core/guards/partner.guard';
 const routes: Routes = [
   {
     path: '',
-    canActivate: [partnerGuard],
-    children: [
-      { path: '', component: PartnersDashboardComponent },
-      { path: 'demande', component: PartnershipRequestComponent },
-      { path: 'sponsoring', component: SponsorshipRequestComponent },
-    ],
+    component: PartnersDashboardComponent
   },
+  {
+    path: 'demande',
+    component: PartnershipRequestComponent
+  },
+  {
+    path: 'sponsoring',
+    component: SponsorshipRequestComponent
+  }
 ];
 
 @NgModule({
