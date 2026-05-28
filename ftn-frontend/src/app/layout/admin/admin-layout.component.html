@@ -1,4 +1,10 @@
-<div class="admin-wrapper" [class.sidebar-collapsed]="isSidebarCollapsed">
+<div
+  class="admin-wrapper"
+  [class.sidebar-collapsed]="isSidebarCollapsed"
+  [class.admin-wrapper--mobile-open]="mobileSidebarOpen"
+  [class.admin-wrapper--compact]="compactMode">
+  <div class="admin-sidebar-backdrop" *ngIf="mobileSidebarOpen" (click)="closeMobileSidebar()"></div>
+
   <!-- Sidebar -->
   <aside class="admin-sidebar">
     <div class="sidebar-header">
@@ -9,7 +15,7 @@
     <nav class="sidebar-nav">
       <div class="nav-section">
         <span class="section-label" *ngIf="!isSidebarCollapsed">VUE D'ENSEMBLE</span>
-        <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" class="sidebar-link">
+        <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" class="sidebar-link" title="Tableau de Bord">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
           <span class="link-text" *ngIf="!isSidebarCollapsed">Tableau de Bord</span>
         </a>
@@ -17,11 +23,12 @@
 
       <div class="nav-section">
         <span class="section-label" *ngIf="!isSidebarCollapsed">ADMINISTRATION</span>
-        <a routerLink="/admin/utilisateurs" routerLinkActive="active" class="sidebar-link">
+        <a routerLink="/admin/utilisateurs" routerLinkActive="active" class="sidebar-link" title="Utilisateurs">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           <span class="link-text" *ngIf="!isSidebarCollapsed">Utilisateurs</span>
+          <span class="sidebar-nav-badge" *ngIf="pendingUsers.length > 0">{{ pendingUsers.length > 9 ? '9+' : pendingUsers.length }}</span>
         </a>
-        <a routerLink="/admin/licences" routerLinkActive="active" class="sidebar-link">
+        <a routerLink="/admin/licences" routerLinkActive="active" class="sidebar-link" title="Licences & Nageurs">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
           <span class="link-text" *ngIf="!isSidebarCollapsed">Licences & Nageurs</span>
         </a>
@@ -29,11 +36,11 @@
 
       <div class="nav-section">
         <span class="section-label" *ngIf="!isSidebarCollapsed">MON COMPTE</span>
-        <a routerLink="/admin/mon-profil" routerLinkActive="active" class="sidebar-link">
+        <a routerLink="/admin/mon-profil" routerLinkActive="active" class="sidebar-link" title="Mon Profil">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           <span class="link-text" *ngIf="!isSidebarCollapsed">Mon Profil</span>
         </a>
-        <a routerLink="/" class="sidebar-link return-link">
+        <a routerLink="/" class="sidebar-link return-link" title="Retour au Site">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           <span class="link-text" *ngIf="!isSidebarCollapsed">Retour au Site</span>
         </a>
@@ -41,7 +48,7 @@
     </nav>
 
     <div class="sidebar-footer">
-      <button (click)="logout()" class="logout-link">
+      <button (click)="logout()" class="logout-link" title="Déconnexion">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         <span class="link-text" *ngIf="!isSidebarCollapsed">Déconnexion</span>
       </button>
@@ -51,24 +58,164 @@
   <!-- Main Content Area -->
   <div class="admin-main">
     <header class="admin-header">
-      <button class="toggle-btn" (click)="toggleSidebar()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      </button>
-      
+      <div class="admin-header__left">
+        <button class="toggle-btn" (click)="toggleSidebar()" aria-label="Menu">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <app-admin-breadcrumb [items]="breadcrumbs"></app-admin-breadcrumb>
+      </div>
+
+      <div class="admin-header__center">
+        <app-admin-quick-search></app-admin-quick-search>
+      </div>
+
       <div class="header-right">
-        <div class="user-meta" *ngIf="user">
+        <!-- Compact Mode Button -->
+        <button
+          type="button"
+          class="admin-header-icon-btn"
+          (click)="toggleCompactMode()"
+          [title]="compactMode ? 'Mode confort' : 'Mode compact'"
+          [attr.aria-pressed]="compactMode">
+          <i class="bi" [ngClass]="compactMode ? 'bi-arrows-angle-expand' : 'bi-arrows-angle-contract'"></i>
+        </button>
+
+        <!-- Notification Dropdown Container -->
+        <div class="admin-notif" (click)="$event.stopPropagation()">
+          <button
+            type="button"
+            class="admin-notif__bell"
+            (click)="toggleNotificationsDropdown($event)"
+            aria-label="Notifications"
+            [class.admin-notif__bell--active]="showNotificationsDropdown"
+            [attr.aria-expanded]="showNotificationsDropdown">
+            <i class="bi bi-bell"></i>
+            <span class="admin-notif__badge" *ngIf="pendingUsers.length > 0">
+              {{ pendingUsers.length > 9 ? '9+' : pendingUsers.length }}
+            </span>
+          </button>
+
+          <div class="admin-notif__panel" *ngIf="showNotificationsDropdown">
+            <div class="admin-notif__panel-head">
+              <div>
+                <h2 class="admin-notif__panel-title">
+                  <i class="bi bi-person-check"></i>
+                  Inscriptions en attente
+                </h2>
+                <p class="admin-notif__panel-sub">Validez ou refusez les nouvelles demandes</p>
+              </div>
+              <span class="admin-notif__count" *ngIf="pendingUsers.length > 0">{{ pendingUsers.length }}</span>
+            </div>
+
+            <div class="admin-notif__panel-body">
+              <!-- Loading State -->
+              <div class="admin-notif__state" *ngIf="loadingNotifications">
+                <div class="spinner-border spinner-border-sm text-primary"></div>
+                <span>Chargement...</span>
+              </div>
+
+              <!-- Error State -->
+              <div class="admin-notif__state admin-notif__state--error" *ngIf="notificationError">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span>{{ notificationError }}</span>
+              </div>
+
+              <!-- Empty State -->
+              <div class="admin-notif__state" *ngIf="!loadingNotifications && !notificationError && pendingUsers.length === 0">
+                <i class="bi bi-bell-slash"></i>
+                <span>Aucune inscription en attente</span>
+              </div>
+
+              <!-- List of Notifications -->
+              <ul class="admin-notif__list" *ngIf="!loadingNotifications && !notificationError && pendingUsers.length > 0">
+                <li *ngFor="let pu of pendingUsers" class="admin-notif__item">
+                  <div class="admin-notif__item-main">
+                    <img
+                      [src]="'https://ui-avatars.com/api/?name=' + pu.firstName + '+' + pu.lastName + '&background=004da3&color=fff&size=64'"
+                      class="admin-notif__avatar"
+                      alt="">
+                    <div class="admin-notif__item-text">
+                      <p class="admin-notif__item-title">
+                        <strong>{{ pu.firstName }} {{ pu.lastName }}</strong>
+                      </p>
+                      <span class="admin-notif__role">{{ roleLabel(pu.role) }}</span>
+                      <span class="admin-notif__email">{{ pu.email }}</span>
+                      <span class="admin-notif__time" *ngIf="pu.createdAt">{{ relativeTime(pu.createdAt) }}</span>
+                    </div>
+                  </div>
+                  <div class="admin-notif__item-actions">
+                    <button type="button" class="admin-notif__btn admin-notif__btn--approve" (click)="approveUser(pu.id, $event)">
+                      <i class="bi bi-check-lg"></i> Accepter
+                    </button>
+                    <button type="button" class="admin-notif__btn admin-notif__btn--reject" (click)="rejectUser(pu.id, $event)">
+                      <i class="bi bi-x-lg"></i> Refuser
+                    </button>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <div class="admin-notif__panel-foot">
+              <a routerLink="/admin/utilisateurs" (click)="showNotificationsDropdown = false" class="admin-notif__view-all">
+                Voir toutes les inscriptions
+                <i class="bi bi-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Meta Profile -->
+        <a routerLink="/admin/mon-profil" class="user-meta" *ngIf="user">
           <div class="user-details">
             <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
-            <span class="user-role">Administrateur</span>
+            <span class="user-role">Administrateur FTN</span>
           </div>
-          <img [src]="'https://ui-avatars.com/api/?name=' + user.firstName + '+' + user.lastName + '&background=004da3&size=32&color=fff'" 
+          <img [src]="'https://ui-avatars.com/api/?name=' + user.firstName + '+' + user.lastName + '&background=004da3&size=32&color=fff'"
                class="avatar shadow-sm" alt="Avatar">
-        </div>
+        </a>
       </div>
     </header>
 
-    <main class="content-body">
-      <router-outlet></router-outlet>
+    <main class="content-body" #contentBody (scroll)="onContentScroll($event)">
+      <div class="admin-route-enter">
+        <router-outlet></router-outlet>
+      </div>
     </main>
+
+    <button
+      type="button"
+      class="admin-scroll-top"
+      *ngIf="showScrollTop"
+      (click)="scrollToTop()"
+      aria-label="Remonter en haut">
+      <i class="bi bi-chevron-up"></i>
+    </button>
+
+    <footer class="admin-footer">
+      <span>FTN Backoffice</span>
+      <span class="admin-footer__dot">·</span>
+      <span>Fédération Tunisienne de Natation</span>
+    </footer>
   </div>
+
+  <!-- Reject User Modal -->
+  <div class="modal fade show" *ngIf="showRejectModal" style="display: block; z-index: 1060; background: rgba(0, 0, 0, 0.4);" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+      <div class="modal-content border-0 shadow-lg rounded-4 text-center p-4">
+        <div class="mb-3 text-danger"><i class="bi bi-exclamation-triangle display-4"></i></div>
+        <h3 class="fw-bold">Confirmer le refus</h3>
+        <p class="text-muted">Voulez-vous vraiment refuser l'inscription de <strong>{{ userToReject?.firstName }} {{ userToReject?.lastName }}</strong> ? Un email de notification lui sera envoyé.</p>
+        <div class="d-flex justify-content-center gap-3 mt-4">
+          <button class="btn btn-light rounded-pill px-4" (click)="closeRejectModal()">Annuler</button>
+          <button class="btn btn-danger rounded-pill px-4" (click)="confirmRejectUser()" [disabled]="loadingNotifications">
+            <span class="spinner-border spinner-border-sm" *ngIf="loadingNotifications"></span>
+            Refuser
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade show" *ngIf="showRejectModal" style="z-index: 1050;"></div>
+
+  <app-admin-toast></app-admin-toast>
 </div>
