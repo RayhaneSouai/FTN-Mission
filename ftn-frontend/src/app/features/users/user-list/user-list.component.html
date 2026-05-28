@@ -1,23 +1,17 @@
-<main class="dashboard">
-  <!-- Hero Banner -->
-  <section class="user-hero">
-    <div class="hero-overlay"></div>
-    <div class="hero-content">
-      <h1>Gestion des Utilisateurs</h1>
-      <p>Administrez les membres de la fédération, gérez les rôles et suivez les inscriptions.</p>
+<div class="admin-page">
+  <app-admin-page-header
+    title="Gestion des Utilisateurs"
+    subtitle="Administrez les membres de la fédération, gérez les rôles et suivez les inscriptions.">
+    <div actions class="admin-toolbar-actions">
+      <button type="button" class="admin-btn admin-btn--secondary" routerLink="/admin/utilisateurs/import">
+        <i class="bi bi-file-earmark-arrow-up me-1"></i> Importer CSV
+      </button>
+      <button type="button" class="admin-btn admin-btn--primary" (click)="openAddModal()">
+        <i class="bi bi-plus-lg"></i>
+        Ajouter un Utilisateur
+      </button>
     </div>
-  </section>
-
-  <!-- Actions -->
-  <div class="hero-actions d-flex gap-2">
-    <button class="btn-primary" (click)="openAddModal()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Ajouter un Utilisateur
-    </button>
-    <button class="btn-secondary" routerLink="/admin/utilisateurs/import">
-      <i class="bi bi-file-earmark-arrow-up me-1"></i> Importer CSV
-    </button>
-  </div>
+  </app-admin-page-header>
 
   <!-- Stats Section -->
   <section class="stats-section">
@@ -158,7 +152,7 @@
       </nav>
     </div>
   </div>
-</main>
+</div>
 
 <!-- Modals (kept same as original logic) -->
 <div class="modal fade" id="userFormModal" tabindex="-1" aria-hidden="true">

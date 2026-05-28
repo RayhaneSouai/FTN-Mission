@@ -56,3 +56,36 @@
 .admin-security-tips i {
   color: var(--admin-success);
 }
+
+.admin-profile-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--admin-border-light);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-profile-tab {
+  background: none;
+  border: none;
+  padding: 0.55rem 1.1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  border-radius: var(--admin-radius-md);
+  transition: all var(--admin-transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-profile-tab:hover {
+  background: var(--admin-surface-muted);
+  color: var(--admin-text);
+}
+
+.admin-profile-tab.active {
+  background: var(--admin-primary-light);
+  color: var(--admin-primary);
+}

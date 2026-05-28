@@ -1,3 +1,7 @@
+:host {
+  display: block;
+}
+
 .admin-stat-card {
   background: var(--admin-surface);
   border-radius: var(--admin-radius-xl);

@@ -6,6 +6,7 @@ import { PublicLayoutComponent } from './layout/public/public-layout.component';
 import { AdminLayoutComponent } from './layout/admin/admin-layout.component';
 import { DashboardComponent } from './features/admin/dashboard/dashboard.component';
 import { adminGuard } from './core/guards/admin.guard';
+import { publicGuard } from './core/guards/public.guard';
 
 import { MyPerformancesComponent } from './features/my-performance/my-performances.component';
 import { RankingComponent } from './features/ranking/ranking.component';
@@ -57,6 +58,7 @@ const routes: Routes = [
   {
     path: '',
     component: PublicLayoutComponent,
+    canActivate: [publicGuard],
     children: [
       { path: '', component: HomeComponent },
       { path: 'clubs', component: ClubListComponent },

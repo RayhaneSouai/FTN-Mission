@@ -1,7 +1,12 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
 .admin-page-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
 }

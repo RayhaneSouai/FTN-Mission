@@ -6,6 +6,7 @@ import { UsersRoutingModule } from './users-routing.module';
 import { UserListComponent } from './user-list/user-list.component';
 import { UserFormComponent } from './user-form/user-form.component';
 import { UserImportWizardComponent } from './user-import/components/user-import-wizard/user-import-wizard.component';
+import { AdminUiModule } from '../../shared/admin-ui/admin-ui.module';
 
 @NgModule({
   declarations: [
@@ -16,7 +17,8 @@ import { UserImportWizardComponent } from './user-import/components/user-import-
   imports: [
     CommonModule,
     UsersRoutingModule,
-    FormsModule
+    FormsModule,
+    AdminUiModule
   ]
 })
 export class UsersModule { }

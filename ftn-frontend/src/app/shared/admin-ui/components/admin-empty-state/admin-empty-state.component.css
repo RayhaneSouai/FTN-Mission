@@ -1,3 +1,7 @@
+:host {
+  display: block;
+}
+
 .admin-empty-state {
   display: flex;
   flex-direction: column;
