@@ -1,0 +1,56 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-titles">
+      <h1 class="welcome-text">Calendrier des <span class="accent">Compétitions</span> 🏆</h1>
+      <p class="subtitle">Retrouvez toutes les compétitions passées et à venir.</p>
+    </div>
+    <div class="header-actions">
+      <!-- Filters -->
+      <div class="header-actions" style="background: white; padding: 4px; border-radius: 12px; border: 1px solid #e2e8f0;">
+        <button (click)="filter='all'"    [style.background]="filter === 'all' ? '#003a80' : 'transparent'" [style.color]="filter === 'all' ? 'white' : '#64748b'" style="border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">Toutes</button>
+        <button (click)="filter='open'"   [style.background]="filter === 'open' ? '#003a80' : 'transparent'" [style.color]="filter === 'open' ? 'white' : '#64748b'" style="border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">Ouvertes</button>
+        <button (click)="filter='upcoming'" [style.background]="filter === 'upcoming' ? '#003a80' : 'transparent'" [style.color]="filter === 'upcoming' ? 'white' : '#64748b'" style="border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">À venir</button>
+      </div>
+    </div>
+  </header>
+
+  <div *ngIf="loading" class="glass-card" style="padding:60px; text-align:center; color:#94a3b8;">
+    <div class="spinner" style="margin: 0 auto 16px;"></div>
+    <p>Chargement des compétitions...</p>
+  </div>
+
+  <div *ngIf="!loading && filtered.length === 0" class="glass-card" style="text-align: center; padding: 60px;">
+    <span style="font-size:48px">🏊</span>
+    <h3 style="margin: 16px 0 8px; color: #1e293b;">Aucune compétition</h3>
+    <p style="color: #64748b;">Aucune compétition trouvée pour ces critères.</p>
+  </div>
+
+  <div class="stats-grid" *ngIf="!loading">
+    <div *ngFor="let c of filtered" class="stat-card" style="padding: 0; overflow: hidden; border-top: 4px solid #003a80;">
+      <div style="padding: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+          <span style="background: #eff6ff; color: #3b82f6; padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">
+            {{ c.status || 'À venir' }}
+          </span>
+          <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">{{ c.discipline }}</span>
+        </div>
+        <h4 style="margin: 0 0 16px; font-size: 1.1rem; color: #1e293b; line-height: 1.3;">{{ c.name }}</h4>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #64748b;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            {{ c.location }}
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #64748b;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            {{ c.startDate | date:'dd MMMM yyyy' }}
+          </div>
+        </div>
+      </div>
+      <div style="background: #f8fafc; padding: 12px 20px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.75rem; color: #94a3b8;" *ngIf="c.region">{{ c.region }}</span>
+        <button class="btn-text" style="font-size: 0.8rem;">Détails →</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -7,6 +7,7 @@ import tn.federation.backend.entities.PressItem;
 import tn.federation.backend.entities.PressType;
 import tn.federation.backend.entities.PressStatus;
 import java.util.List;
+import java.time.LocalDateTime;
 
 @Repository
 public interface IPressItemRepository extends JpaRepository<PressItem, Long> {
@@ -18,6 +19,24 @@ public interface IPressItemRepository extends JpaRepository<PressItem, Long> {
     long countByType(PressType type);
     @Query("SELECT p.discipline, COUNT(p) FROM PressItem p GROUP BY p.discipline")
     List<Object[]> countByDiscipline();
+
+    List<PressItem> findByStatusAndScheduledAtBefore(PressStatus status, LocalDateTime dateTime);
+    
+    @Query("SELECT COALESCE(SUM(p.views), 0) FROM PressItem p")
+    Long sumViews();
+
+    @Query("SELECT COALESCE(SUM(p.downloadsCount), 0) FROM PressItem p")
+    Long sumDownloads();
+
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true)
+    @org.springframework.transaction.annotation.Transactional
+    @Query("UPDATE PressItem p SET p.views = COALESCE(p.views, 0) + 1 WHERE p.idPressItem = ?1")
+    void incrementViews(long id);
+
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true)
+    @org.springframework.transaction.annotation.Transactional
+    @Query("UPDATE PressItem p SET p.downloadsCount = COALESCE(p.downloadsCount, 0) + 1 WHERE p.idPressItem = ?1")
+    void incrementDownloads(long id);
 
     @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true)
     @org.springframework.transaction.annotation.Transactional

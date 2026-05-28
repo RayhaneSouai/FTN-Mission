@@ -20,6 +20,7 @@
     </div>
   </app-admin-page-header>
 
+  <!-- Stats -->
   <section class="admin-stats-row admin-stats-row--stagger" *ngIf="!statsLoading">
     <app-admin-stat-card
       *ngFor="let stat of stats; let i = index"
@@ -42,6 +43,7 @@
     </div>
   </section>
 
+  <!-- Grille principale -->
   <div class="dashboard-main-grid">
     <app-admin-panel title="Activité des inscriptions" [noPadding]="true">
       <app-dashboard-activity #activityChart></app-dashboard-activity>
@@ -76,6 +78,7 @@
     </app-admin-panel>
   </div>
 
+  <!-- Alerte inscriptions en attente -->
   <section class="admin-insights" *ngIf="!statsLoading && pendingCount > 0">
     <div class="admin-insight-card admin-insight-card--warning">
       <i class="bi bi-exclamation-circle"></i>
@@ -86,6 +89,7 @@
     </div>
   </section>
 
+  <!-- Liens rapides -->
   <section class="admin-quick-links">
     <a class="admin-quick-link" routerLink="/admin/utilisateurs">
       <span class="admin-quick-link__icon"><i class="bi bi-people"></i></span>
@@ -94,6 +98,18 @@
     <a class="admin-quick-link" routerLink="/admin/licences">
       <span class="admin-quick-link__icon"><i class="bi bi-card-list"></i></span>
       <span class="admin-quick-link__label">Gestion des licences</span>
+    </a>
+    <a class="admin-quick-link" routerLink="/admin/clubs">
+      <span class="admin-quick-link__icon"><i class="bi bi-building"></i></span>
+      <span class="admin-quick-link__label">Gestion des clubs</span>
+    </a>
+    <a class="admin-quick-link" routerLink="/admin/partenariats">
+      <span class="admin-quick-link__icon"><i class="bi bi-handshake"></i></span>
+      <span class="admin-quick-link__label">Partenariats & Sponsoring</span>
+    </a>
+    <a class="admin-quick-link">
+      <span class="admin-quick-link__icon"><i class="bi bi-trophy"></i></span>
+      <span class="admin-quick-link__label">Compétitions</span>
     </a>
     <a class="admin-quick-link" routerLink="/admin/mon-profil">
       <span class="admin-quick-link__icon"><i class="bi bi-shield-check"></i></span>

@@ -1,0 +1,214 @@
+@if (loading()) {
+<div class="loading-container">
+    <div class="spinner"></div>
+    <p>Chargement...</p>
+</div>
+}
+
+<!-- ═══════ SWIMMER VIEW ═══════ -->
+@else if (!isAdmin()) {
+  @if (!isDistributionApproved()) {
+    <div class="swimmer-pending">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <p class="pending-message">La liste sera publiée prochainement</p>
+    </div>
+  } @else if (distribution()) {
+    <div class="swimmer-distribution">
+      <h3 class="distribution-title">Répartition par séries</h3>
+
+      @for (series of distribution()!.series; track series.seriesId) {
+      <div class="series-card">
+          <div class="series-header">
+              <div class="series-info">
+                  <h5>{{ series.seriesLabel }}</h5>
+                  @if (series.swimmerCategory) {
+                  <span class="category-badge">{{ series.swimmerCategory }}</span>
+                  }
+              </div>
+              <div class="series-meta">
+                  @if (series.time) {
+                  <span class="series-time">{{ series.time }}</span>
+                  }
+                  <span class="series-capacity">{{ series.participants.length }}/{{ series.capacity }}</span>
+              </div>
+          </div>
+          <div class="series-participants">
+              <table class="participants-table compact">
+                  <thead>
+                      <tr>
+                          <th>Pos.</th>
+                          <th>Nageur</th>
+                          <th>Meilleur temps</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      @for (p of series.participants; track p.swimmerId) {
+                      <tr>
+                          <td class="lane-cell">{{ p.position }}</td>
+                          <td class="name-cell">{{ p.swimmerFirstName }} {{ p.swimmerLastName }}</td>
+                          <td class="time-cell">{{ formatTime(p.bestTime) }}</td>
+                      </tr>
+                      }
+                  </tbody>
+              </table>
+          </div>
+      </div>
+      }
+    </div>
+  }
+}
+
+<!-- ═══════ ADMIN VIEW ═══════ -->
+@else if (participants().length === 0 && !distribution()) {
+<div class="empty-state">
+    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+    <p>Aucun participant n'est encore inscrit à cette compétition.</p>
+</div>
+} @else {
+<div class="participants-container">
+
+    <!-- View switcher -->
+    <div class="view-switcher">
+        <button class="view-btn" [class.active]="activeView() === 'list'" (click)="switchView('list')">
+            Liste des participants
+        </button>
+        @if (distribution()) {
+        <button class="view-btn" [class.active]="activeView() === 'distribution'" (click)="switchView('distribution')">
+            Répartition par séries
+            @if (isDistributionApproved()) {
+            <span class="status-dot approved"></span>
+            } @else if (isDistributionGenerated()) {
+            <span class="status-dot generated"></span>
+            }
+        </button>
+        }
+    </div>
+
+    <!-- Admin actions -->
+    <div class="admin-actions">
+        @if (!isDistributionApproved()) {
+        <button class="btn-generate" (click)="generateDistribution()" [disabled]="distributionLoading()">
+            @if (distributionLoading()) {
+            <span class="btn-spinner"></span>
+            }
+            {{ distribution() ? 'Régénérer la répartition' : 'Générer la répartition' }}
+        </button>
+        }
+        @if (isDistributionGenerated()) {
+        <button class="btn-approve" (click)="approveDistribution()" [disabled]="distributionLoading()">
+            Approuver la répartition
+        </button>
+        }
+        @if (isDistributionApproved()) {
+        <span class="approval-badge">✓ Répartition approuvée</span>
+        }
+    </div>
+    @if (distributionError()) {
+    <div class="error-message">{{ distributionError() }}</div>
+    }
+
+    <!-- List view -->
+    @if (activeView() === 'list') {
+    <!-- Search bar -->
+    <div class="search-bar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input type="text" placeholder="Rechercher par nom ou club..."
+            [(ngModel)]="searchTerm" (input)="onSearch()" />
+        <span class="result-count">{{ filteredParticipants().length }} participant{{ filteredParticipants().length > 1 ? 's' : '' }}</span>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrapper">
+        <table class="participants-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nom</th>
+                    <th>Prénom</th>
+                    <th>Date d'inscription</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (p of filteredParticipants(); track p.id; let i = $index) {
+                <tr>
+                    <td class="lane-cell">{{ i + 1 }}</td>
+                    <td class="name-cell">{{ p.swimmerLastName }}</td>
+                    <td class="name-cell">{{ p.swimmerFirstName }}</td>
+                    <td>{{ p.requestedAt ?? '—' }}</td>
+                    <td>
+                        <span class="status-badge approved">Approuvé</span>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    }
+
+    <!-- Distribution view -->
+    @if (activeView() === 'distribution' && distribution()) {
+    <div class="distribution-container">
+        <div class="distribution-header">
+            <h4>Répartition des participants</h4>
+            <span class="distribution-status" [class]="distribution()!.status.toLowerCase()">
+                {{ distribution()!.status === 'APPROVED' ? 'Approuvée' : 'En attente d\'approbation' }}
+            </span>
+        </div>
+
+        @for (series of distribution()!.series; track series.seriesId) {
+        <div class="series-card">
+            <div class="series-header">
+                <div class="series-info">
+                    <h5>{{ series.seriesLabel }}</h5>
+                    @if (series.swimmerCategory) {
+                    <span class="category-badge">{{ series.swimmerCategory }}</span>
+                    }
+                </div>
+                <div class="series-meta">
+                    @if (series.time) {
+                    <span class="series-time">{{ series.time }}</span>
+                    }
+                    <span class="series-capacity">{{ series.participants.length }}/{{ series.capacity }}</span>
+                </div>
+            </div>
+            <div class="series-participants">
+                <table class="participants-table compact">
+                    <thead>
+                        <tr>
+                            <th>Pos.</th>
+                            <th>Nageur</th>
+                            <th>Meilleur temps</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (p of series.participants; track p.swimmerId) {
+                        <tr>
+                            <td class="lane-cell">{{ p.position }}</td>
+                            <td class="name-cell">{{ p.swimmerFirstName }} {{ p.swimmerLastName }}</td>
+                            <td class="time-cell">{{ formatTime(p.bestTime) }}</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        }
+    </div>
+    }
+</div>
+}

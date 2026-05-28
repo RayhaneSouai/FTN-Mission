@@ -13,7 +13,10 @@
     </button>
   </div>
 
+  <!-- ── Info tab ── -->
   <div class="admin-profile-grid" *ngIf="activeTab === 'info'">
+
+    <!-- Avatar card -->
     <app-admin-panel>
       <div class="admin-profile-identity">
         <img
@@ -35,7 +38,9 @@
       </div>
     </app-admin-panel>
 
+    <!-- Edit form card -->
     <app-admin-panel title="Informations personnelles" subtitle="Mettez à jour vos coordonnées">
+
       <div *ngIf="error" class="admin-alert admin-alert--danger mb-3">
         <i class="bi bi-exclamation-octagon-fill"></i>
         <span>{{ error }}</span>
@@ -47,31 +52,43 @@
 
       <form (ngSubmit)="saveProfile()">
         <div class="row g-3">
+
           <div class="col-md-6">
             <label class="admin-form-label">Prénom</label>
-            <input type="text" class="form-control admin-form-control" [(ngModel)]="user.firstName" name="firstName" required>
+            <input type="text" class="form-control admin-form-control"
+                   [(ngModel)]="user.firstName" name="firstName" required>
           </div>
+
           <div class="col-md-6">
             <label class="admin-form-label">Nom</label>
-            <input type="text" class="form-control admin-form-control" [(ngModel)]="user.lastName" name="lastName" required>
+            <input type="text" class="form-control admin-form-control"
+                   [(ngModel)]="user.lastName" name="lastName" required>
           </div>
+
           <div class="col-12">
             <label class="admin-form-label">Email</label>
-            <input type="email" class="form-control admin-form-control" [(ngModel)]="user.email" name="email" required readonly>
+            <input type="email" class="form-control admin-form-control"
+                   [(ngModel)]="user.email" name="email" required readonly>
             <div class="form-text small">L'email ne peut pas être modifié.</div>
           </div>
+
           <div class="col-md-6" *ngIf="user?.birthDate">
             <label class="admin-form-label">Date de naissance</label>
-            <input type="date" class="form-control admin-form-control" [(ngModel)]="user.birthDate" name="birthDate" readonly>
+            <input type="date" class="form-control admin-form-control"
+                   [(ngModel)]="user.birthDate" name="birthDate" readonly>
           </div>
+
           <div class="col-md-6" *ngIf="user?.gender">
             <label class="admin-form-label">Genre</label>
-            <select class="form-select admin-form-control" [(ngModel)]="user.gender" name="gender" disabled>
+            <select class="form-select admin-form-control"
+                    [(ngModel)]="user.gender" name="gender" disabled>
               <option value="HOMME">Homme</option>
               <option value="FEMME">Femme</option>
             </select>
           </div>
+
         </div>
+
         <div class="mt-4 pt-3 border-top text-end">
           <button type="submit" class="admin-btn admin-btn--primary" [disabled]="loading">
             <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
@@ -79,9 +96,11 @@
           </button>
         </div>
       </form>
+
     </app-admin-panel>
   </div>
 
+  <!-- ── Security tab ── -->
   <div *ngIf="activeTab === 'security'">
     <app-admin-panel title="Sécurité du compte" subtitle="Protégez l'accès à votre espace administrateur">
       <div class="admin-security-block">
@@ -103,10 +122,13 @@
       </ul>
     </app-admin-panel>
   </div>
+
 </div>
 
-<!-- Modal de confirmation -->
-<div class="modal fade show" tabindex="-1" style="display: block; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(4px);" *ngIf="showConfirmModal">
+<!-- ── Confirm modal ── -->
+<div class="modal fade show" tabindex="-1"
+     style="display: block; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);"
+     *ngIf="showConfirmModal">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
       <div class="modal-header border-0 bg-light p-4">
@@ -126,8 +148,10 @@
         </div>
       </div>
       <div class="modal-footer border-0 p-4 pt-0">
-        <button type="button" class="admin-btn admin-btn--ghost" (click)="closeConfirmModal()" [disabled]="confirmLoading">Annuler</button>
-        <button type="button" class="admin-btn admin-btn--primary" (click)="triggerPasswordReset()" [disabled]="confirmLoading">
+        <button type="button" class="admin-btn admin-btn--ghost"
+                (click)="closeConfirmModal()" [disabled]="confirmLoading">Annuler</button>
+        <button type="button" class="admin-btn admin-btn--primary"
+                (click)="triggerPasswordReset()" [disabled]="confirmLoading">
           <span *ngIf="confirmLoading" class="spinner-border spinner-border-sm me-2"></span>
           Confirmer
         </button>
@@ -136,13 +160,16 @@
   </div>
 </div>
 
-<!-- Modal de succès -->
-<div class="modal fade show" tabindex="-1" style="display: block; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(4px);" *ngIf="showSuccessModal">
+<!-- ── Success modal ── -->
+<div class="modal fade show" tabindex="-1"
+     style="display: block; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);"
+     *ngIf="showSuccessModal">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
       <div class="modal-body text-center p-5">
         <div class="mb-4">
-          <div class="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+          <div class="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex align-items-center justify-content-center"
+               style="width: 80px; height: 80px;">
             <i class="bi bi-envelope-check-fill fs-1"></i>
           </div>
         </div>

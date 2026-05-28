@@ -7,6 +7,7 @@ import tn.federation.backend.config.AppSecurityProperties;
 
 @SpringBootApplication
 @EnableConfigurationProperties(AppSecurityProperties.class)
+@org.springframework.scheduling.annotation.EnableScheduling
 public class FtnBackendApplication {
     public static void main(String[] args) {
         SpringApplication.run(FtnBackendApplication.class, args);

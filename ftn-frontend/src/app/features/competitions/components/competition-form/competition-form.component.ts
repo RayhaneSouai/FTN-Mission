@@ -13,7 +13,6 @@ import { ReactiveFormsModule, NonNullableFormBuilder, Validators, AbstractContro
 import {
   Competition,
   Discipline,
-  Secteur,
   Region,
   Piscine,
   DISCIPLINE_LABELS,
@@ -52,35 +51,29 @@ export class CompetitionFormComponent implements OnInit {
 
   readonly isEditMode = signal(false);
   readonly showUnsavedConfirm = signal(false);
-  readonly selectedSecteur = signal<Secteur>(Secteur.NATIONAL);
   readonly selectedRegion = signal<string>('');
-
-  readonly isNational = computed(() => this.selectedSecteur() === Secteur.NATIONAL);
 
   readonly disciplines = Object.entries(DISCIPLINE_LABELS).map(([value, label]) => ({ value, label }));
   readonly regions = Object.entries(REGION_LABELS).map(([value, label]) => ({ value, label }));
 
-  /** Piscines filtered by selected region */
- private readonly REGION_PISCINES: Record<string, Piscine[]> = {
-  [Region.GRAND_TUNIS]: [
-    Piscine.RADES_OLYMPIQUE,
-    Piscine.MENZAH_OLYMPIQUE,
-    Piscine.BELVEDERE,
-    Piscine.EZZAHRA_OLYMPIQUE,
-    Piscine.LA_MARSA_MUNICIPALE,
-    Piscine.BEN_AROUS
-  ],
-
-  [Region.SAHEL]: [
-    Piscine.SOUSSE_OLYMPIQUE,
-    Piscine.MONASTIR_OLYMPIQUE,
-    Piscine.HAMMAMET
-  ],
-
-  [Region.SUD]: [
-    Piscine.SFAX_MUNICIPALE
-  ],
-};
+  private readonly REGION_PISCINES: Record<string, Piscine[]> = {
+    [Region.GRAND_TUNIS]: [
+      Piscine.RADES_OLYMPIQUE,
+      Piscine.MENZAH_OLYMPIQUE,
+      Piscine.BELVEDERE,
+      Piscine.EZZAHRA_OLYMPIQUE,
+      Piscine.LA_MARSA_MUNICIPALE,
+      Piscine.BEN_AROUS
+    ],
+    [Region.SAHEL]: [
+      Piscine.SOUSSE_OLYMPIQUE,
+      Piscine.MONASTIR_OLYMPIQUE,
+      Piscine.HAMMAMET
+    ],
+    [Region.SUD]: [
+      Piscine.SFAX_MUNICIPALE
+    ],
+  };
 
   readonly filteredPiscines = computed(() => {
     const region = this.selectedRegion();
@@ -95,14 +88,8 @@ export class CompetitionFormComponent implements OnInit {
       discipline: this.fb.control<Discipline>(Discipline.NATATION),
       startDate: this.fb.control('', Validators.required),
       endDate: this.fb.control('', Validators.required),
-      secteur: this.fb.control<Secteur>(Secteur.NATIONAL),
-      // National
-      region: this.fb.control<string>(''),
-      lieu: this.fb.control<string>(''),
-      // International
-      country: this.fb.control(''),
-      city: this.fb.control(''),
-      venue: this.fb.control(''),
+      region: this.fb.control<string>('', Validators.required),
+      lieu: this.fb.control<string>('', Validators.required),
     },
     { validators: dateRangeValidator }
   );
@@ -110,8 +97,6 @@ export class CompetitionFormComponent implements OnInit {
   ngOnInit(): void {
     if (this.competition) {
       this.isEditMode.set(true);
-      const secteur = this.competition.secteur ?? Secteur.NATIONAL;
-      this.selectedSecteur.set(secteur);
       this.selectedRegion.set(this.competition.region ?? '');
       this.form.patchValue({
         name: this.competition.name,
@@ -119,48 +104,15 @@ export class CompetitionFormComponent implements OnInit {
         discipline: this.competition.discipline,
         startDate: this.competition.startDate,
         endDate: this.competition.endDate,
-        secteur,
         region: this.competition.region ?? '',
         lieu: this.competition.lieu ?? '',
-        country: this.competition.country ?? '',
-        city: this.competition.city ?? '',
-        venue: this.competition.venue ?? '',
       });
     }
-    this.updateValidators();
-  }
-
-  onSecteurChange(value: string): void {
-    this.selectedSecteur.set(value as Secteur);
-    this.form.controls.secteur.setValue(value as Secteur);
-    this.updateValidators();
   }
 
   onRegionChange(): void {
-    // Update signal and reset piscine when region changes
     this.selectedRegion.set(this.form.controls.region.value);
     this.form.controls.lieu.setValue('');
-  }
-
-  private updateValidators(): void {
-    if (this.isNational()) {
-      this.form.controls.region.setValidators(Validators.required);
-      this.form.controls.lieu.setValidators(Validators.required);
-      this.form.controls.country.clearValidators();
-      this.form.controls.city.clearValidators();
-      this.form.controls.venue.clearValidators();
-    } else {
-      this.form.controls.region.clearValidators();
-      this.form.controls.lieu.clearValidators();
-      this.form.controls.country.setValidators(Validators.required);
-      this.form.controls.city.setValidators(Validators.required);
-      this.form.controls.venue.setValidators(Validators.required);
-    }
-    this.form.controls.region.updateValueAndValidity();
-    this.form.controls.lieu.updateValueAndValidity();
-    this.form.controls.country.updateValueAndValidity();
-    this.form.controls.city.updateValueAndValidity();
-    this.form.controls.venue.updateValueAndValidity();
   }
 
   onSubmit(): void {
@@ -176,10 +128,8 @@ export class CompetitionFormComponent implements OnInit {
       discipline: raw.discipline,
       startDate: raw.startDate,
       endDate: raw.endDate,
-      secteur: raw.secteur,
-      ...(this.isNational()
-        ? { region: raw.region, lieu: raw.lieu }
-        : { country: raw.country, city: raw.city, venue: raw.venue }),
+      region: raw.region,
+      lieu: raw.lieu,
     };
 
     if (this.isEditMode() && this.competition) {

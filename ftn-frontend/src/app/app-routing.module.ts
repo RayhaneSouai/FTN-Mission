@@ -8,18 +8,22 @@ import { DashboardComponent } from './features/admin/dashboard/dashboard.compone
 import { adminGuard } from './core/guards/admin.guard';
 import { publicGuard } from './core/guards/public.guard';
 
+import { AdminCompetitionsComponent } from './features/admin/admin-competitions/admin-competitions.component';
+import { AdminProgrammeComponent } from './features/admin/admin-programme/admin-programme.component';
+import { AdminParticipationsComponent } from './features/admin/admin-participations/admin-participations.component';
+import { AdminDistributionComponent } from './features/admin/admin-distribution/admin-distribution.component';
+
 import { MyPerformancesComponent } from './features/my-performance/my-performances.component';
 import { RankingComponent } from './features/ranking/ranking.component';
+import { PerformanceListComponent } from './features/performances/Performance-List/performance-list.component';
 
-
-  
 const routes: Routes = [
   // Admin Space (Backoffice)
   {
     path: 'admin',
     component: AdminLayoutComponent,
     canActivate: [adminGuard],
-  
+
     children: [
       { path: '', component: DashboardComponent },
       {
@@ -37,21 +41,37 @@ const routes: Routes = [
       {
         path: 'press',
         loadChildren: () => import('./features/press/press.module').then(m => m.PressModule)
-      }
-     ,
+      },
+      { path: 'competitions', component: AdminCompetitionsComponent },
+      { path: 'competitions/:id/programme', component: AdminProgrammeComponent },
+      { path: 'competitions/:id/distribution', component: AdminDistributionComponent },
+      { path: 'participations', component: AdminParticipationsComponent },
       {
-    path: 'performances',
-    component: MyPerformancesComponent
-  },
-  {
-    path: 'ranking',
-    component: RankingComponent
-  },
-  {
-    path: '**',
-    redirectTo: 'performances'
-  }
-    ]
+        path: 'clubs',
+        component: ClubListComponent,
+        data: { clubMode: 'admin' }
+      },
+      { path: 'ranking', component: RankingComponent },
+      {
+        path: 'performances',
+        loadComponent: () =>
+          import('./features/performances/Performance-List/performance-list.component')
+            .then(m => m.PerformanceListComponent),
+      },
+      {
+        path: 'performances/new',
+        loadComponent: () =>
+          import('./features/performances/performance-form/performance-form.component').then(m => m.PerformanceFormComponent),
+      },
+      {
+        path: 'partenariats',
+        loadComponent: () =>
+          import('./features/admin/partenariats/admin-partenariats.component')
+            .then(m => m.AdminPartenariatsComponent)
+      },
+
+      { path: '**', redirectTo: '' },
+    ],
   },
 
   // Main Layout Space (Includes Navbar/Footer) - Frontoffice
@@ -61,6 +81,10 @@ const routes: Routes = [
     canActivate: [publicGuard],
     children: [
       { path: '', component: HomeComponent },
+      {
+        path: 'partenaires',
+        loadChildren: () => import('./features/partners/partners.module').then(m => m.PartnersModule)
+      },
       { path: 'clubs', component: ClubListComponent },
       {
         path: 'competitions',
@@ -73,8 +97,35 @@ const routes: Routes = [
       {
         path: 'mon-profil',
         loadChildren: () => import('./features/profile/profile.module').then(m => m.ProfileModule)
+      },
+      {
+        path: 'classement',
+        loadComponent: () =>
+          import('./features/ranking/ranking.component').then(m => m.RankingComponent),
+      },
+      {
+        path: 'records',
+        loadComponent: () =>
+          import('./features/records/records.component').then(m => m.RecordsComponent),
+      },
+      {
+        path: 'mes-performances',
+        loadComponent: () =>
+          import('./features/my-performance/my-performances.component').then(m => m.MyPerformancesComponent),
+      },
+      {
+        path: 'espace-nageur',
+        loadChildren: () => import('./features/swimmer/swimmer.module').then(m => m.SwimmerModule)
+      },
+      {
+        path: 'press',
+        loadChildren: () => import('./features/press/press.module').then(m => m.PressModule)
+      },
+      {
+        path: 'contact',
+        loadComponent: () => import('./features/contact/contact.component').then(m => m.ContactComponent)
       }
-    ]
+    ],
   },
 
   // Auth Space (Clean interface, no Navbar/Footer)
@@ -82,7 +133,7 @@ const routes: Routes = [
     path: 'auth',
     loadChildren: () => import('./features/auth/auth.module').then(m => m.AuthModule)
   },
-  
+
   // Wildcard redirect
   { path: '**', redirectTo: '' }
 ];

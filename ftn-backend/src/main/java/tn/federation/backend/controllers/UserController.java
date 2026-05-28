@@ -55,6 +55,18 @@ public class UserController {
         return ResponseEntity.ok(userService.findById(id));
     }
 
+    @GetMapping("/{id}/dashboard-stats")
+    @Operation(summary = "Récupérer les statistiques du nageur", description = "Affiche les statistiques globales du nageur (participations, performances, favoris)")
+    public ResponseEntity<tn.federation.backend.dto.SwimmerDashboardDTO> getSwimmerDashboardStats(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getSwimmerDashboardStats(id));
+    }
+
+    @GetMapping("/admin/dashboard-stats")
+    @Operation(summary = "Statistiques de l'admin", description = "Statistiques globales de la plateforme (admin)")
+    public ResponseEntity<tn.federation.backend.dto.AdminDashboardDTO> getAdminDashboardStats() {
+        return ResponseEntity.ok(userService.getAdminDashboardStats());
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Créer un nouvel utilisateur", description = "Ajoute un nouvel utilisateur au système (Admin uniquement)")

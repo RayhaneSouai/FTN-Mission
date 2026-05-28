@@ -1,0 +1,54 @@
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <h2>Demande de partenariat</h2>
+    <p class="muted">Remplissez le formulaire pour devenir partenaire officiel.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
+
+      <label>
+        Nom Entreprise
+        <input type="text" formControlName="nomEntreprise" />
+      </label>
+      <label>
+        Nom Representant
+        <input type="text" formControlName="nomRepresentant" />
+      </label>
+
+      <label>
+        Email
+        <input type="text" formControlName="email" />
+      </label>
+
+      <label>
+        Telephone
+        <input type="text" formControlName="telephone" />
+      </label>
+
+      <label>
+        Adresse
+        <input type="text" formControlName="adresse" />
+      </label>
+
+      <label>
+        Matricule fiscale
+        <input type="text" formControlName="matriculeFiscale" />
+      </label>
+
+      <label>
+        Type de partenariat
+        <select formControlName="typePartenariat">
+          <option value="FINANCIER">Financier</option>
+          <option value="STRATEGIQUE">Stratégique</option>
+          <option value="MEDIATIQUE">Médiatique</option>
+        </select>
+      </label>
+
+      <button class="btn-primary" type="submit" [disabled]="loading">
+        {{ loading ? 'Envoi...' : 'Envoyer la demande' }}
+      </button>
+
+      <p class="message" *ngIf="message">{{ message }}</p>
+
+    </form>
+  </div>
+</div>

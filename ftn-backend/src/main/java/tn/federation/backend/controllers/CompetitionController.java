@@ -1,47 +1,93 @@
 package tn.federation.backend.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import tn.federation.backend.dto.CompetitionDetailDTO;
+import tn.federation.backend.dto.DistributionResponseDTO;
+import tn.federation.backend.dto.ParticipationResponseDTO;
 import tn.federation.backend.entities.Competition;
+import tn.federation.backend.entities.Participation;
+import tn.federation.backend.entities.ParticipationRequestStatus;
+import tn.federation.backend.entities.User;
+import tn.federation.backend.repositories.ParticipationRepository;
+import tn.federation.backend.repositories.UserRepository;
 import tn.federation.backend.services.Abstraction.ICompetitionService;
+import tn.federation.backend.services.Abstraction.IDistributionService;
 
 import java.util.List;
+import java.util.Optional;
 
+/**
+ * Public controller — read-only, returns approved/public competition data.
+ */
 @RestController
 @RequestMapping("/api/competitions")
-
 public class CompetitionController {
 
     @Autowired
     ICompetitionService competitionService;
 
-    // ✅ CREATE
-    @PostMapping("/add")
-    public Competition addCompetition(@RequestBody Competition competition) {
-        return competitionService.addCompetition(competition);
-    }
+    @Autowired
+    private ParticipationRepository participationRepository;
 
-    // ✅ UPDATE
-    @PutMapping("/update")
-    public Competition updateCompetition(@RequestBody Competition competition) {
-        return competitionService.updateCompetition(competition);
-    }
+    @Autowired
+    private UserRepository userRepository;
 
-    // ✅ DELETE
-    @DeleteMapping("/delete/{id}")
-    public void deleteCompetition(@PathVariable long id) {
-        competitionService.deleteCompetition(id);
-    }
+    @Autowired
+    private IDistributionService distributionService;
 
-    // ✅ GET BY ID
     @GetMapping("/get/{id}")
-    public Competition getCompetitionById(@PathVariable long id) {
-        return competitionService.getCompetitionById(id);
+    public CompetitionDetailDTO getCompetitionById(
+            @PathVariable long id,
+            Authentication authentication) {
+
+        Competition competition = competitionService.getCompetitionById(id);
+
+        String participationStatus = "NONE";
+        if (authentication != null) {
+            Optional<User> userOpt = userRepository.findByEmail(authentication.getName());
+            if (userOpt.isPresent()) {
+                Optional<Participation> existing = participationRepository
+                        .findBySwimmerIdAndCompetitionId(userOpt.get().getId(), id);
+                if (existing.isPresent()) {
+                    participationStatus = existing.get().getStatus().name();
+                }
+            }
+        }
+
+        return new CompetitionDetailDTO(competition, participationStatus);
     }
 
-    // ✅ GET ALL
     @GetMapping("/getAll")
     public List<Competition> getAllCompetitions() {
         return competitionService.getAllCompetitions();
+    }
+
+    @GetMapping("/{id}/participants")
+    public List<ParticipationResponseDTO> getApprovedParticipants(@PathVariable Long id) {
+        return participationRepository.findByCompetitionIdAndStatus(id, ParticipationRequestStatus.APPROVED)
+                .stream()
+                .map(p -> new ParticipationResponseDTO(
+                        p.getId(),
+                        p.getSwimmer().getId(),
+                        p.getSwimmer().getFirstName(),
+                        p.getSwimmer().getLastName(),
+                        p.getCompetition().getId(),
+                        p.getCompetition().getName(),
+                        p.getStatus().name(),
+                        p.getRegisteredAt() != null ? p.getRegisteredAt().toString() : null,
+                        p.getRejectionReason()))
+                .toList();
+    }
+
+    @GetMapping("/{id}/distribution")
+    public ResponseEntity<DistributionResponseDTO> getApprovedDistribution(@PathVariable Long id) {
+        DistributionResponseDTO result = distributionService.getApprovedDistribution(id);
+        if (result == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(result);
     }
 }

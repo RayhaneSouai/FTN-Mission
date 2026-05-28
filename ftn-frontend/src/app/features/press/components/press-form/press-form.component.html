@@ -35,7 +35,7 @@
         </div>
 
         <div class="form-group" style="grid-column: span 2;">
-          <label>Lien de l'article (Source)</label>
+          <label>Lien Source</label>
           <div style="display: flex; gap: 10px;">
             <input type="text" [(ngModel)]="item.linkUrl" name="linkUrl" placeholder="https://..." style="flex: 1;">
             <button type="button" class="btn-ftn" (click)="fetchFromUrl()" style="background: var(--ftn-blue); color: white; border: none; white-space: nowrap;">
@@ -71,7 +71,7 @@
 
       <div class="form-group" style="margin-top: 1.5rem;">
         <label>Contenu *</label>
-        <textarea [(ngModel)]="item.content" name="content" rows="6" placeholder="Écrivez votre article ici..." required></textarea>
+        <textarea [(ngModel)]="item.content" name="content" rows="3" placeholder="Écrivez votre article ici..." required></textarea>
       </div>
 
       <div *ngIf="message" [class]="'alert ' + messageType" style="margin-top: 1rem; padding: 1rem; border-radius: 8px; text-align: center;">

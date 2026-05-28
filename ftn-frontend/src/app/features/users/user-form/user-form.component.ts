@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { UserService } from '../services/user.service';
 import { AdminUserCreateRequest } from '../models/admin-user-create.model';
+import { ClubService } from '../../clubs/services/club.service';
 
 type UserRole = 'ADMIN' | 'COACH' | 'SWIMMER' | 'VISITOR';
 
@@ -33,6 +34,7 @@ export class UserFormComponent implements OnInit {
     firstName: string;
     lastName: string;
     email: string;
+    password?: string;
     role: UserRole;
     active: boolean;
     birthDate: string | null;
@@ -40,15 +42,26 @@ export class UserFormComponent implements OnInit {
     niveau: string;
     discipline: string;
     anciennete: number | null;
+    clubId: number | null;
   } = this.emptyUserData();
 
+  clubs: any[] = [];
   error = '';
   success = '';
   submitting = false;
 
-  constructor(private userService: UserService) {}
+  constructor(private userService: UserService, private clubService: ClubService) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.loadClubs();
+  }
+
+  loadClubs() {
+    this.clubService.getAll().subscribe({
+      next: (data) => this.clubs = data,
+      error: (err) => console.error('Erreur lors du chargement des clubs', err)
+    });
+  }
 
   get isSwimmer(): boolean {
     return this.userData.role === 'SWIMMER';
@@ -88,13 +101,15 @@ export class UserFormComponent implements OnInit {
       firstName: '',
       lastName: '',
       email: '',
+      password: '',
       role: 'SWIMMER' as UserRole,
       active: true,
       birthDate: null as string | null,
       gender: '',
       niveau: '',
       discipline: '',
-      anciennete: null as number | null
+      anciennete: null as number | null,
+      clubId: null as number | null
     };
   }
 
@@ -112,12 +127,13 @@ export class UserFormComponent implements OnInit {
           gender: data.gender || '',
           niveau: data.niveau || '',
           discipline: data.discipline || '',
-          anciennete: data.anciennete ?? null
+          anciennete: data.anciennete ?? null,
+          clubId: data.clubId ?? null
         };
         this.onRoleChange(this.userData.role);
       },
       error: (err) => {
-        this.error = 'Erreur lors du chargement de l\'utilisateur';
+        this.error = "Erreur lors du chargement de l'utilisateur";
         console.error(err);
       }
     });
@@ -151,8 +167,8 @@ export class UserFormComponent implements OnInit {
       });
     } else {
       this.userService.createUser(this.buildCreatePayload()).subscribe({
-        next: (res) => {
-          this.success = res.message || 'Utilisateur créé avec succès.';
+        next: () => {
+          this.success = 'Utilisateur créé avec succès.';
           this.submitting = false;
           setTimeout(() => this.formSaved.emit(), 1200);
         },
@@ -167,31 +183,30 @@ export class UserFormComponent implements OnInit {
 
   private validateForm(): string | null {
     if (!this.userData.firstName?.trim() || !this.userData.lastName?.trim() || !this.userData.email?.trim()) {
-      return 'Le prénom, le nom et l\'email sont obligatoires.';
+      return "Le prénom, le nom et l'email sont obligatoires.";
     }
 
     const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailPattern.test(this.userData.email)) {
-      return 'Le format de l\'email est incorrect.';
+      return "Le format de l'email est incorrect.";
     }
 
     if (!this.userData.role) {
-      return 'Le rôle est obligatoire.';
+      return "Le rôle est obligatoire.";
     }
 
     if (this.userData.role === 'SWIMMER') {
       if (!this.userData.gender || !this.userData.birthDate || !this.userData.discipline || !this.userData.niveau) {
-        return 'Pour un nageur : genre, date de naissance, discipline et niveau sont obligatoires.';
+        return "Pour un nageur : genre, date de naissance, discipline et niveau sont obligatoires.";
       }
     } else if (this.userData.role === 'COACH') {
       if (!this.userData.gender || !this.userData.birthDate) {
-        return 'Pour un coach : genre et date de naissance sont obligatoires.';
+        return "Pour un coach : genre et date de naissance sont obligatoires.";
       }
       if (this.userData.anciennete === null || this.userData.anciennete === undefined || this.userData.anciennete < 0) {
-        return 'L\'ancienneté est obligatoire pour un coach.';
+        return "L'ancienneté est obligatoire pour un coach.";
       }
     }
-
     return null;
   }
 
@@ -204,7 +219,8 @@ export class UserFormComponent implements OnInit {
       role: this.userData.role,
       birthDate: this.userData.birthDate || null,
       gender: this.userData.gender || null,
-      ...sport
+      ...sport,
+      clubId: this.userData.clubId || null
     };
   }
 
@@ -218,28 +234,17 @@ export class UserFormComponent implements OnInit {
       active: this.userData.active,
       birthDate: this.userData.birthDate || null,
       gender: this.userData.gender || null,
-      ...sport
+      ...sport,
+      clubId: this.userData.clubId || null
     };
   }
 
-  private sportFieldsForRole(): {
-    discipline: string | null;
-    niveau: string | null;
-    anciennete: number | null;
-  } {
+  private sportFieldsForRole(): { discipline: string | null; niveau: string | null; anciennete: number | null } {
     if (this.userData.role === 'SWIMMER') {
-      return {
-        discipline: this.userData.discipline || null,
-        niveau: this.userData.niveau || null,
-        anciennete: null
-      };
+      return { discipline: this.userData.discipline || null, niveau: this.userData.niveau || null, anciennete: null };
     }
     if (this.userData.role === 'COACH') {
-      return {
-        discipline: null,
-        niveau: null,
-        anciennete: this.userData.anciennete
-      };
+      return { discipline: null, niveau: null, anciennete: this.userData.anciennete };
     }
     return { discipline: null, niveau: null, anciennete: null };
   }

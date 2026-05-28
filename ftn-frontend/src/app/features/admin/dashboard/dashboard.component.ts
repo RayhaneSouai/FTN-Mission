@@ -16,15 +16,17 @@ import { AdminStatVariant } from '../../../shared/admin-ui/components/admin-stat
 })
 export class DashboardComponent implements OnInit {
   @ViewChild('activityChart') activityChart?: DashboardActivityComponent;
+
   refreshing = false;
   statsLoading = true;
   pendingCount = 0;
   adminFirstName = '';
+
   stats: { label: string; value: string; icon: string; color: AdminStatVariant; detail: string }[] = [
-    { label: 'Utilisateurs totaux', value: '—', icon: 'users', color: 'blue', detail: 'Membres enregistrés' },
-    { label: 'Licences actives', value: '—', icon: 'license', color: 'azure', detail: 'Validées cette saison' },
-    { label: 'Demandes en attente', value: '—', icon: 'pending', color: 'orange', detail: 'À traiter rapidement' },
-    { label: 'Clubs affiliés', value: '—', icon: 'club', color: 'indigo', detail: 'Réseau partenaire FTN' }
+    { label: 'Utilisateurs totaux',  value: '—', icon: 'users',   color: 'blue',   detail: 'Membres enregistrés' },
+    { label: 'Licences actives',     value: '—', icon: 'license', color: 'azure',  detail: 'Validées cette saison' },
+    { label: 'Demandes en attente',  value: '—', icon: 'pending', color: 'orange', detail: 'À traiter rapidement' },
+    { label: 'Clubs affiliés',       value: '—', icon: 'club',    color: 'indigo', detail: 'Réseau partenaire FTN' }
   ];
 
   recentActivities: { type: string; title: string; description: string; time: string; sortKey: number }[] = [];
@@ -50,10 +52,10 @@ export class DashboardComponent implements OnInit {
 
   statIcon(key: string): string {
     const map: Record<string, string> = {
-      users: 'bi-people-fill',
+      users:   'bi-people-fill',
       license: 'bi-card-checklist',
       pending: 'bi-hourglass-split',
-      club: 'bi-building'
+      club:    'bi-building'
     };
     return map[key] ?? 'bi-graph-up';
   }
@@ -80,15 +82,19 @@ export class DashboardComponent implements OnInit {
     this.recentActivities = [];
 
     forkJoin({
-      users: this.userService.getAllUsers().pipe(catchError(() => of([]))),
+      users:    this.userService.getAllUsers().pipe(catchError(() => of([]))),
       licenses: this.licenseService.getAllLicenses().pipe(catchError(() => of([]))),
-      clubs: this.clubService.getAll().pipe(catchError(() => of([])))
+      clubs:    this.clubService.getAll().pipe(catchError(() => of([])))
     }).subscribe(({ users, licenses, clubs }) => {
       this.stats[0].value = users.length.toString();
-      this.pendingCount = users.filter((u: { registrationStatus?: string }) => u.registrationStatus === 'EN_ATTENTE').length;
-      this.stats[2].value = this.pendingCount.toString();
-      this.stats[2].detail =
-        this.pendingCount > 0 ? `${this.pendingCount} demande(s) à examiner` : 'Aucune demande en attente';
+
+      this.pendingCount = users.filter(
+        (u: { registrationStatus?: string }) => u.registrationStatus === 'EN_ATTENTE'
+      ).length;
+      this.stats[2].value  = this.pendingCount.toString();
+      this.stats[2].detail = this.pendingCount > 0
+        ? `${this.pendingCount} demande(s) à examiner`
+        : 'Aucune demande en attente';
 
       this.stats[1].value = licenses.length.toString();
       this.stats[3].value = clubs.length.toString();
@@ -102,11 +108,11 @@ export class DashboardComponent implements OnInit {
           : 'Utilisateur';
         const created = u['createdAt'];
         activities.push({
-          type: 'user',
-          title: u['registrationStatus'] === 'EN_ATTENTE' ? 'Nouvelle demande' : 'Nouvel utilisateur',
+          type:        'user',
+          title:       u['registrationStatus'] === 'EN_ATTENTE' ? 'Nouvelle demande' : 'Nouvel utilisateur',
           description: `${u['firstName']} ${u['lastName']} — ${roleStr}`,
-          time: created ? this.getRelativeTime(created) : 'Récemment',
-          sortKey: this.toTimestamp(created)
+          time:        created ? this.getRelativeTime(created) : 'Récemment',
+          sortKey:     this.toTimestamp(created)
         });
       });
 
@@ -115,11 +121,11 @@ export class DashboardComponent implements OnInit {
         const l = sortedLicenses[0] as Record<string, unknown>;
         const issueDate = l['issueDate'];
         activities.push({
-          type: 'license',
-          title: 'Nouvelle licence',
+          type:        'license',
+          title:       'Nouvelle licence',
           description: `Licence ${l['licenseNumber']} enregistrée`,
-          time: issueDate ? this.getRelativeTime(issueDate) : 'Récemment',
-          sortKey: this.toTimestamp(issueDate)
+          time:        issueDate ? this.getRelativeTime(issueDate) : 'Récemment',
+          sortKey:     this.toTimestamp(issueDate)
         });
       }
 
@@ -142,22 +148,28 @@ export class DashboardComponent implements OnInit {
 
     let date: Date;
     if (Array.isArray(dateString)) {
-      date = new Date(dateString[0], dateString[1] - 1, dateString[2], dateString[3] || 0, dateString[4] || 0);
+      date = new Date(
+        (dateString as number[])[0],
+        (dateString as number[])[1] - 1,
+        (dateString as number[])[2],
+        (dateString as number[])[3] || 0,
+        (dateString as number[])[4] || 0
+      );
     } else {
       date = new Date(dateString as string);
     }
 
     if (isNaN(date.getTime())) return 'Récemment';
 
-    const diffMs = Date.now() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
+    const diffMs   = Date.now() - date.getTime();
+    const diffMins  = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
+    const diffDays  = Math.floor(diffHours / 24);
 
-    if (diffMins < 1) return "à l'instant";
-    if (diffMins < 60) return `il y a ${diffMins} min`;
+    if (diffMins  <  1) return "à l'instant";
+    if (diffMins  < 60) return `il y a ${diffMins} min`;
     if (diffHours < 24) return `il y a ${diffHours}h`;
-    if (diffDays === 1) return 'hier';
+    if (diffDays  === 1) return 'hier';
     return `il y a ${diffDays} jours`;
   }
 }

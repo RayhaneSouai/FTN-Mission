@@ -4,8 +4,9 @@ import tn.federation.backend.dto.AthleteProgressDTO;
 import tn.federation.backend.dto.AdminUserCreateRequestDTO;
 import tn.federation.backend.dto.AdminUserCreateResponseDTO;
 import tn.federation.backend.dto.BulkUserImportResponseDTO;
+import tn.federation.backend.dto.RegisterRequestDTO;
+import tn.federation.backend.dto.SwimmerDashboardDTO;
 import tn.federation.backend.dto.UserDTO;
-
 import java.util.List;
 
 public interface IUserService {
@@ -21,4 +22,6 @@ public interface IUserService {
     UserDTO rejectUser(Long id);
     AthleteProgressDTO getAthleteProgress(Long swimmerId);
     void changePassword(String currentEmail, String oldPassword, String newPassword);
+    SwimmerDashboardDTO getSwimmerDashboardStats(Long swimmerId);
+    tn.federation.backend.dto.AdminDashboardDTO getAdminDashboardStats();
 }

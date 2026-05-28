@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tn.federation.backend.dtos.RecordDTO;
+import tn.federation.backend.dto.RecordDTO;
 import tn.federation.backend.entities.Gender;
 import tn.federation.backend.entities.StrokeType;
 import tn.federation.backend.services.Abstraction.IRecordService;
@@ -13,7 +13,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/records")
 @RequiredArgsConstructor
-@CrossOrigin("*")
 @Tag(name = "Records", description = "Records personnels et nationaux")
 public class RecordController {
     private final IRecordService recordService;

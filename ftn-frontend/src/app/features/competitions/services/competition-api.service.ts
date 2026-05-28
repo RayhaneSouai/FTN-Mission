@@ -1,8 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Competition, CompetitionRequest } from '../models/competition.model';
+import { Competition, CompetitionDetailResponse, DistributionResponse, ParticipationResponseDTO } from '../models/competition.model';
 
+/**
+ * Public API service — read-only competition endpoints + participation.
+ */
 @Injectable({ providedIn: 'root' })
 export class CompetitionApiService {
     private readonly http = inject(HttpClient);
@@ -12,19 +15,35 @@ export class CompetitionApiService {
         return this.http.get<Competition[]>(`${this.baseUrl}/getAll`);
     }
 
-    getById(id: number): Observable<Competition> {
-        return this.http.get<Competition>(`${this.baseUrl}/get/${id}`);
+    getById(id: number): Observable<CompetitionDetailResponse> {
+        return this.http.get<CompetitionDetailResponse>(`${this.baseUrl}/get/${id}`);
     }
 
-    create(dto: CompetitionRequest): Observable<Competition> {
-        return this.http.post<Competition>(`${this.baseUrl}/add`, dto);
+    /** Submit a participation request (swimmer, authenticated) */
+    requestParticipation(competitionId: number): Observable<ParticipationResponseDTO> {
+        return this.http.post<ParticipationResponseDTO>(
+            `${this.baseUrl}/${competitionId}/participate`, {}
+        );
     }
 
-    update(competition: Competition): Observable<Competition> {
-        return this.http.put<Competition>(`${this.baseUrl}/update`, competition);
+    /** Check if the current swimmer already has a participation request */
+    getMyParticipation(competitionId: number): Observable<ParticipationResponseDTO | null> {
+        return this.http.get<ParticipationResponseDTO | null>(
+            `${this.baseUrl}/${competitionId}/my-participation`
+        );
     }
 
-    delete(id: number): Observable<void> {
-        return this.http.delete<void>(`${this.baseUrl}/delete/${id}`);
+    /** Get approved participants for a competition */
+    getApprovedParticipants(competitionId: number): Observable<ParticipationResponseDTO[]> {
+        return this.http.get<ParticipationResponseDTO[]>(
+            `${this.baseUrl}/${competitionId}/participants`
+        );
+    }
+
+    /** Get approved distribution for a competition (public - swimmers) */
+    getApprovedDistribution(competitionId: number): Observable<DistributionResponse> {
+        return this.http.get<DistributionResponse>(
+            `${this.baseUrl}/${competitionId}/distribution`
+        );
     }
 }

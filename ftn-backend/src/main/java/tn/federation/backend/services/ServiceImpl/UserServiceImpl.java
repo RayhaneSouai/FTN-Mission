@@ -22,10 +22,12 @@ import tn.federation.backend.entities.Performance;
 import tn.federation.backend.entities.Role;
 import tn.federation.backend.entities.User;
 import tn.federation.backend.entities.RegistrationStatus;
+import tn.federation.backend.repositories.ClubRepository;
+import tn.federation.backend.repositories.ParticipationRepository;
 import tn.federation.backend.repositories.PerformanceRepository;
+import tn.federation.backend.repositories.PressFavoriteRepository;
 import tn.federation.backend.repositories.UserRepository;
 import java.time.LocalDateTime;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,29 +35,38 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements IUserService {
     private final UserRepository userRepository;
     private final PerformanceRepository performanceRepository;
+    private final ClubRepository clubRepository;
     private final PasswordEncoder passwordEncoder;
     private final IEmailService emailService;
     private final SecurePasswordGenerator securePasswordGenerator;
     private final IPasswordTokenService passwordTokenService;
     private final PasswordPolicyValidator passwordPolicyValidator;
     private final AppSecurityProperties appProperties;
+    private final ParticipationRepository participationRepository;
+    private final PressFavoriteRepository favoriteRepository;
 
     public UserServiceImpl(UserRepository userRepository,
                            PerformanceRepository performanceRepository,
+                           ClubRepository clubRepository,
                            PasswordEncoder passwordEncoder,
                            IEmailService emailService,
                            SecurePasswordGenerator securePasswordGenerator,
                            IPasswordTokenService passwordTokenService,
                            PasswordPolicyValidator passwordPolicyValidator,
-                           AppSecurityProperties appProperties) {
+                           AppSecurityProperties appProperties,
+                           ParticipationRepository participationRepository,
+                           PressFavoriteRepository favoriteRepository) {
         this.userRepository = userRepository;
         this.performanceRepository = performanceRepository;
+        this.clubRepository = clubRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.securePasswordGenerator = securePasswordGenerator;
         this.passwordTokenService = passwordTokenService;
         this.passwordPolicyValidator = passwordPolicyValidator;
         this.appProperties = appProperties;
+        this.participationRepository = participationRepository;
+        this.favoriteRepository = favoriteRepository;
     }
 
     public List<UserDTO> findAllUsers() {
@@ -151,8 +162,6 @@ public class UserServiceImpl implements IUserService {
         return response;
     }
 
-
-
     /**
      * Création via import CSV : pas de statut dans le fichier, compte inactif en attente de validation admin.
      */
@@ -193,7 +202,6 @@ public class UserServiceImpl implements IUserService {
         user.setActive(true);
         user.setRegistrationStatus(RegistrationStatus.CONFIRMEE);
         User saved = userRepository.save(user);
-        // Notify user of approval
         emailService.sendRegistrationDecision(user.getEmail(), true);
         return mapToDTO(saved);
     }
@@ -203,7 +211,6 @@ public class UserServiceImpl implements IUserService {
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
         user.setActive(false);
         user.setRegistrationStatus(RegistrationStatus.ANNULEE);
-        // Notify user of rejection
         emailService.sendRegistrationDecision(user.getEmail(), false);
         return mapToDTO(userRepository.save(user));
     }
@@ -212,7 +219,6 @@ public class UserServiceImpl implements IUserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable avec id: " + id));
 
-        // Security check: Only Admin or the owner can update the profile
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = auth.getName();
         boolean isAdmin = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
@@ -233,6 +239,12 @@ public class UserServiceImpl implements IUserService {
         user.setNiveau(convertToNiveau(dto.getNiveau()));
         user.setDiscipline(convertToDiscipline(dto.getDiscipline()));
         user.setAnciennete(dto.getAnciennete());
+
+        if (dto.getClubId() != null) {
+            user.setClub(clubRepository.findById(dto.getClubId()).orElse(null));
+        } else if (dto.getClubName() == null) {
+            user.setClub(null);
+        }
 
         // Sensitive fields (Admin only)
         if (isAdmin) {
@@ -309,6 +321,41 @@ public class UserServiceImpl implements IUserService {
         return progressDTO;
     }
 
+    public tn.federation.backend.dto.SwimmerDashboardDTO getSwimmerDashboardStats(Long swimmerId) {
+        if (!userRepository.existsById(swimmerId)) {
+            throw new IllegalArgumentException("Nageur introuvable avec id: " + swimmerId);
+        }
+        User swimmer = userRepository.findById(swimmerId).get();
+
+        long participations = participationRepository.countBySwimmerId(swimmerId);
+        long performances = performanceRepository.countBySwimmerId(swimmerId);
+        long favorites = favoriteRepository.countByUserId(swimmerId);
+        boolean hasLicense = swimmer.getActive() != null && swimmer.getActive() && swimmer.getClub() != null;
+
+        return tn.federation.backend.dto.SwimmerDashboardDTO.builder()
+                .totalParticipations(participations)
+                .totalPerformances(performances)
+                .totalFavorites(favorites)
+                .hasActiveLicense(hasLicense)
+                .build();
+    }
+
+    public tn.federation.backend.dto.AdminDashboardDTO getAdminDashboardStats() {
+        long totalUsers = userRepository.count();
+        long activeLicenses = userRepository.findAll().stream()
+                .filter(u -> RegistrationStatus.CONFIRMEE.equals(u.getRegistrationStatus())).count();
+        long pendingRequests = userRepository.findAll().stream()
+                .filter(u -> RegistrationStatus.EN_ATTENTE.equals(u.getRegistrationStatus())).count();
+        long affiliatedClubs = clubRepository.count();
+
+        return tn.federation.backend.dto.AdminDashboardDTO.builder()
+                .totalUsers(totalUsers)
+                .activeLicenses(activeLicenses)
+                .pendingRequests(pendingRequests)
+                .affiliatedClubs(affiliatedClubs)
+                .build();
+    }
+
     private PerformanceDTO mapPerformanceToDTO(Performance performance) {
         PerformanceDTO dto = new PerformanceDTO();
         dto.setTime(performance.getTime());
@@ -335,6 +382,16 @@ public class UserServiceImpl implements IUserService {
         dto.setRegistrationStatus(user.getRegistrationStatus() != null ? user.getRegistrationStatus().name() : null);
         dto.setCreatedAt(user.getCreatedAt());
         dto.setMustChangePassword(user.getMustChangePassword());
+
+        if (user.getClub() != null) {
+            dto.setClubId(user.getClub().getId());
+            dto.setClubName(user.getClub().getName());
+            dto.setClubRegion(user.getClub().getRegion());
+            dto.setClubManager(user.getClub().getManager());
+            dto.setClubContact(user.getClub().getContact());
+            dto.setClubAffiliationDate(user.getClub().getAffiliationDate());
+        }
+
         return dto;
     }
 

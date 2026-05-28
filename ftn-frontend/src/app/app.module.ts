@@ -47,6 +47,7 @@ import { RankingComponent } from './features/ranking/ranking.component';
     SharedModule,
     AdminUiModule,
     DashboardModule
+
   ],
   providers: [
     provideClientHydration(),
