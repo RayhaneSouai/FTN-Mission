@@ -7,6 +7,17 @@ export const publicGuard: CanActivateFn = (route, state) => {
   const platformId = inject(PLATFORM_ID);
   
   if (isPlatformBrowser(platformId)) {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        if (user && (user.role === 'ADMIN' || user.role === 'ADMINISTRATEUR')) {
+          return router.createUrlTree(['/admin']);
+        }
+      } catch (e) {
+        console.error('Error parsing user from localStorage', e);
+      }
+    }
     const isAdmin = localStorage.getItem('isAdmin');
     if (isAdmin === 'true') {
       return router.createUrlTree(['/admin']);

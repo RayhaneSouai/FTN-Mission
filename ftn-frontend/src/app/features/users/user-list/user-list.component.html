@@ -14,54 +14,42 @@
   </app-admin-page-header>
 
   <!-- Stats Section -->
-  <section class="stats-section">
-    <div class="stats-grid">
-      <div class="stat-card stat-card--accent">
-        <div class="stat-info">
-          <span class="stat-label">Total Utilisateurs</span>
-          <span class="stat-value">{{ users.length }}</span>
-        </div>
-        <div class="stat-icon">
-          <i class="bi bi-people-fill"></i>
-        </div>
-      </div>
-      <div
-        class="stat-card stat-card--pending"
-        [class.stat-card--pending-click]="pendingValidationCount > 0"
-        (click)="openPendingValidationHub()"
-        (keydown.enter)="openPendingValidationHub()"
-        (keydown.space)="$event.preventDefault(); openPendingValidationHub()"
-        [attr.tabindex]="pendingValidationCount > 0 ? 0 : null"
-        [attr.role]="pendingValidationCount > 0 ? 'button' : null"
-        [attr.aria-label]="
-          pendingValidationCount > 0
-            ? 'Traiter les ' + pendingValidationCount + ' demandes en attente de validation'
-            : 'Aucune demande en attente de validation'
-        ">
-        <div class="stat-card-pending-row">
-          <div class="stat-info">
-            <span class="stat-label">En attente de validation</span>
-            <span
-              class="stat-value"
-              [class.text-warning]="pendingValidationCount > 0"
-              [class.text-secondary]="pendingValidationCount === 0">
-              {{ pendingValidationCount }}
-            </span>
-          </div>
-          <div class="stat-icon" [class.text-warning]="pendingValidationCount > 0" [class.text-secondary]="pendingValidationCount === 0">
-            <i class="bi bi-hourglass-split"></i>
-          </div>
-        </div>
-        <span class="stat-card-hint" [class.stat-card-hint--muted]="pendingValidationCount === 0">
-          {{ pendingValidationCount > 0 ? 'Cliquer pour examiner et décider' : 'Aucune demande à traiter pour le moment' }}
-        </span>
-      </div>
-    </div>
+  <section class="admin-stats-row">
+    <app-admin-stat-card
+      label="Total Utilisateurs"
+      [value]="users.length"
+      icon="bi-people-fill"
+      variant="blue">
+    </app-admin-stat-card>
+    <app-admin-stat-card
+      label="En attente de validation"
+      [value]="pendingValidationCount"
+      [clickable]="pendingValidationCount > 0"
+      [highlight]="pendingValidationCount > 0"
+      (cardClick)="openPendingValidationHub()"
+      [detail]="pendingValidationCount > 0 ? 'Cliquer pour examiner et décider' : 'Aucune demande à traiter pour le moment'"
+      icon="bi-hourglass-split"
+      [variant]="pendingValidationCount > 0 ? 'orange' : 'default'">
+    </app-admin-stat-card>
   </section>
 
   <!-- Table Card -->
   <div class="card border-0 shadow-sm rounded-4 overflow-hidden mx-4 mb-5">
-    <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
+    <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div class="user-tabs-nav">
+        <button type="button" class="user-tab-btn" [class.active]="selectedRole === 'ALL'" (click)="filterByRole('ALL')">
+          Tous <span class="tab-badge">{{ getRoleCount('ALL') }}</span>
+        </button>
+        <button type="button" class="user-tab-btn" [class.active]="selectedRole === 'SWIMMER'" (click)="filterByRole('SWIMMER')">
+          Nageurs <span class="tab-badge swimmer">{{ getRoleCount('SWIMMER') }}</span>
+        </button>
+        <button type="button" class="user-tab-btn" [class.active]="selectedRole === 'COACH'" (click)="filterByRole('COACH')">
+          Coachs <span class="tab-badge coach">{{ getRoleCount('COACH') }}</span>
+        </button>
+        <button type="button" class="user-tab-btn" [class.active]="selectedRole === 'ADMIN'" (click)="filterByRole('ADMIN')">
+          Admins <span class="tab-badge visitor">{{ getRoleCount('ADMIN') }}</span>
+        </button>
+      </div>
       <div class="search-box">
         <i class="bi bi-search"></i>
         <input type="text" class="form-control border-0 shadow-none" placeholder="Rechercher un utilisateur..." (input)="onSearch($event)">
@@ -89,7 +77,6 @@
                   </div>
                   <div>
                     <div class="fw-bold text-dark">{{ user.firstName }} {{ user.lastName }}</div>
-                    <div class="text-muted small">ID: #{{ user.id }}</div>
                   </div>
                 </div>
               </td>
