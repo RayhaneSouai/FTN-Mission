@@ -33,6 +33,7 @@ export class OverviewComponent implements OnInit {
   successMessage = signal('');
   errorMessage = signal('');
   showAllCategories = signal(false);
+  justSubmitted = signal(false);
 
   /** Derived from state service */
   readonly participationStatus = this.state.participationStatus;
@@ -43,7 +44,8 @@ export class OverviewComponent implements OnInit {
     const comp = this.state.selectedCompetition();
     if (!comp) return false;
     return !!(comp.allowedGender || comp.minAge || comp.maxAge || comp.maxEvents || comp.customConditions
-      || comp.participationDeadline || (comp.allowedCategories && comp.allowedCategories.length));
+      || comp.participationDeadline || (comp.allowedCategories && comp.allowedCategories.length)
+      || comp.licenseRequired || comp.medicalCertificateRequired || comp.hasMinimas);
   });
 
   readonly hasCustomConditions = computed(() => {
@@ -96,9 +98,17 @@ export class OverviewComponent implements OnInit {
     this.errorMessage.set('');
 
     this.api.requestParticipation(comp.id).subscribe({
-      next: () => {
-        this.state.updateParticipationStatus('PENDING');
-        this.successMessage.set('Demande soumise avec succès ! Votre participation est en attente d\'approbation.');
+      next: (res) => {
+        this.state.updateParticipationStatus(res.status as any);
+        this.justSubmitted.set(true);
+        if (res.status === 'APPROVED') {
+          this.successMessage.set('Félicitations, votre inscription a été acceptée avec succès.');
+        } else if (res.status === 'REJECTED') {
+          const reason = res.rejectionReason || 'Conditions non respectées.';
+          this.state.updateRejectionReason(reason);
+        } else {
+          this.successMessage.set('Demande soumise avec succès.');
+        }
         this.submitting.set(false);
       },
       error: (err) => {

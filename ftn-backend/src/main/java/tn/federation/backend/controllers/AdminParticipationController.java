@@ -5,15 +5,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tn.federation.backend.dto.ParticipationResponseDTO;
 import tn.federation.backend.entities.Participation;
+import tn.federation.backend.entities.ParticipationAudit;
 import tn.federation.backend.entities.ParticipationRequestStatus;
+import tn.federation.backend.repositories.ParticipationAuditRepository;
 import tn.federation.backend.repositories.ParticipationRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Admin endpoint to manage participation requests (approve/reject).
- * Secured via SecurityConfig (/api/admin/** requires authentication).
+ * Admin endpoint to manage participation requests and audit trail.
  */
 @RestController
 @RequestMapping("/api/admin/participations")
@@ -21,6 +23,9 @@ public class AdminParticipationController {
 
     @Autowired
     private ParticipationRepository participationRepository;
+
+    @Autowired
+    private ParticipationAuditRepository auditRepository;
 
     /** GET /api/admin/participations/pending — all pending requests */
     @GetMapping("/pending")
@@ -52,7 +57,12 @@ public class AdminParticipationController {
         }
 
         p.setStatus(ParticipationRequestStatus.APPROVED);
+        p.setRejectionReason(null);
         participationRepository.save(p);
+
+        // Audit log
+        saveAudit(p, null);
+
         return ResponseEntity.ok(toDTO(p));
     }
 
@@ -68,8 +78,54 @@ public class AdminParticipationController {
         }
 
         p.setStatus(ParticipationRequestStatus.REJECTED);
+        p.setRejectionReason("Inscription refusée par la fédération.");
         participationRepository.save(p);
+
+        // Audit log
+        saveAudit(p, p.getRejectionReason());
+
         return ResponseEntity.ok(toDTO(p));
+    }
+
+    // ─── Audit Endpoints ───
+
+    /** GET /api/admin/participations/audit — full audit trail */
+    @GetMapping("/audit")
+    public List<ParticipationAudit> getAuditTrail() {
+        return auditRepository.findAllByOrderByDecidedAtDesc();
+    }
+
+    /** GET /api/admin/participations/audit/swimmer/{swimmerId} */
+    @GetMapping("/audit/swimmer/{swimmerId}")
+    public List<ParticipationAudit> getAuditBySwimmer(@PathVariable Long swimmerId) {
+        return auditRepository.findBySwimmerIdOrderByDecidedAtDesc(swimmerId);
+    }
+
+    /** GET /api/admin/participations/audit/competition/{competitionId} */
+    @GetMapping("/audit/competition/{competitionId}")
+    public List<ParticipationAudit> getAuditByCompetition(@PathVariable Long competitionId) {
+        return auditRepository.findByCompetitionIdOrderByDecidedAtDesc(competitionId);
+    }
+
+    /** GET /api/admin/participations/audit/status/{status} */
+    @GetMapping("/audit/status/{status}")
+    public List<ParticipationAudit> getAuditByStatus(@PathVariable String status) {
+        ParticipationRequestStatus s = ParticipationRequestStatus.valueOf(status.toUpperCase());
+        return auditRepository.findByDecisionOrderByDecidedAtDesc(s);
+    }
+
+    // ─── Helpers ───
+
+    private void saveAudit(Participation p, String reason) {
+        ParticipationAudit audit = new ParticipationAudit();
+        audit.setSwimmerId(p.getSwimmer().getId());
+        audit.setSwimmerName(p.getSwimmer().getFirstName() + " " + p.getSwimmer().getLastName());
+        audit.setCompetitionId(p.getCompetition().getId());
+        audit.setCompetitionName(p.getCompetition().getName());
+        audit.setDecision(p.getStatus());
+        audit.setReason(reason);
+        audit.setDecidedAt(LocalDateTime.now());
+        auditRepository.save(audit);
     }
 
     private ParticipationResponseDTO toDTO(Participation p) {
@@ -82,6 +138,6 @@ public class AdminParticipationController {
                 p.getCompetition().getName(),
                 p.getStatus().name(),
                 p.getRegisteredAt() != null ? p.getRegisteredAt().toString() : null,
-                p.getCompetition().getCustomConditions());
+                p.getRejectionReason());
     }
 }

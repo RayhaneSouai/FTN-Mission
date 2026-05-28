@@ -19,6 +19,11 @@ public class Participation {
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(20)")
     private ParticipationRequestStatus status;
+
+    /** Reason for rejection (user-friendly message). Null when approved. */
+    @Column(name = "rejection_reason", length = 500)
+    private String rejectionReason;
+
     private Double officialTime;
 
     @Column(name = "rank_pos")

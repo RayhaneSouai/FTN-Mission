@@ -10,6 +10,8 @@ import { adminGuard } from './core/guards/admin.guard';
 import { AdminCompetitionsComponent } from './features/admin/admin-competitions/admin-competitions.component';
 import { AdminProgrammeComponent } from './features/admin/admin-programme/admin-programme.component';
 import { AdminParticipationsComponent } from './features/admin/admin-participations/admin-participations.component';
+import { AdminDistributionComponent } from './features/admin/admin-distribution/admin-distribution.component';
+
 import { MyPerformancesComponent } from './features/my-performance/my-performances.component';
 import { RankingComponent } from './features/ranking/ranking.component';
 import { PerformanceListComponent } from './features/performances/Performance-List/performance-list.component';
@@ -41,6 +43,7 @@ const routes: Routes = [
       },
       { path: 'competitions', component: AdminCompetitionsComponent },
       { path: 'competitions/:id/programme', component: AdminProgrammeComponent },
+      { path: 'competitions/:id/distribution', component: AdminDistributionComponent },
       { path: 'participations', component: AdminParticipationsComponent },
       {
         path: 'clubs',

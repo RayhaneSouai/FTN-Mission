@@ -97,12 +97,18 @@ public class ProgrammeServiceImpl implements IProgrammeService {
         CompetitionDay day = dayRepository.findById(dayId)
                 .orElseThrow(() -> new ProgrammeValidationException("Jour introuvable: " + dayId));
 
+        Competition competition = day.getCompetition();
+        enforceEditableBeforeStartDate(competition);
+
         ProgramItemType type = parseType(request.type());
 
         if (type == ProgramItemType.SERIES
                 && (request.numberOfParticipants() == null || request.numberOfParticipants() < 1)) {
             throw new ProgrammeValidationException("Le nombre de participants est obligatoire pour une série.");
         }
+
+        // Validate single swimmer category for SERIES
+        Categorie category = parseSwimmerCategory(type, request.swimmerCategory(), competition);
 
         // Chronological validation: new item must be after the latest existing item
         Optional<LocalTime> maxTime = programItemRepository.findMaxTimeByDayId(dayId);
@@ -116,6 +122,8 @@ public class ProgrammeServiceImpl implements IProgrammeService {
         item.setTime(request.time());
         item.setType(type);
         item.setNumberOfParticipants(type == ProgramItemType.SERIES ? request.numberOfParticipants() : null);
+        item.setSwimmerCategory(type == ProgramItemType.SERIES ? category : null);
+        item.setSeriesGender(type == ProgramItemType.SERIES ? parseGender(request.seriesGender()) : null);
         item.setDay(day);
 
         item = programItemRepository.save(item);
@@ -128,12 +136,18 @@ public class ProgrammeServiceImpl implements IProgrammeService {
         ProgramItem item = programItemRepository.findById(itemId)
                 .orElseThrow(() -> new ProgrammeValidationException("Élément introuvable: " + itemId));
 
+        Competition competition = item.getDay().getCompetition();
+        enforceEditableBeforeStartDate(competition);
+
         ProgramItemType type = parseType(request.type());
 
         if (type == ProgramItemType.SERIES
                 && (request.numberOfParticipants() == null || request.numberOfParticipants() < 1)) {
             throw new ProgrammeValidationException("Le nombre de participants est obligatoire pour une série.");
         }
+
+        // Validate single swimmer category for SERIES
+        Categorie category = parseSwimmerCategory(type, request.swimmerCategory(), competition);
 
         // Chronological validation: updated time must be after the latest OTHER item in
         // this day
@@ -147,6 +161,8 @@ public class ProgrammeServiceImpl implements IProgrammeService {
         item.setTime(request.time());
         item.setType(type);
         item.setNumberOfParticipants(type == ProgramItemType.SERIES ? request.numberOfParticipants() : null);
+        item.setSwimmerCategory(type == ProgramItemType.SERIES ? category : null);
+        item.setSeriesGender(type == ProgramItemType.SERIES ? parseGender(request.seriesGender()) : null);
 
         programItemRepository.save(item);
         return mapToItemResponse(item);
@@ -155,9 +171,9 @@ public class ProgrammeServiceImpl implements IProgrammeService {
     @Override
     @Transactional
     public void deleteProgramItem(Long itemId) {
-        if (!programItemRepository.existsById(itemId)) {
-            throw new ProgrammeValidationException("Élément introuvable: " + itemId);
-        }
+        ProgramItem item = programItemRepository.findById(itemId)
+                .orElseThrow(() -> new ProgrammeValidationException("Élément introuvable: " + itemId));
+        enforceEditableBeforeStartDate(item.getDay().getCompetition());
         programItemRepository.deleteById(itemId);
     }
 
@@ -224,8 +240,63 @@ public class ProgrammeServiceImpl implements IProgrammeService {
     }
 
     private ProgramItemResponse mapToItemResponse(ProgramItem item) {
+        String category = item.getSwimmerCategory() != null ? item.getSwimmerCategory().name() : null;
+        String gender = item.getSeriesGender() != null ? item.getSeriesGender().name() : null;
         return new ProgramItemResponse(item.getId(), item.getLabel(), item.getTime(),
-                item.getType().name(), item.getNumberOfParticipants());
+                item.getType().name(), item.getNumberOfParticipants(), category, gender);
+    }
+
+    /**
+     * Validates that the selected category belongs to the competition's allowed
+     * categories.
+     */
+    private Categorie parseSwimmerCategory(ProgramItemType type, String categoryName, Competition competition) {
+        if (type != ProgramItemType.SERIES) {
+            return null;
+        }
+        if (categoryName == null || categoryName.isBlank()) {
+            throw new ProgrammeValidationException(
+                    "La catégorie de nageur est obligatoire pour une série.");
+        }
+        Categorie category;
+        try {
+            category = Categorie.valueOf(categoryName.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new ProgrammeValidationException("Catégorie invalide: " + categoryName);
+        }
+        // Validate category is in competition's allowed categories
+        if (competition.getAllowedCategories() != null && !competition.getAllowedCategories().isEmpty()) {
+            if (!competition.getAllowedCategories().contains(category)) {
+                throw new ProgrammeValidationException(
+                        "La catégorie « " + category.name() + " » n'est pas autorisée pour cette compétition.");
+            }
+        }
+        return category;
+    }
+
+    /**
+     * Parses the gender string for a series. Returns null for MIXTE.
+     */
+    private Gender parseGender(String genderName) {
+        if (genderName == null || genderName.isBlank() || genderName.equalsIgnoreCase("MIXTE")) {
+            return null;
+        }
+        try {
+            return Gender.valueOf(genderName.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new ProgrammeValidationException(
+                    "Genre invalide: " + genderName + ". Valeurs possibles: HOMME, FEMME, MIXTE");
+        }
+    }
+
+    /**
+     * Prevents program modifications after competition start date.
+     */
+    private void enforceEditableBeforeStartDate(Competition competition) {
+        if (competition.getStartDate() != null && !LocalDate.now().isBefore(competition.getStartDate())) {
+            throw new ProgrammeValidationException(
+                    "Le programme ne peut plus être modifié après la date de début de la compétition.");
+        }
     }
 
     // ═══════════════════════════════════════════════════════

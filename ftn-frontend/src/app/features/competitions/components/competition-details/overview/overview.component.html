@@ -167,6 +167,33 @@
             <span>Max {{ comp.maxEvents }} épreuve{{ comp.maxEvents > 1 ? 's' : '' }} / nageur</span>
         </div>
         }
+        @if (comp.licenseRequired) {
+        <div class="condition-tag">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="13" y2="12"/>
+            </svg>
+            <span>Licence obligatoire</span>
+        </div>
+        }
+        @if (comp.medicalCertificateRequired) {
+        <div class="condition-tag">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/>
+            </svg>
+            <span>Certificat médical requis</span>
+        </div>
+        }
+        @if (comp.hasMinimas) {
+        <div class="condition-tag">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span>Minima requis{{ comp.minimaTime ? ' : ' + comp.minimaTime + 's' : '' }}</span>
+        </div>
+        }
     </div>
     @if (comp.customConditions) {
     <div class="custom-conditions">
@@ -216,11 +243,23 @@
                 <div class="banner-content">
                     <span class="banner-title">{{ participationStatusLabel(participationStatus()) }}</span>
                     @if (participationStatus() === 'PENDING') {
-                        <span class="banner-desc">Votre demande est en cours de vérification manuelle par un administrateur qui vérifiera toutes les conditions.</span>
+                        <span class="banner-desc">Votre demande est en cours de vérification. Vous serez notifié(e) dès que le résultat sera disponible.</span>
                     } @else if (participationStatus() === 'APPROVED') {
-                        <span class="banner-desc">Félicitations ! Vous êtes inscrit(e) à cette compétition.</span>
+                        <span class="banner-desc">
+                          @if (justSubmitted()) {
+                            Félicitations, votre inscription a été acceptée avec succès.
+                          } @else {
+                            Vous êtes inscrit(e) à cette compétition.
+                          }
+                        </span>
                     } @else if (participationStatus() === 'REJECTED') {
-                        <span class="banner-desc">Votre demande n'a pas été approuvée. Contactez un administrateur pour plus de détails.</span>
+                        <span class="banner-desc">
+                          @if (state.rejectionReason()) {
+                            Votre demande a été refusée : {{ state.rejectionReason() }}
+                          } @else {
+                            Votre demande a été refusée.
+                          }
+                        </span>
                     }
                 </div>
             </div>
@@ -293,7 +332,7 @@
                         <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" />
                         <line x1="12" y1="16" x2="12.01" y2="16" />
                     </svg>
-                    <span>Note : Cette compétition a des conditions supplémentaires (voir ci-dessus). Votre demande sera manuellement vérifiée par l'administrateur.</span>
+                    <span>Note : Cette compétition a des conditions supplémentaires (voir ci-dessus). Votre demande sera vérifiée avant validation.</span>
                 </div>
                 }
                 <button class="btn-participate" (click)="requestParticipation()" [disabled]="submitting()">
@@ -314,10 +353,10 @@
         }
     }
 
-    @if (successMessage()) {
+    @if (successMessage() && !hasExistingRequest()) {
         <div class="alert alert-success">{{ successMessage() }}</div>
     }
-    @if (errorMessage()) {
+    @if (errorMessage() && !hasExistingRequest()) {
         <div class="alert alert-error">{{ errorMessage() }}</div>
     }
 </div>

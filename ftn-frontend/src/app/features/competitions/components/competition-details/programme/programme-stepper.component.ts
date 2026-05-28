@@ -5,7 +5,7 @@ import { ProgrammeApiService } from '../../../services/programme-api.service';
 import { CompetitionStateService } from '../../../services/competition-state.service';
 import {
   ProgrammeStatusResponse, ProgrammeDayResponse, ProgramItemResponse,
-  ProgramItemRequest, ProgramItemType, PROGRAM_ITEM_PRESETS
+  ProgramItemRequest, ProgramItemType, PROGRAM_ITEM_PRESETS, Categorie, CATEGORIE_LABELS
 } from '../../../models/competition.model';
 import { ConfirmDialogComponent } from './confirm-dialog.component';
 import { ToastService } from '../../../services/toast.service';
@@ -42,6 +42,21 @@ export class ProgrammeStepperComponent implements OnInit {
   deleteTargetLabel = signal('');
 
   readonly presets = PROGRAM_ITEM_PRESETS;
+  readonly allCategories = Object.values(Categorie);
+  readonly categorieLabels = CATEGORIE_LABELS;
+
+  /** All system categories available for selection in the dropdown */
+  allowedCategories = computed(() => {
+    return this.allCategories;
+  });
+
+  /** Whether program is locked (competition start date reached OR programme approved) */
+  programmeLocked = computed(() => {
+    const comp = this.state.selectedCompetition();
+    if (!comp?.startDate) return this.status()?.programmeStatus === 'APPROVED';
+    const startPassed = new Date().toISOString().split('T')[0] >= comp.startDate;
+    return startPassed || this.status()?.programmeStatus === 'APPROVED';
+  });
 
   itemForm!: FormGroup;
 
@@ -85,7 +100,9 @@ export class ProgrammeStepperComponent implements OnInit {
       label: ['', Validators.required],
       time: ['', [Validators.required, timeFormatValidator(), timeAfterValidator(() => this.latestTimeInDay())]],
       type: ['PART', Validators.required],
-      numberOfParticipants: [null]
+      numberOfParticipants: [null],
+      swimmerCategory: [null],
+      seriesGender: [null]
     });
   }
 
@@ -168,11 +185,18 @@ export class ProgrammeStepperComponent implements OnInit {
       return;
     }
 
+    if (type === 'SERIES' && !this.itemForm.value.swimmerCategory) {
+      this.error.set('La catégorie de nageur est obligatoire pour une série.');
+      return;
+    }
+
     const request: ProgramItemRequest = {
       label: this.itemForm.value.label,
       time: this.itemForm.value.time,
       type: type,
-      numberOfParticipants: type === 'SERIES' ? this.itemForm.value.numberOfParticipants : undefined
+      numberOfParticipants: type === 'SERIES' ? this.itemForm.value.numberOfParticipants : undefined,
+      swimmerCategory: type === 'SERIES' ? this.itemForm.value.swimmerCategory : undefined,
+      seriesGender: type === 'SERIES' ? this.itemForm.value.seriesGender : undefined
     };
 
     this.loading.set(true);
@@ -215,7 +239,9 @@ export class ProgrammeStepperComponent implements OnInit {
       label: item.label,
       time: item.time,
       type: item.type,
-      numberOfParticipants: item.numberOfParticipants ?? null
+      numberOfParticipants: item.numberOfParticipants ?? null,
+      swimmerCategory: item.swimmerCategory ?? null,
+      seriesGender: item.seriesGender ?? null
     });
     this.revalidateTime();
   }
@@ -226,7 +252,7 @@ export class ProgrammeStepperComponent implements OnInit {
   }
 
   private resetForm(): void {
-    this.itemForm.reset({ label: '', time: '', type: 'PART', numberOfParticipants: null });
+    this.itemForm.reset({ label: '', time: '', type: 'PART', numberOfParticipants: null, swimmerCategory: null, seriesGender: null });
     this.revalidateTime();
   }
 
@@ -276,4 +302,10 @@ export class ProgrammeStepperComponent implements OnInit {
     }
     return null;
   }
+
+  getCategoryLabel(cat: string): string {
+    return (this.categorieLabels as Record<string, string>)[cat] ?? cat;
+  }
+
+
 }

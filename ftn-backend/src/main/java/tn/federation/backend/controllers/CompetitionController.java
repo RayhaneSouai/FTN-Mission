@@ -1,9 +1,11 @@
 package tn.federation.backend.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import tn.federation.backend.dto.CompetitionDetailDTO;
+import tn.federation.backend.dto.DistributionResponseDTO;
 import tn.federation.backend.dto.ParticipationResponseDTO;
 import tn.federation.backend.entities.Competition;
 import tn.federation.backend.entities.Participation;
@@ -12,6 +14,7 @@ import tn.federation.backend.entities.User;
 import tn.federation.backend.repositories.ParticipationRepository;
 import tn.federation.backend.repositories.UserRepository;
 import tn.federation.backend.services.Abstraction.ICompetitionService;
+import tn.federation.backend.services.Abstraction.IDistributionService;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +34,9 @@ public class CompetitionController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private IDistributionService distributionService;
 
     @GetMapping("/get/{id}")
     public CompetitionDetailDTO getCompetitionById(
@@ -72,7 +78,16 @@ public class CompetitionController {
                         p.getCompetition().getName(),
                         p.getStatus().name(),
                         p.getRegisteredAt() != null ? p.getRegisteredAt().toString() : null,
-                        p.getCompetition().getCustomConditions()))
+                        p.getRejectionReason()))
                 .toList();
+    }
+
+    @GetMapping("/{id}/distribution")
+    public ResponseEntity<DistributionResponseDTO> getApprovedDistribution(@PathVariable Long id) {
+        DistributionResponseDTO result = distributionService.getApprovedDistribution(id);
+        if (result == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(result);
     }
 }

@@ -93,4 +93,25 @@ public class Competition {
     /** Free-text conditions defined by admin (manually reviewed) */
     @Column(name = "custom_conditions", columnDefinition = "TEXT")
     private String customConditions;
+
+    /* ─── New Competition Conditions ─── */
+
+    /** Whether a valid license is required to participate */
+    @Column(name = "license_required")
+    private Boolean licenseRequired = false;
+
+    /** Whether a medical certificate is required */
+    @Column(name = "medical_certificate_required")
+    private Boolean medicalCertificateRequired = false;
+
+    /** Whether minima times are enforced */
+    @Column(name = "has_minimas")
+    private Boolean hasMinimas = false;
+
+    /**
+     * Minima time in seconds (e.g. 58.32 for 00:58:32). Required when hasMinimas ==
+     * true
+     */
+    @Column(name = "minima_time")
+    private Double minimaTime;
 }
