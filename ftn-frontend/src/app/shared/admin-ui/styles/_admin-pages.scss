@@ -294,3 +294,55 @@
   background: var(--admin-primary-light);
   color: var(--admin-primary);
 }
+
+.admin-icon-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.admin-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--admin-radius-md, 8px);
+  border: 1px solid var(--admin-border-light, #f1f5f9);
+  background: var(--admin-surface, #fff);
+  color: var(--admin-text-muted, #64748b);
+  cursor: pointer;
+  transition: all var(--admin-transition, 0.2s);
+}
+
+.admin-icon-btn:hover {
+  background: var(--admin-surface-muted, #f8fafc);
+  border-color: var(--admin-border, #e2e8f0);
+}
+
+.admin-icon-btn--view {
+  color: var(--admin-primary, #003a80);
+}
+
+.admin-icon-btn--view:hover {
+  background: var(--admin-primary-light, #eff6ff);
+  border-color: rgba(0, 58, 128, 0.2);
+}
+
+.admin-icon-btn--edit {
+  color: #0284c7;
+}
+
+.admin-icon-btn--edit:hover {
+  background: #f0f9ff;
+  border-color: #bae6fd;
+}
+
+.admin-icon-btn--delete {
+  color: var(--admin-danger, #ef4444);
+}
+
+.admin-icon-btn--delete:hover {
+  background: var(--admin-danger-bg, #fef2f2);
+  border-color: #fca5a5;
+}
