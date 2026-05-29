@@ -79,6 +79,26 @@ public class DataInitializer implements CommandLineRunner {
         userRepository.save(swimmer);
         System.out.println("✅ Compte SWIMMER prêt (nageur@ftn.tn / nageur123)");
 
+        // ── NOUVEAU SWIMMER de test ────────────────────────────────────────
+        User nouveauSwimmer = userRepository.findByEmail("nouveau.nageur@ftn.tn").orElse(null);
+        if (nouveauSwimmer == null) {
+            nouveauSwimmer = new User();
+            nouveauSwimmer.setFirstName("Sami");
+            nouveauSwimmer.setLastName("Trabelsi");
+            nouveauSwimmer.setEmail("nouveau.nageur@ftn.tn");
+            nouveauSwimmer.setCreatedAt(LocalDateTime.now());
+            nouveauSwimmer.setBirthDate(LocalDate.of(2005, 8, 20));
+            nouveauSwimmer.setGender(Gender.HOMME);
+            nouveauSwimmer.setNiveau(Niveau.JUNIOR);
+            nouveauSwimmer.setDiscipline(Discipline.NATATION);
+            System.out.println("✅ Création du nouveau compte SWIMMER de test...");
+        }
+        nouveauSwimmer.setPasswordHash(passwordEncoder.encode("azerty123"));
+        nouveauSwimmer.setRole(Role.SWIMMER);
+        nouveauSwimmer.setActive(true);
+        userRepository.save(nouveauSwimmer);
+        System.out.println("✅ Nouveau Compte SWIMMER prêt (nouveau.nageur@ftn.tn / azerty123)");
+
         // ── Club par défaut ────────────────────────────────────────
         if (clubRepository.count() == 0) {
             tn.federation.backend.entities.Club club = new tn.federation.backend.entities.Club();

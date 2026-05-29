@@ -8,10 +8,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import tn.federation.backend.dto.PasswordResetTokenInfoDTO;
+import tn.federation.backend.dto.PasswordResetTokenInfoDTO;
 import tn.federation.backend.dto.AuthResponseDTO;
 import tn.federation.backend.dto.LoginRequestDTO;
 import tn.federation.backend.dto.PasswordResetDTO;
@@ -69,5 +75,11 @@ public class AuthController {
     public ResponseEntity<Void> resetPassword(@Valid @RequestBody PasswordResetDTO request) {
         authService.resetPassword(request);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/password-reset/validate/{token}")
+    @Operation(summary = "Valider un token de réinitialisation", description = "Vérifie si le lien est valide (réinitialisation ou première configuration)")
+    public ResponseEntity<PasswordResetTokenInfoDTO> validateResetToken(@PathVariable String token) {
+        return ResponseEntity.ok(authService.validateResetToken(token));
     }
 }

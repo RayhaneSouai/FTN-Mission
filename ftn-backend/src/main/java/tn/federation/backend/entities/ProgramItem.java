@@ -35,6 +35,19 @@ public class ProgramItem {
     @Column(name = "number_of_participants")
     private Integer numberOfParticipants;
 
+    /** Single swimmer category for this series. Required when type == SERIES. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "swimmer_category")
+    private Categorie swimmerCategory;
+
+    /**
+     * Gender restriction for this series (HOMME, FEMME, or null for MIXTE). Only
+     * for SERIES.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "series_gender")
+    private Gender seriesGender;
+
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "day_id", nullable = false)

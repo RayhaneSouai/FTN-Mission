@@ -1,0 +1,27 @@
+<div class="line-chart-container" #chartContainer>
+  <ngx-charts-line-chart
+    *ngIf="chartData?.length"
+    [view]="view"
+    [scheme]="colorScheme"
+    [results]="chartData"
+    [curve]="curve"
+    [gradient]="gradient"
+    [legend]="legend"
+    [legendPosition]="legendPosition"
+    [xAxis]="xAxis"
+    [yAxis]="yAxis"
+    [showGridLines]="showGridLines"
+    [showXAxisLabel]="showXAxisLabel"
+    [showYAxisLabel]="showYAxisLabel"
+    [yAxisLabel]="yAxisLabel"
+    [autoScale]="autoScale"
+    [timeline]="timeline"
+    [animations]="animations"
+    [roundDomains]="roundDomains"
+  >
+  </ngx-charts-line-chart>
+
+  <div class="chart-empty" *ngIf="!chartData?.length">
+    <p>Aucune donnée à afficher pour cette période.</p>
+  </div>
+</div>

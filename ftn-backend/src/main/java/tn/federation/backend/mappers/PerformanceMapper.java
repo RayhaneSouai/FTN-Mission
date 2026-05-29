@@ -1,8 +1,8 @@
 package tn.federation.backend.mappers;
 
 import org.springframework.stereotype.Component;
-import tn.federation.backend.dtos.PerformanceRequestDTO;
-import tn.federation.backend.dtos.PerformanceResponseDTO;
+import tn.federation.backend.dto.PerformanceRequestDTO;
+import tn.federation.backend.dto.PerformanceResponseDTO;
 import tn.federation.backend.entities.Performance;
 import tn.federation.backend.entities.User;
 @Component

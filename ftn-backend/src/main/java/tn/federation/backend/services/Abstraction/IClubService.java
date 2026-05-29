@@ -5,6 +5,7 @@ import tn.federation.backend.entities.User;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public interface IClubService {
 
@@ -13,6 +14,7 @@ public interface IClubService {
     Club updateClub(Club club);
     void deleteClub(long id);
     Club getClubById(long id);
+    Optional<Club> findByName(String name);
     List<Club> getAllClubs();
 
 

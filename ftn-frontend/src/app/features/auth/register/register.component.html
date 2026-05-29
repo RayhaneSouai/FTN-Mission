@@ -80,7 +80,7 @@
           <!-- Étape 2 : profil -->
           <div class="auth-step-panel" [class.auth-step-panel--visible]="step === 2" [attr.aria-hidden]="step !== 2">
             <div class="form-floating mb-3">
-              <select class="form-select" id="role" name="role" [(ngModel)]="userData.role" aria-label="Rôle" required>
+              <select class="form-select" id="role" name="role" [(ngModel)]="userData.role" (ngModelChange)="onRoleChange($event)" aria-label="Rôle" required>
                 <option value="SWIMMER">Nageur</option>
                 <option value="COACH">Coach</option>
               </select>

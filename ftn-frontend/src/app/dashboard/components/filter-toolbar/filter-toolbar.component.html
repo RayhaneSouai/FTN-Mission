@@ -1,0 +1,31 @@
+<div class="filter-toolbar">
+  <div class="preset-group" role="group" aria-label="Période du graphique">
+    <button
+      type="button"
+      class="preset-btn"
+      *ngFor="let option of presets"
+      [class.active]="isActive(option.preset)"
+      (click)="onPresetClick(option.preset)"
+    >
+      {{ option.label }}
+    </button>
+  </div>
+
+  <form
+    class="custom-range"
+    *ngIf="selectedPreset === 'custom'"
+    [formGroup]="customForm"
+    (ngSubmit)="applyCustomRange()"
+  >
+    <label class="date-field">
+      <span>Du</span>
+      <input type="date" formControlName="start" />
+    </label>
+    <label class="date-field">
+      <span>Au</span>
+      <input type="date" formControlName="end" />
+    </label>
+    <button type="submit" class="apply-btn">Appliquer</button>
+    <p class="custom-error" *ngIf="customError">{{ customError }}</p>
+  </form>
+</div>

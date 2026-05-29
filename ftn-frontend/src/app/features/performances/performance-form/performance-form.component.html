@@ -1,0 +1,117 @@
+<div class="form-page">
+
+  <div class="page-header">
+    <div class="page-header__icon" aria-hidden="true">
+      <i class="bi bi-plus-circle-fill"></i>
+    </div>
+    <div>
+      <h1 class="page-header__title">Saisir une performance</h1>
+      <p class="page-header__subtitle">Enregistrer le chrono officiel d'un nageur</p>
+    </div>
+  </div>
+
+  @if (success()) {
+    <div class="alert-success">
+      <i class="bi bi-check-circle-fill"></i>
+      Performance enregistrée avec succès ! Le record personnel a été recalculé automatiquement.
+    </div>
+  }
+
+  @if (error()) {
+    <div class="alert-error">
+      <i class="bi bi-exclamation-circle-fill"></i>
+      {{ error() }}
+    </div>
+  }
+
+  <div class="form-card">
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label class="form-label" for="swimmerId">
+          ID du nageur <span class="required">*</span>
+        </label>
+        <input
+          id="swimmerId"
+          type="number"
+          class="form-control"
+          [(ngModel)]="form.swimmerId"
+          placeholder="Ex: 12"
+          min="1"
+        />
+        <p class="form-hint">Identifiant du nageur dans le système</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="date">
+          Date <span class="required">*</span>
+        </label>
+        <input
+          id="date"
+          type="date"
+          class="form-control"
+          [(ngModel)]="form.date"
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="distance">Distance</label>
+        <select id="distance" class="form-control" [(ngModel)]="form.distance">
+          <option *ngFor="let d of distances" [value]="d">{{ d }}m</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="stroke">Style de nage</label>
+        <select id="stroke" class="form-control" [(ngModel)]="form.stroke">
+          <option *ngFor="let s of strokes" [value]="s">{{ strokeLabels[s] }}</option>
+        </select>
+      </div>
+
+      <div class="form-group form-group--full">
+        <label class="form-label" for="time">
+          Temps (en secondes) <span class="required">*</span>
+        </label>
+        <div class="time-input-wrap">
+          <input
+            id="time"
+            type="number"
+            class="form-control"
+            [(ngModel)]="form.time"
+            placeholder="Ex: 48.21"
+            step="0.01"
+            min="0"
+          />
+          <span class="time-hint">
+            {{ form.time >= 60
+            ? (Math.floor(form.time / 60) + 'min ' + (form.time % 60).toFixed(2) + 's')
+            : (form.time > 0 ? form.time.toFixed(2) + 's' : '') }}
+          </span>
+        </div>
+        <p class="form-hint">Le record personnel sera recalculé automatiquement</p>
+      </div>
+
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-reset" type="button" (click)="resetForm()">
+        <i class="bi bi-arrow-counterclockwise"></i>
+        Réinitialiser
+      </button>
+      <button class="btn-submit" type="button" (click)="submit()" [disabled]="loading()">
+        <i class="bi bi-device-floppy"></i>
+        {{ loading() ? 'Enregistrement...' : 'Enregistrer la performance' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Info box -->
+  <div class="info-box">
+    <i class="bi bi-info-circle" aria-hidden="true"></i>
+    <div>
+      <strong>Calcul automatique des records</strong>
+      <p>Lors de l'enregistrement, le système recalcule automatiquement le record personnel du nageur pour cette épreuve et met à jour le flag record national si nécessaire.</p>
+    </div>
+  </div>
+
+</div>

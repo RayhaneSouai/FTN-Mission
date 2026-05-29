@@ -1,0 +1,58 @@
+.auth-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 600px;
+  background: white;
+  padding: 30px;
+  border-radius: 18px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+h2 {
+  margin-bottom: 5px;
+}
+
+.muted {
+  color: #64748b;
+  margin-bottom: 20px;
+}
+
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+  color: #334155;
+}
+
+input, select {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  margin-top: 5px;
+}
+
+.btn-primary {
+  margin-top: 10px;
+  background: #003a80;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.message {
+  margin-top: 10px;
+  color: green;
+}

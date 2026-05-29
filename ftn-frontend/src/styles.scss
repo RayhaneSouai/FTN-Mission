@@ -1,4 +1,4 @@
-﻿/* ═══════════════════════════════════════════════
+/* ═══════════════════════════════════════════════
    GLOBAL STYLES — Universal reset only.
    Feature-specific theming lives inside each module.
    ═══════════════════════════════════════════════ */
@@ -28,3 +28,8 @@ h1, h2, h3, h4, p {
 button, input, select, textarea {
   font: inherit;
 }
+
+/* Import Admin Theme Design System */
+@import './app/shared/admin-ui/styles/admin-tokens';
+@import './app/shared/admin-ui/styles/admin-pages';
+

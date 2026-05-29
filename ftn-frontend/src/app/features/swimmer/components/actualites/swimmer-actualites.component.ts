@@ -11,11 +11,47 @@ export class SwimmerActualitesComponent implements OnInit {
   news: any[] = [];
   loading = true;
   selectedDiscipline = '';
+  activeFilter = 'ALL';
   disciplines: string[] = ['Natation', 'Water-Polo', 'Plongeon', 'Natation Artistique', 'Eau Libre'];
 
+  favoriteIds: Set<number> = new Set<number>();
+  pinnedIds: Set<number> = new Set<number>();
+
   get filteredItems(): any[] {
-    if (!this.selectedDiscipline) return this.news;
-    return this.news.filter(i => i.discipline === this.selectedDiscipline);
+    let result = this.news;
+    if (this.selectedDiscipline) {
+      result = result.filter(i => i.discipline === this.selectedDiscipline);
+    }
+    if (this.activeFilter === 'FAVORITES') {
+      result = result.filter(i => this.favoriteIds.has(i.idPressItem || i.id));
+    } else if (this.activeFilter === 'PINNED') {
+      result = result.filter(i => this.pinnedIds.has(i.idPressItem || i.id));
+    }
+    return result;
+  }
+
+  currentPage = 1;
+  itemsPerPage = 3;
+
+  get pagedItems(): any[] {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    return this.filteredItems.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredItems.length / this.itemsPerPage));
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) this.currentPage++;
+  }
+
+  prevPage() {
+    if (this.currentPage > 1) this.currentPage--;
+  }
+
+  setPage(page: number) {
+    this.currentPage = page;
   }
 
   selectedItem: any = null;
@@ -34,6 +70,9 @@ export class SwimmerActualitesComponent implements OnInit {
   newCommentText: string = '';
   isSubmittingComment = false;
 
+  aiRecap: string | null = null;
+  generatingAiRecap = false;
+
   availableReactions = [
     { type: 'LIKE', emoji: '👍' },
     { type: 'DISLIKE', emoji: '👎' },
@@ -49,25 +88,70 @@ export class SwimmerActualitesComponent implements OnInit {
       next: (n) => {
         this.news = (n || []).filter((i: any) => i.status === 'PUBLISHED');
         this.loading = false;
+        this.loadPinnedItems();
+        this.loadFavoriteItems();
       },
       error: () => { this.loading = false; }
     });
   }
 
+  loadPinnedItems() {
+    const userId = this.getCurrentUserId();
+    if (!userId) return;
+    this.pressService.getPinsByUserId(userId).subscribe({
+      next: (pins) => {
+        this.pinnedIds = new Set(pins.map(p => p.idPressItem).filter((id): id is number => id !== undefined));
+      },
+      error: (err) => console.error('Erreur chargement épingles', err)
+    });
+  }
+
+  loadFavoriteItems() {
+    const userId = this.getCurrentUserId();
+    if (!userId) return;
+    this.pressService.getFavoritesByUserId(userId).subscribe({
+      next: (favs) => {
+        this.favoriteIds = new Set(favs.map(f => f.idPressItem).filter((id): id is number => id !== undefined));
+      },
+      error: (err) => console.error('Erreur chargement favoris', err)
+    });
+  }
+
+  onFilterChange(filter: string) {
+    this.activeFilter = filter;
+    this.currentPage = 1;
+  }
+
   filterByDiscipline(disc: string) {
     this.selectedDiscipline = disc;
+    this.currentPage = 1;
   }
 
   openArticle(item: any) {
     this.selectedItem = item;
     this.showFullContent = false;
+    this.aiRecap = null;
     document.body.style.overflow = 'hidden';
     this.loadInteractions();
+
+    const articleId = item.idPressItem || item.id;
+    if (articleId) {
+      // Increment optimisticly
+      item.views = (item.views || 0) + 1;
+      
+      this.pressService.incrementViews(articleId).subscribe({
+        next: () => {
+          // already incremented
+        },
+        error: err => console.error('Erreur incrementation vues:', err)
+      });
+    }
   }
 
   closeArticle() {
     this.selectedItem = null;
     this.interactions = null;
+    this.aiRecap = null;
     document.body.style.overflow = 'auto';
   }
 
@@ -118,7 +202,9 @@ export class SwimmerActualitesComponent implements OnInit {
       if (userStr) {
         try {
           const user = JSON.parse(userStr);
-          return user.id;
+          const userId = user.id || user.idUser || user.id_user;
+          if (!userId) console.warn('User found in localStorage but no ID field:', user);
+          return userId || null;
         } catch (e) {
           return null;
         }
@@ -183,8 +269,44 @@ export class SwimmerActualitesComponent implements OnInit {
     });
   }
 
+  togglePin() {
+    if (!this.selectedItem) return;
+    const userId = this.getCurrentUserId();
+    if (!userId) return;
+
+    this.pressService.togglePin(this.selectedItem.idPressItem, userId).subscribe({
+      next: () => {
+        this.loadInteractions(); // Reload to see updated pin status
+        
+        // Update local pinnedIds for immediate visual feedback on cards
+        const itemId = this.selectedItem.idPressItem || this.selectedItem.id;
+        if (this.pinnedIds.has(itemId)) {
+          this.pinnedIds.delete(itemId);
+        } else {
+          this.pinnedIds.add(itemId);
+        }
+      },
+      error: (err) => console.error('Error toggling pin', err)
+    });
+  }
+
   getReactionCount(type: string): number {
     if (!this.interactions || !this.interactions.reactionCounts) return 0;
     return this.interactions.reactionCounts[type] || 0;
+  }
+
+  generateSummary() {
+    if (!this.selectedItem) return;
+    this.generatingAiRecap = true;
+    
+    this.pressService.generateAiRecap(this.selectedItem.idPressItem || this.selectedItem.id).subscribe({
+      next: (recap) => {
+        this.aiRecap = recap;
+        this.generatingAiRecap = false;
+      },
+      error: () => {
+        this.generatingAiRecap = false;
+      }
+    });
   }
 }

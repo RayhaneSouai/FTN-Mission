@@ -1,0 +1,14 @@
+<div class="admin-toast-stack" aria-live="polite">
+  <div
+    *ngFor="let t of toasts"
+    class="admin-toast-item"
+    [class.admin-toast-item--success]="t.type === 'success'"
+    [class.admin-toast-item--error]="t.type === 'error'"
+    [class.admin-toast-item--info]="t.type === 'info'">
+    <i class="bi" [ngClass]="icon(t.type)"></i>
+    <span>{{ t.message }}</span>
+    <button type="button" class="admin-toast-item__close" (click)="dismiss(t.id)" aria-label="Fermer">
+      <i class="bi bi-x"></i>
+    </button>
+  </div>
+</div>

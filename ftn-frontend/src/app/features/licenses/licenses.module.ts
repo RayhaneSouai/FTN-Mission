@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { LicensesRoutingModule } from './licenses-routing.module';
+import { AdminUiModule } from '../../shared/admin-ui/admin-ui.module';
 import { LicenseListComponent } from './license-list/license-list.component';
 import { LicenseFormComponent } from './license-form/license-form.component';
 
@@ -14,7 +15,8 @@ import { LicenseFormComponent } from './license-form/license-form.component';
   imports: [
     CommonModule,
     LicensesRoutingModule,
-    FormsModule
+    FormsModule,
+    AdminUiModule
   ]
 })
 export class LicensesModule { }

@@ -8,7 +8,7 @@
           </div>
           <h5 class="fw-bold mb-0 text-dark">Informations Générales</h5>
         </div>
-        
+
         <div class="row g-3">
           <div class="col-md-6">
             <div class="form-floating custom-form-control">
@@ -28,11 +28,13 @@
               <label for="email">Email</label>
             </div>
           </div>
-          <div class="col-md-6" *ngIf="!isEditMode">
-            <div class="form-floating custom-form-control">
-              <input type="password" name="password" class="form-control" id="password" [(ngModel)]="userData.password" placeholder="Mot de passe" required>
-              <label for="password">Mot de passe</label>
-            </div>
+        </div>
+
+        <div class="admin-create-notice mt-3" *ngIf="!isEditMode && !isViewOnly">
+          <i class="bi bi-shield-lock-fill"></i>
+          <div>
+            <strong>Mot de passe sécurisé automatique</strong>
+            <p class="mb-0">Un mot de passe fort sera généré côté serveur et envoyé par email avec un lien de configuration obligatoire avant la première connexion.</p>
           </div>
         </div>
       </div>
@@ -45,21 +47,29 @@
           </div>
           <h5 class="fw-bold mb-0 text-dark">Profil & Rôle</h5>
         </div>
-        
+
         <div class="row g-3">
           <div class="col-md-6">
             <div class="form-floating custom-form-control">
-              <select name="role" class="form-select" id="role" [(ngModel)]="userData.role" [disabled]="isViewOnly" required>
+              <select
+                name="role"
+                class="form-select"
+                id="role"
+                [ngModel]="userData.role"
+                (ngModelChange)="onRoleChange($event)"
+                [disabled]="isViewOnly"
+                required>
                 <option value="ADMIN">Administrateur</option>
                 <option value="COACH">Coach</option>
                 <option value="SWIMMER">Nageur</option>
+                <option value="VISITOR">Visiteur</option>
               </select>
               <label for="role">Rôle</label>
             </div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-6" *ngIf="showSportSection">
             <div class="form-floating custom-form-control">
-              <select name="gender" class="form-select" id="gender" [(ngModel)]="userData.gender" [disabled]="isViewOnly">
+              <select name="gender" class="form-select" id="gender" [(ngModel)]="userData.gender" [disabled]="isViewOnly" [required]="showSportSection">
                 <option value="">-- Sélectionner --</option>
                 <option value="HOMME">Homme</option>
                 <option value="FEMME">Femme</option>
@@ -67,28 +77,28 @@
               <label for="gender">Genre</label>
             </div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-6" *ngIf="showSportSection">
             <div class="form-floating custom-form-control">
-              <input type="date" name="birthDate" class="form-control" id="birthDate" [(ngModel)]="userData.birthDate" [disabled]="isViewOnly">
+              <input type="date" name="birthDate" class="form-control" id="birthDate" [(ngModel)]="userData.birthDate" [disabled]="isViewOnly" [required]="showSportSection">
               <label for="birthDate">Date de naissance</label>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Sports Details Section -->
-      <div class="form-section mb-4">
+      <!-- Sports Details — comme l'inscription -->
+      <div class="form-section mb-4" *ngIf="showSportSection">
         <div class="d-flex align-items-center mb-3 pt-2">
           <div class="section-icon bg-success-subtle text-success rounded-3 p-2 me-2">
             <i class="bi bi-water fs-5"></i>
           </div>
           <h5 class="fw-bold mb-0 text-dark">Détails Sportifs</h5>
         </div>
-        
-        <div class="row g-3">
-          <div class="col-md-4">
+
+        <div class="row g-3" *ngIf="isSwimmer">
+          <div class="col-md-6">
             <div class="form-floating custom-form-control">
-              <select name="discipline" class="form-select" id="discipline" [(ngModel)]="userData.discipline" [disabled]="isViewOnly">
+              <select name="discipline" class="form-select" id="discipline" [(ngModel)]="userData.discipline" [disabled]="isViewOnly" required>
                 <option value="">-- Sélectionner --</option>
                 <option value="NATATION">Natation</option>
                 <option value="EAU_LIBRE">Eau libre</option>
@@ -99,9 +109,9 @@
               <label for="discipline">Discipline</label>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-6">
             <div class="form-floating custom-form-control">
-              <select name="niveau" class="form-select" id="niveau" [(ngModel)]="userData.niveau" [disabled]="isViewOnly">
+              <select name="niveau" class="form-select" id="niveau" [(ngModel)]="userData.niveau" [disabled]="isViewOnly" required>
                 <option value="">-- Sélectionner --</option>
                 <option value="POUSSIN">Poussin</option>
                 <option value="BENJAMIN">Benjamin</option>
@@ -114,10 +124,19 @@
               <label for="niveau">Catégorie / Niveau</label>
             </div>
           </div>
-          <div class="col-md-4">
-            <div class="form-floating custom-form-control">
-              <input type="number" name="anciennete" class="form-control" id="anciennete" [(ngModel)]="userData.anciennete" min="0" placeholder="Ancienneté" [disabled]="isViewOnly">
-              <label for="anciennete">Ancienneté (années)</label>
+        </div>
+
+        <div *ngIf="isCoach">
+          <p class="coach-role-hint">
+            <i class="bi bi-info-circle me-1"></i>
+            Le coach peut intervenir sur toutes les disciplines — discipline et niveau ne sont pas requis.
+          </p>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="form-floating custom-form-control">
+                <input type="number" name="anciennete" class="form-control" id="anciennete" [(ngModel)]="userData.anciennete" min="0" placeholder="Ancienneté" [disabled]="isViewOnly" required>
+                <label for="anciennete">Ancienneté (années)</label>
+              </div>
             </div>
           </div>
         </div>
@@ -161,7 +180,7 @@
         <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
         <div>{{ error }}</div>
       </div>
-      
+
       <div *ngIf="success" class="alert alert-success border-0 shadow-sm d-flex align-items-center mb-4 rounded-3" role="alert">
         <i class="bi bi-check-circle-fill me-3 fs-4"></i>
         <div>{{ success }}</div>
@@ -173,7 +192,7 @@
     <button type="button" class="btn btn-link text-decoration-none text-secondary fw-semibold px-4" (click)="cancel()" [disabled]="submitting">
       {{ isViewOnly ? 'Fermer' : 'Annuler' }}
     </button>
-    <button *ngIf="!isViewOnly" type="submit" form="userSaveForm" class="btn btn-primary px-5 py-2 fw-bold shadow rounded-pill" [disabled]="submitting || !userForm.valid">
+    <button *ngIf="!isViewOnly" type="submit" form="userSaveForm" class="btn btn-primary px-5 py-2 fw-bold shadow rounded-pill" [disabled]="submitting">
       <i class="bi bi-check2-circle me-2" *ngIf="!submitting"></i>
       <span *ngIf="submitting" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
       {{ submitting ? 'Enregistrement...' : 'Enregistrer' }}

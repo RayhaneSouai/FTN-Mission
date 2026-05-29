@@ -1,0 +1,55 @@
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <h2>Sponsoriser un nageur</h2>
+    <p class="muted">Choisissez un nageur et envoyez votre demande.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
+
+      <label>
+        Nageur
+        <select formControlName="swimmerId">
+          <option [ngValue]="null">Choisir un nageur</option>
+          <option *ngFor="let s of swimmers" [ngValue]="s.id">
+            {{ s.firstName }} {{ s.lastName }}
+          </option>
+        </select>
+      </label>
+
+      <label>
+        Type de sponsoring
+        <select formControlName="typeSponsor">
+          <option value="FINANCIER">Financier</option>
+          <option value="MAILLOTS">Maillots</option>
+          <option value="AUTRE">Autre</option>
+        </select>
+      </label>
+      <label>
+        Nom Sponsor
+        <input type="text" formControlName="nomSponsor" />
+      </label>
+
+      <label>
+        Email
+        <input type="text" formControlName="email" />
+      </label>
+
+      <label>
+        Telephone
+        <input type="text" formControlName="telephone" />
+      </label>
+
+
+      <label>
+        Détails
+        <input type="text" formControlName="details" />
+      </label>
+
+      <button class="btn-primary" type="submit" [disabled]="loading">
+        {{ loading ? 'Envoi...' : 'Envoyer la demande' }}
+      </button>
+
+      <p class="message" *ngIf="message">{{ message }}</p>
+
+    </form>
+  </div>
+</div>

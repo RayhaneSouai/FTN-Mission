@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Competition, CompetitionDetailResponse, ParticipationResponseDTO } from '../models/competition.model';
+import { Competition, CompetitionDetailResponse, DistributionResponse, ParticipationResponseDTO } from '../models/competition.model';
 
 /**
  * Public API service — read-only competition endpoints + participation.
@@ -37,6 +37,13 @@ export class CompetitionApiService {
     getApprovedParticipants(competitionId: number): Observable<ParticipationResponseDTO[]> {
         return this.http.get<ParticipationResponseDTO[]>(
             `${this.baseUrl}/${competitionId}/participants`
+        );
+    }
+
+    /** Get approved distribution for a competition (public - swimmers) */
+    getApprovedDistribution(competitionId: number): Observable<DistributionResponse> {
+        return this.http.get<DistributionResponse>(
+            `${this.baseUrl}/${competitionId}/distribution`
         );
     }
 }

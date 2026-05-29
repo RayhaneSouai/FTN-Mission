@@ -14,6 +14,7 @@ import tn.federation.backend.services.Abstraction.IClubService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class ClubServiceImpl implements IClubService {
@@ -29,6 +30,15 @@ public class ClubServiceImpl implements IClubService {
 
     @Override
     public Club addClub(Club club) {
+        String name = club.getName() != null ? club.getName().trim() : "";
+        if (name.isBlank()) {
+            throw new IllegalArgumentException("Nom du club obligatoire");
+        }
+        club.setName(name);
+        Optional<Club> existing = clubRepository.findFirstByNameIgnoreCase(name);
+        if (existing.isPresent()) {
+            return existing.get();
+        }
         return clubRepository.save(club);
     }
 
@@ -57,6 +67,14 @@ public class ClubServiceImpl implements IClubService {
     @Override
     public Club getClubById(long id) {
         return clubRepository.findById(id).get();
+    }
+
+    @Override
+    public Optional<Club> findByName(String name) {
+        if (name == null || name.trim().isBlank()) {
+            return Optional.empty();
+        }
+        return clubRepository.findFirstByNameIgnoreCase(name.trim());
     }
 
     @Override

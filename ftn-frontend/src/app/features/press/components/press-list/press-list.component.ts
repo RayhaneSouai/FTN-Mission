@@ -149,12 +149,30 @@ export class PressListComponent implements OnInit {
     return filtered;
   }
 
+  // ── Pagination ──────────────────────────────────────────────────────────
+  currentPage = 1;
+  itemsPerPage = 3;
+
+  get pagedItems(): PressItem[] {
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    return this.getFilteredItems().slice(start, start + this.itemsPerPage);
+  }
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.getFilteredItems().length / this.itemsPerPage));
+  }
+
+  nextPage() { if (this.currentPage < this.totalPages) this.currentPage++; }
+  prevPage() { if (this.currentPage > 1) this.currentPage--; }
+
   onSearch(term: string): void {
     this.searchTerm = term;
+    this.currentPage = 1;
   }
 
   onFilterChange(type: string): void {
     this.filterType = type;
+    this.currentPage = 1;
   }
 
   onStatusFilterChange(status: string): void {

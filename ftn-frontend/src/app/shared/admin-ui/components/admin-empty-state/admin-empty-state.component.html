@@ -1,0 +1,6 @@
+<div class="admin-empty-state">
+  <i class="bi admin-empty-state__icon" [ngClass]="icon"></i>
+  <p class="admin-empty-state__title">{{ title }}</p>
+  <p class="admin-empty-state__message" *ngIf="message">{{ message }}</p>
+  <ng-content></ng-content>
+</div>

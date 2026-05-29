@@ -34,8 +34,10 @@ export class LoginComponent {
 
           if (res.user.role === 'ADMIN' || res.user.role === 'ADMINISTRATEUR') {
             localStorage.setItem('isAdmin', 'true');
+            this.router.navigate(['/admin']);
           } else {
             localStorage.removeItem('isAdmin');
+            this.router.navigate(['/']);
           }
 
           if (returnUrl) {

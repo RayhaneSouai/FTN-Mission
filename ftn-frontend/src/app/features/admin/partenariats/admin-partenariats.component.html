@@ -1,0 +1,110 @@
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <h2>Partenariats & Sponsoring</h2>
+    <p>Gestion des demandes de partenariat et de sponsoring</p>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button (click)="setTab('partnership')"
+            [class.active]="activeTab === 'partnership'">
+      Partenariats
+    </button>
+
+    <button (click)="setTab('sponsorship')"
+            [class.active]="activeTab === 'sponsorship'">
+      Sponsoring Nageurs
+    </button>
+  </div>
+
+  <!-- ===================== PARTNERSHIP TABLE ===================== -->
+  <div *ngIf="activeTab === 'partnership'">
+
+    <div *ngIf="loadingPartnerships">Chargement...</div>
+
+    <table *ngIf="!loadingPartnerships">
+      <thead>
+      <tr>
+        <th>Représentant</th>
+        <th>Adresse</th>
+        <th>Contact</th>
+        <th>Type</th>
+        <th>Statut</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <tr *ngFor="let p of partnershipRequests">
+        <td>{{ p.nomRepresentant }}</td>
+        <td>{{ p.adresse }}</td>
+        <td>{{ p.contact }}</td>
+        <td>{{ p.typePartenariat }}</td>
+
+        <td>
+            <span [ngClass]="p.statut">
+              {{ p.statut }}
+            </span>
+        </td>
+
+        <td>
+          <button (click)="approvePartnership(p.id)" class="approve">
+            Approuver
+          </button>
+
+          <button (click)="rejectPartnership(p.id)" class="reject">
+            Refuser
+          </button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===================== SPONSORSHIP TABLE ===================== -->
+  <div *ngIf="activeTab === 'sponsorship'">
+
+    <div *ngIf="loadingSponsorships">Chargement...</div>
+
+    <table *ngIf="!loadingSponsorships">
+      <thead>
+      <tr>
+        <th>Nageur</th>
+        <th>Sponsor</th>
+        <th>Type</th>
+        <th>Détails</th>
+        <th>Statut</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <tr *ngFor="let s of sponsorshipRequests">
+        <td>{{ s.swimmer?.firstName }} {{ s.swimmer?.lastName }}</td>
+        <td>{{ s.requester?.email }}</td>
+        <td>{{ s.typeSponsor }}</td>
+        <td>{{ s.details }}</td>
+
+        <td>
+            <span [ngClass]="s.statut">
+              {{ s.statut }}
+            </span>
+        </td>
+
+        <td>
+          <button (click)="approveSponsorship(s.id)" class="approve">
+            Approuver
+          </button>
+
+          <button (click)="rejectSponsorship(s.id)" class="reject">
+            Refuser
+          </button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>

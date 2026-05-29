@@ -13,10 +13,12 @@ import tn.federation.backend.repositories.IPressItemRepository;
 import tn.federation.backend.entities.PressComment;
 import tn.federation.backend.entities.PressReaction;
 import tn.federation.backend.entities.PressFavorite;
+import tn.federation.backend.entities.PressPin;
 import tn.federation.backend.entities.User;
 import tn.federation.backend.repositories.PressCommentRepository;
 import tn.federation.backend.repositories.PressReactionRepository;
 import tn.federation.backend.repositories.PressFavoriteRepository;
+import tn.federation.backend.repositories.PressPinRepository;
 import tn.federation.backend.repositories.UserRepository;
 import tn.federation.backend.dto.PressInteractionDTO;
 import java.util.stream.Collectors;
@@ -52,6 +54,9 @@ public class PressServiceImpl implements IPressService {
 
     @Autowired
     private PressFavoriteRepository favoriteRepository;
+
+    @Autowired
+    private PressPinRepository pinRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -196,6 +201,14 @@ public class PressServiceImpl implements IPressService {
             .collect(Collectors.toList());
     }
 
+    @Override
+    public List<PressItem> getPinsByUserId(Long userId) {
+        return pinRepository.findAll().stream()
+            .filter(p -> p.getUser().getId().equals(userId))
+            .map(tn.federation.backend.entities.PressPin::getPressItem)
+            .collect(Collectors.toList());
+    }
+
     // Tâche planifiée pour publier les articles programmés
     @org.springframework.scheduling.annotation.Scheduled(fixedRate = 60000) // Toutes les minutes
     public void publishScheduledItems() {
@@ -282,6 +295,7 @@ public class PressServiceImpl implements IPressService {
 
         String currentUserReaction = null;
         boolean isFavorited = false;
+        boolean isPinned = false;
         
         if (currentUserId != null) {
             currentUserReaction = reactionRepository.findByPressItemIdAndUserId(pressItemId, currentUserId)
@@ -289,9 +303,11 @@ public class PressServiceImpl implements IPressService {
                 .orElse(null);
             
             isFavorited = favoriteRepository.findByPressItemIdAndUserId(pressItemId, currentUserId).isPresent();
+            isPinned = pinRepository.findByPressItemIdAndUserId(pressItemId, currentUserId).isPresent();
         }
 
         Long totalFavorites = (long) favoriteRepository.findByPressItemId(pressItemId).size();
+        Long totalPins = (long) pinRepository.findByPressItemId(pressItemId).size();
 
         return PressInteractionDTO.builder()
                 .comments(commentDTOs)
@@ -299,6 +315,8 @@ public class PressServiceImpl implements IPressService {
                 .currentUserReaction(currentUserReaction)
                 .isFavoritedByCurrentUser(isFavorited)
                 .totalFavorites(totalFavorites)
+                .isPinnedByCurrentUser(isPinned)
+                .totalPins(totalPins)
                 .build();
     }
 
@@ -356,6 +374,23 @@ public class PressServiceImpl implements IPressService {
                 newFavorite.setPressItem(item);
                 newFavorite.setUser(user);
                 favoriteRepository.save(newFavorite);
+            }
+        }
+    }
+
+    @Override
+    public void togglePin(long pressItemId, Long userId) {
+        PressItem item = getPressItemById(pressItemId);
+        User user = userRepository.findById(userId).orElse(null);
+        if (item != null && user != null) {
+            PressPin pin = pinRepository.findByPressItemIdAndUserId(pressItemId, userId).orElse(null);
+            if (pin != null) {
+                pinRepository.delete(pin);
+            } else {
+                PressPin newPin = new PressPin();
+                newPin.setPressItem(item);
+                newPin.setUser(user);
+                pinRepository.save(newPin);
             }
         }
     }

@@ -1,0 +1,87 @@
+<div class="admin-page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <h2>Gestion des performances</h2>
+
+    <button class="btn-add" (click)="openCreate()">
+      ➕ Ajouter performance
+    </button>
+  </div>
+
+  <!-- TABLE -->
+  <div *ngIf="!loading()">
+    <table class="table">
+      <thead>
+      <tr>
+        <th>Nageur</th>
+        <th>Distance</th>
+        <th>Style</th>
+        <th>Temps</th>
+        <th>Date</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+
+      <tbody>
+        @for (p of performances(); track p.id) {
+          <tr>
+            <td>{{ p.swimmerFirstName }} {{ p.swimmerLastName }}</td>
+            <td>{{ p.distance }}m</td>
+            <td>{{ strokeLabels[p.stroke] }}</td>
+            <td>{{ p.time }}s</td>
+            <td>{{ p.date }}</td>
+
+            <td class="actions">
+              <button (click)="openEdit(p)">✏️</button>
+              <button (click)="delete(p.id)">🗑️</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===================== -->
+  <!-- SIDE FORM (MODAL SIMPLE) -->
+  <!-- ===================== -->
+  @if (showForm()) {
+    <div class="overlay" (click)="closeForm()"></div>
+
+    <div class="form-panel">
+
+      <h3>
+        {{ isEditMode() ? 'Modifier performance' : 'Ajouter performance' }}
+      </h3>
+
+      <label>Nageur ID</label>
+      <input type="number" [(ngModel)]="form.swimmerId" />
+
+      <label>Distance</label>
+      <select [(ngModel)]="form.distance">
+        <option *ngFor="let d of distances" [value]="d">{{ d }}m</option>
+      </select>
+
+      <label>Style</label>
+      <select [(ngModel)]="form.stroke">
+        <option *ngFor="let s of strokes" [value]="s">
+          {{ strokeLabels[s] }}
+        </option>
+      </select>
+
+      <label>Temps (s)</label>
+      <input type="number" [(ngModel)]="form.time" step="0.01" />
+
+      <label>Date</label>
+      <input type="date" [(ngModel)]="form.date" />
+
+      <div class="form-actions">
+        <button (click)="closeForm()">Annuler</button>
+        <button (click)="save()">
+          {{ isEditMode() ? 'Modifier' : 'Ajouter' }}
+        </button>
+      </div>
+
+    </div>
+  }
+</div>

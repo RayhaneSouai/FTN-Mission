@@ -8,6 +8,7 @@ import tn.federation.backend.entities.Role;
 import tn.federation.backend.entities.User;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ClubRepository extends CrudRepository<Club, Long> {
@@ -16,6 +17,8 @@ public interface ClubRepository extends CrudRepository<Club, Long> {
     List<Club> findByRegion(String region);
 
     List<Club> findByNameContainingIgnoreCaseOrRegionContainingIgnoreCase(String name, String region);
+
+    Optional<Club> findFirstByNameIgnoreCase(String name);
 
     // clubs with coordinates for map
     List<Club> findByLatitudeIsNotNullAndLongitudeIsNotNull();
