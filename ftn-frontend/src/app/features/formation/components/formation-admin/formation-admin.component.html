@@ -1,0 +1,260 @@
+<app-toast-container />
+
+<div class="formation-admin">
+  <header class="page-header">
+    <div>
+      <h1>Gestion des formations</h1>
+      <p>Créez les saisons et digitalisez les calendriers BF1 / BF2 (inscriptions, théorie, emploi du temps, pratique).</p>
+    </div>
+  </header>
+
+  <div class="admin-grid">
+    <section class="panel seasons-panel">
+      <div class="panel-head">
+        <h2>Saisons</h2>
+        <button type="button" class="btn-sm btn-primary" (click)="openAddSeason()">+ Saison</button>
+      </div>
+
+      <div class="loading-inline" *ngIf="loadingSeasons">Chargement...</div>
+
+      <ul class="season-list" *ngIf="!loadingSeasons">
+        <li *ngFor="let s of seasons"
+            [class.active]="selectedSeason?.id === s.id"
+            (click)="selectSeason(s)">
+          <div class="season-info">
+            <span class="season-label">{{ s.label }}</span>
+            <span class="badge" [class.badge-active]="s.active">{{ s.active ? 'Active' : 'Inactive' }}</span>
+          </div>
+          <div class="season-actions admin-row-actions" (click)="$event.stopPropagation()">
+            <button type="button" class="admin-action-label" (click)="openEditSeason(s, $event)">
+              <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+              Modifier
+            </button>
+            <button type="button" class="admin-action-label admin-action-label--danger" (click)="deleteSeason(s, $event)">
+              <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+              Supprimer
+            </button>
+          </div>
+        </li>
+        <li class="empty" *ngIf="seasons.length === 0">Aucune saison. Créez-en une pour commencer.</li>
+      </ul>
+    </section>
+
+    <section class="panel programs-panel">
+      <div class="panel-head">
+        <h2>Programmes <span *ngIf="selectedSeason">— {{ selectedSeason.label }}</span></h2>
+        <button type="button" class="btn-sm btn-primary"
+                [disabled]="!selectedSeason"
+                (click)="openAddProgram()">+ Programme</button>
+      </div>
+
+      <p class="hint" *ngIf="!selectedSeason">Sélectionnez une saison à gauche.</p>
+      <div class="loading-inline" *ngIf="loadingPrograms">Chargement...</div>
+
+      <div class="program-cards" *ngIf="selectedSeason && !loadingPrograms">
+        <article class="program-card" *ngFor="let p of programs">
+          <div class="program-card-head">
+            <span class="brevet-tag">{{ p.brevetType }}</span>
+            <span class="status-tag" [class.published]="p.status === 'PUBLISHED'">{{ statusLabel(p.status) }}</span>
+          </div>
+          <h3>{{ p.title }}</h3>
+          <p class="meta" *ngIf="p.registrationStartDate">
+            Inscription : {{ p.registrationStartDate }} → {{ p.registrationEndDate }}
+          </p>
+          <div class="program-card-actions admin-row-actions">
+            <button type="button" class="admin-action-label" (click)="openEditProgram(p)">
+              <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+              Modifier
+            </button>
+            <button type="button" class="admin-action-label admin-action-label--danger" (click)="deleteProgram(p)">
+              <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+              Supprimer
+            </button>
+          </div>
+        </article>
+        <p class="empty" *ngIf="programs.length === 0">Aucun programme pour cette saison.</p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showSeasonForm" (click)="closeSeasonForm()">
+  <div class="modal-box modal-sm" (click)="$event.stopPropagation()">
+    <h2>{{ editingSeason ? 'Modifier la saison' : 'Nouvelle saison' }}</h2>
+    <label>Libellé * <small>(ex: 2024-2025)</small></label>
+    <input type="text" [(ngModel)]="seasonForm.label" placeholder="2024-2025" />
+    <label class="checkbox-row">
+      <input type="checkbox" [(ngModel)]="seasonForm.active" /> Saison active
+    </label>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="closeSeasonForm()">Annuler</button>
+      <button type="button" class="btn-primary" [disabled]="saving" (click)="saveSeason()">
+        {{ saving ? '...' : 'Enregistrer' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showProgramForm" (click)="closeProgramForm()">
+  <div class="modal-box modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-title-row">
+      <h2>{{ editingProgram ? 'Modifier le programme' : 'Nouveau programme de formation' }}</h2>
+      <button type="button" class="close-btn" (click)="closeProgramForm()">×</button>
+    </div>
+
+    <form class="program-form" (ngSubmit)="saveProgram()">
+      <fieldset>
+        <legend>Général</legend>
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label>Titre *</label>
+            <input type="text" [(ngModel)]="programForm.title" name="title"
+                   placeholder="Calendrier BF1 promotion février 2024" required />
+          </div>
+          <div class="form-group">
+            <label>Brevet *</label>
+            <select [(ngModel)]="programForm.brevetType" name="brevetType">
+              <option *ngFor="let b of brevetTypes" [value]="b">{{ b }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Statut</label>
+            <select [(ngModel)]="programForm.status" name="status">
+              <option *ngFor="let st of statuses" [value]="st">{{ statusLabel(st) }}</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Période d'inscription</legend>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Du</label>
+            <input type="date" [(ngModel)]="programForm.registrationStartDate" name="regStart" />
+          </div>
+          <div class="form-group">
+            <label>Au</label>
+            <input type="date" [(ngModel)]="programForm.registrationEndDate" name="regEnd" />
+          </div>
+          <div class="form-group">
+            <label>Cotisation (DT)</label>
+            <input type="number" [(ngModel)]="programForm.registrationFee" name="fee" min="0" step="1" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Lieu d'inscription</label>
+          <input type="text" [(ngModel)]="programForm.registrationLocation" name="regLoc"
+                 placeholder="Institut Pascal, horaire administratif..." />
+        </div>
+        <div class="form-group">
+          <label>Conditions d'inscription</label>
+          <textarea rows="4" [(ngModel)]="programForm.registrationConditions" name="regCond"
+                    placeholder="1/ Avoir 18 ans. 2/ Avoir un vécu sportif..."></textarea>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Institut / contact</legend>
+        <div class="form-group">
+          <label>Adresse</label>
+          <input type="text" [(ngModel)]="programForm.instituteAddress" name="addr" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" [(ngModel)]="programForm.instituteEmail" name="email" />
+          </div>
+          <div class="form-group">
+            <label>Téléphone</label>
+            <input type="text" [(ngModel)]="programForm.institutePhone" name="tel" />
+          </div>
+          <div class="form-group">
+            <label>Fax</label>
+            <input type="text" [(ngModel)]="programForm.instituteFax" name="fax" />
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Formation théorique</legend>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Du</label>
+            <input type="date" [(ngModel)]="programForm.theoreticalStartDate" name="thStart" />
+          </div>
+          <div class="form-group">
+            <label>Au</label>
+            <input type="date" [(ngModel)]="programForm.theoreticalEndDate" name="thEnd" />
+          </div>
+          <div class="form-group">
+            <label>Horaires</label>
+            <input type="text" [(ngModel)]="programForm.theoreticalHours" name="thHours"
+                   placeholder="14h00 à 16h00" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Lieu</label>
+          <input type="text" [(ngModel)]="programForm.theoreticalLocation" name="thLoc" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Examen théorique — date</label>
+            <input type="date" [(ngModel)]="programForm.theoreticalExamDate" name="examDate" />
+          </div>
+          <div class="form-group">
+            <label>Heure</label>
+            <input type="text" [(ngModel)]="programForm.theoreticalExamTime" name="examTime"
+                   placeholder="10h00 à 11h00" />
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Emploi du temps théorique (présence obligatoire)</legend>
+        <div class="schedule-rows">
+          <div class="schedule-row" *ngFor="let row of programForm.scheduleItems; let i = index">
+            <input type="text" [(ngModel)]="row.dayLabel" [name]="'day' + i"
+                   placeholder="Lundi 5 février 2024" />
+            <input type="text" [(ngModel)]="row.timeSlot" [name]="'time' + i"
+                   placeholder="14h00 - 16h00" />
+            <textarea [(ngModel)]="row.content" [name]="'content' + i" rows="2"
+                      placeholder="Contenu de la séance..."></textarea>
+            <button type="button" class="icon-btn danger" (click)="removeScheduleRow(i)" title="Retirer">×</button>
+          </div>
+        </div>
+        <button type="button" class="btn-sm btn-secondary" (click)="addScheduleRow()">+ Séance</button>
+      </fieldset>
+
+      <fieldset>
+        <legend>Formation pratique et résultats</legend>
+        <div class="form-group">
+          <label>Description pratique</label>
+          <textarea rows="3" [(ngModel)]="programForm.practicalDescription" name="practDesc"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Période pratique — du</label>
+            <input type="date" [(ngModel)]="programForm.practicalPeriodStart" name="practStart" />
+          </div>
+          <div class="form-group">
+            <label>au</label>
+            <input type="date" [(ngModel)]="programForm.practicalPeriodEnd" name="practEnd" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Proclamation des résultats</label>
+          <textarea rows="2" [(ngModel)]="programForm.resultAnnouncementNote" name="resultNote"
+                    placeholder="La proclamation du résultat après le stage pratique, à la FTN."></textarea>
+        </div>
+      </fieldset>
+
+      <div class="modal-actions sticky">
+        <button type="button" class="btn-secondary" (click)="closeProgramForm()">Annuler</button>
+        <button type="submit" class="btn-primary" [disabled]="saving">
+          {{ saving ? 'Enregistrement...' : 'Enregistrer le programme' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

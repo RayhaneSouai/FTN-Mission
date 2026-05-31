@@ -41,6 +41,8 @@ export enum Categorie {
   MINIMES = 'MINIMES',
   CADETS = 'CADETS',
   JUNIORS_SENIORS = 'JUNIORS_SENIORS',
+  JUNIORS = 'JUNIORS',
+  SENIORS = 'SENIORS',
 }
 
 export interface Competition {
@@ -122,6 +124,8 @@ export const CATEGORIE_LABELS: Record<Categorie, string> = {
   [Categorie.MINIMES]: 'Minimes (14-15 ans)',
   [Categorie.CADETS]: 'Cadets (16-17 ans)',
   [Categorie.JUNIORS_SENIORS]: 'Juniors/Seniors (18+ ans)',
+  [Categorie.JUNIORS]: 'Juniors/Seniors (18+ ans)',
+  [Categorie.SENIORS]: 'Juniors/Seniors (18+ ans)',
 };
 
 /* ─── Age Category Utility ─── */

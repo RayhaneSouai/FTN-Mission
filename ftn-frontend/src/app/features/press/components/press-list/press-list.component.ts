@@ -270,6 +270,17 @@ export class PressListComponent implements OnInit {
     return this.interactions?.reactionCounts?.[type] || 0;
   }
 
+  getReactionLabel(type: string): string {
+    const labels: Record<string, string> = {
+      LIKE: 'J’aime',
+      DISLIKE: 'Je n’aime pas',
+      SAD: 'Triste',
+      ANGRY: 'Mécontent',
+      HEART: 'Favori'
+    };
+    return labels[type] || type;
+  }
+
   closeArticle(): void {
     this.selectedItem = null;
     this.translatedContent = null;

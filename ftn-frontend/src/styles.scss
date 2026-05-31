@@ -3,6 +3,8 @@
    Feature-specific theming lives inside each module.
    ═══════════════════════════════════════════════ */
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 *,
 *::before,
 *::after {
@@ -15,8 +17,20 @@ body {
   padding: 0;
 }
 
+:root {
+  --ftn-font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ftn-primary: #004da3;
+  --ftn-primary-hover: #003a80;
+  --ftn-primary-active: #002f68;
+  --ftn-primary-soft: #e8f2ff;
+  --ftn-border: #d8e2ef;
+  --ftn-button-radius: 10px;
+  --ftn-disabled-bg: #e5e7eb;
+  --ftn-disabled-text: #94a3b8;
+}
+
 body {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: var(--ftn-font-family);
   -webkit-font-smoothing: antialiased;
   line-height: 1.5;
 }
@@ -27,6 +41,74 @@ h1, h2, h3, h4, p {
 
 button, input, select, textarea {
   font: inherit;
+}
+
+.btn-primary,
+button.btn-primary,
+a.btn-primary,
+.admin-btn--primary,
+.btn-auth {
+  background: var(--ftn-primary) !important;
+  border-color: var(--ftn-primary) !important;
+  color: #fff !important;
+  border-radius: var(--ftn-button-radius) !important;
+  font-weight: 700;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.btn-primary:hover:not(:disabled),
+button.btn-primary:hover:not(:disabled),
+a.btn-primary:hover,
+.admin-btn--primary:hover:not(:disabled),
+.btn-auth:hover:not(:disabled) {
+  background: var(--ftn-primary-hover) !important;
+  border-color: var(--ftn-primary-hover) !important;
+  color: #fff !important;
+}
+
+.btn-primary:active:not(:disabled),
+button.btn-primary:active:not(:disabled),
+.admin-btn--primary:active:not(:disabled),
+.btn-auth:active:not(:disabled) {
+  background: var(--ftn-primary-active) !important;
+  border-color: var(--ftn-primary-active) !important;
+}
+
+.btn-primary:disabled,
+button.btn-primary:disabled,
+.admin-btn--primary:disabled,
+.btn-auth:disabled {
+  background: var(--ftn-disabled-bg) !important;
+  border-color: var(--ftn-disabled-bg) !important;
+  color: var(--ftn-disabled-text) !important;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn-outline,
+.btn-outline-primary {
+  background: transparent !important;
+  border-color: var(--ftn-primary) !important;
+  color: var(--ftn-primary) !important;
+  border-radius: var(--ftn-button-radius) !important;
+  font-weight: 700;
+}
+
+.btn-outline:hover:not(:disabled),
+.btn-outline-primary:hover:not(:disabled) {
+  background: var(--ftn-primary) !important;
+  border-color: var(--ftn-primary) !important;
+  color: #fff !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--ftn-primary);
+  box-shadow: 0 0 0 0.2rem rgba(0, 77, 163, 0.14);
+  outline: none;
 }
 
 /* Import Admin Theme Design System */

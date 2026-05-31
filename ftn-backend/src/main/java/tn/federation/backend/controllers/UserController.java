@@ -3,7 +3,9 @@ package tn.federation.backend.controllers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import tn.federation.backend.config.OpenApiConfig;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,6 +25,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/users")
 @Tag(name = "User Management", description = "Gestion des utilisateurs - Administration")
+@SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)
 public class UserController {
     private final IUserService userService;
     private final IAuthService authService;
@@ -62,6 +65,7 @@ public class UserController {
     }
 
     @GetMapping("/admin/dashboard-stats")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Statistiques de l'admin", description = "Statistiques globales de la plateforme (admin)")
     public ResponseEntity<tn.federation.backend.dto.AdminDashboardDTO> getAdminDashboardStats() {
         return ResponseEntity.ok(userService.getAdminDashboardStats());
@@ -121,6 +125,15 @@ public class UserController {
         tn.federation.backend.dto.PasswordResetRequestDTO dto = new tn.federation.backend.dto.PasswordResetRequestDTO();
         dto.setEmail(currentEmail);
         authService.requestPasswordReset(dto);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/change-password")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Changer mon mot de passe", description = "Change le mot de passe de l'utilisateur connecté après vérification de l'ancien mot de passe")
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequestDTO request) {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        userService.changePassword(auth.getName(), request.getOldPassword(), request.getNewPassword());
         return ResponseEntity.ok().build();
     }
 }

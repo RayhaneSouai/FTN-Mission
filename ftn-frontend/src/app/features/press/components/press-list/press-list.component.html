@@ -1,56 +1,24 @@
-<div class="dashboard-container">
+<div class="dashboard-container admin-page">
   <!-- Header -->
-  <header class="dashboard-header">
-    <div class="header-titles">
-      <h1 class="welcome-text">Gestion <span class="accent">Presse</span> 📰</h1>
-      <p class="subtitle">Publiez, programmez et validez les actualités de la fédération tunisienne.</p>
-    </div>
-    <div class="header-actions">
-      <button class="btn-add" (click)="goToAdd()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  <app-admin-page-header
+    title="Gestion Presse"
+    accent="FTN"
+    subtitle="Publiez, programmez et validez les actualités de la fédération tunisienne.">
+    <div actions class="admin-toolbar-actions">
+      <button class="admin-btn admin-btn--primary" type="button" (click)="goToAdd()">
+        <i class="bi bi-plus-lg"></i>
         Nouveau Contenu
       </button>
     </div>
-  </header>
+  </app-admin-page-header>
 
   <!-- Stats Grid -->
-  <section class="stats-grid" *ngIf="!loading">
-    <div class="stat-card">
-      <span class="stat-label">Total Articles</span>
-      <h2 class="stat-value">{{ richStats?.total || 0 }}</h2>
-      <div style="height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">
-        <div [style.width]="'100%'" style="height: 100%; background: #64748b;"></div>
-      </div>
-    </div>
-    <div class="stat-card">
-      <span class="stat-label">Publiés</span>
-      <h2 class="stat-value" style="color: #166534;">{{ richStats?.published || 0 }}</h2>
-      <div style="height: 6px; background: #dcfce7; border-radius: 3px; overflow: hidden;">
-        <div [style.width]="getPercentage(richStats?.published || 0, richStats?.total || 1)" style="height: 100%; background: #22c55e;"></div>
-      </div>
-    </div>
-
-    <div class="stat-card">
-      <span class="stat-label">Programmés</span>
-      <h2 class="stat-value" style="color: #6b21a8;">{{ richStats?.scheduled || 0 }}</h2>
-      <div style="height: 6px; background: #faf5ff; border-radius: 3px; overflow: hidden;">
-        <div [style.width]="getPercentage(richStats?.scheduled || 0, richStats?.total || 1)" style="height: 100%; background: #a855f7;"></div>
-      </div>
-    </div>
-    <div class="stat-card">
-      <span class="stat-label">Vues Totales</span>
-      <h2 class="stat-value" style="color: #f59e0b;">👁️ {{ richStats?.totalViews || 0 }}</h2>
-      <div style="height: 6px; background: #fef3c7; border-radius: 3px; overflow: hidden;">
-        <div [style.width]="'100%'" style="height: 100%; background: #f59e0b;"></div>
-      </div>
-    </div>
-    <div class="stat-card">
-      <span class="stat-label">Téléchargements</span>
-      <h2 class="stat-value" style="color: #ec4899;">📥 {{ richStats?.totalDownloads || 0 }}</h2>
-      <div style="height: 6px; background: #fce7f3; border-radius: 3px; overflow: hidden;">
-        <div [style.width]="'100%'" style="height: 100%; background: #ec4899;"></div>
-      </div>
-    </div>
+  <section class="admin-stats-row" *ngIf="!loading">
+    <app-admin-stat-card label="Total Articles" [value]="richStats?.total || 0" icon="bi-newspaper" variant="blue"></app-admin-stat-card>
+    <app-admin-stat-card label="Publiés" [value]="richStats?.published || 0" icon="bi-check-circle" variant="azure"></app-admin-stat-card>
+    <app-admin-stat-card label="Programmés" [value]="richStats?.scheduled || 0" icon="bi-calendar-event" variant="indigo"></app-admin-stat-card>
+    <app-admin-stat-card label="Vues Totales" [value]="richStats?.totalViews || 0" icon="bi-eye" variant="orange"></app-admin-stat-card>
+    <app-admin-stat-card label="Téléchargements" [value]="richStats?.totalDownloads || 0" icon="bi-download" variant="default"></app-admin-stat-card>
   </section>
 
   <!-- Engagement Analytics & Popular Articles -->
@@ -66,8 +34,8 @@
           <span class="popular-title">{{ item.title }}</span>
         </div>
         <div class="popular-meta">
-          <span title="Nombre de vues" style="font-weight:700; color:#475569;">👁️ {{ item.views || 0 }} vues</span>
-          <span title="Téléchargements de documents PDF" *ngIf="item.downloadsCount">📥 {{ item.downloadsCount }} DL</span>
+          <span title="Nombre de vues" style="font-weight:700; color:#475569;"><i class="bi bi-eye"></i> {{ item.views || 0 }} vues</span>
+          <span title="Téléchargements de documents PDF" *ngIf="item.downloadsCount"><i class="bi bi-download"></i> {{ item.downloadsCount }} DL</span>
           <span class="badge" [ngClass]="getStatusClass(item.status)">{{ item.status }}</span>
         </div>
       </div>
@@ -103,7 +71,7 @@
 
   <!-- Empty State -->
   <div *ngIf="!loading && getFilteredItems().length === 0" style="text-align: center; padding: 100px; background: white; border-radius: 32px; border: 2px dashed #e2e8f0; margin-top: 20px;">
-    <div style="font-size: 4rem; margin-bottom: 20px;">📭</div>
+    <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
     <h3 style="font-weight: 800; color: #1e293b; margin-bottom: 8px;">Aucun contenu trouvé</h3>
     <p style="color: #94a3b8;">La liste est vide ou aucun article ne correspond à vos filtres.</p>
     <button class="btn-add" style="margin: 24px auto 0;" (click)="goToAdd()">Créer le premier article</button>
@@ -125,7 +93,7 @@
 
         <img *ngIf="item.type !== 'VIDEO' && item.mediaUrl" [src]="item.mediaUrl" alt="Media">
         <img *ngIf="item.type === 'VIDEO'" [src]="pressService.getVideoThumbnail(item.mediaUrl || '')" alt="Video">
-        <div *ngIf="!item.mediaUrl" style="height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3rem; background: #f1f5f9;">📰</div>
+        <div *ngIf="!item.mediaUrl" style="height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3rem; background: #f1f5f9;"><i class="bi bi-newspaper"></i></div>
         
         <div class="type-badge" [style.background]="item.type === 'VIDEO' ? '#ef4444' : '#1565C0'">
           {{ categoryLabels[item.type] || item.type }}
@@ -143,31 +111,37 @@
         <p class="card-excerpt" *ngIf="!item.summary && item.content" [innerHTML]="item.content.slice(0, 100) + '...'"></p>
 
         <div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600; margin-bottom: 15px; display: flex; gap: 15px;">
-          <span>✍️ {{ item.author || 'Admin' }}</span>
+          <span><i class="bi bi-person"></i> {{ item.author || 'Admin' }}</span>
         </div>
 
-        <div class="card-actions">
+        <div class="card-actions admin-row-actions admin-row-actions--end">
           <ng-container *ngIf="item.status !== 'DELETED'">
             <!-- DRAFT state -->
-            <button class="action-btn" title="Publier directement" *ngIf="item.status === 'DRAFT' || item.status === 'SCHEDULED'" (click)="publish(item, $event)">🚀</button>
+            <button class="admin-action-icon" title="Publier directement" aria-label="Publier directement" *ngIf="item.status === 'DRAFT' || item.status === 'SCHEDULED'" (click)="publish(item, $event)"><span class="material-symbols-outlined" aria-hidden="true">send</span></button>
 
             <!-- PUBLISHED state -->
-            <button class="action-btn btn-archive" title="Archiver" *ngIf="item.status === 'PUBLISHED'" (click)="archive(item, $event)">📁</button>
-            <button class="action-btn btn-draft"   title="Remettre en brouillon" *ngIf="item.status === 'PUBLISHED'" (click)="setDraft(item, $event)">📝</button>
+            <button class="admin-action-icon" title="Archiver" aria-label="Archiver" *ngIf="item.status === 'PUBLISHED'" (click)="archive(item, $event)"><span class="material-symbols-outlined" aria-hidden="true">archive</span></button>
+            <button class="admin-action-icon" title="Remettre en brouillon" aria-label="Remettre en brouillon" *ngIf="item.status === 'PUBLISHED'" (click)="setDraft(item, $event)"><span class="material-symbols-outlined" aria-hidden="true">draft</span></button>
 
             <!-- ARCHIVED state -->
-            <button class="action-btn btn-publish" title="Re-publier" *ngIf="item.status === 'ARCHIVED'" (click)="publish(item, $event)">🚀</button>
-            <button class="action-btn btn-draft"   title="Mettre en brouillon" *ngIf="item.status === 'ARCHIVED'" (click)="setDraft(item, $event)">📝</button>
+            <button class="admin-action-icon" title="Re-publier" aria-label="Re-publier" *ngIf="item.status === 'ARCHIVED'" (click)="publish(item, $event)"><span class="material-symbols-outlined" aria-hidden="true">send</span></button>
+            <button class="admin-action-icon" title="Mettre en brouillon" aria-label="Mettre en brouillon" *ngIf="item.status === 'ARCHIVED'" (click)="setDraft(item, $event)"><span class="material-symbols-outlined" aria-hidden="true">draft</span></button>
 
             <!-- Always visible -->
-            <button class="action-btn btn-read-more" title="Aperçu / Traduction / Recap IA" (click)="openArticle(item)">👁️</button>
-            <button class="action-btn btn-edit"  title="Modifier" (click)="goToEdit(item.idPressItem!)">✏️</button>
-            <button class="action-btn btn-trash" title="Mettre en corbeille" (click)="openTrashModal(item, $event)">🗑️</button>
+            <button class="admin-action-icon" title="Aperçu / Traduction / Recap IA" aria-label="Aperçu / Traduction / Recap IA" (click)="openArticle(item)"><span class="material-symbols-outlined" aria-hidden="true">visibility</span></button>
+            <button class="admin-action-icon" title="Modifier" aria-label="Modifier" (click)="goToEdit(item.idPressItem!)"><span class="material-symbols-outlined" aria-hidden="true">edit</span></button>
+            <button class="admin-action-icon admin-action-icon--danger" title="Mettre en corbeille" aria-label="Mettre en corbeille" (click)="openTrashModal(item, $event)"><span class="material-symbols-outlined" aria-hidden="true">delete</span></button>
           </ng-container>
 
           <ng-container *ngIf="item.status === 'DELETED'">
-            <button class="action-btn btn-restore" title="Restaurer en brouillon" (click)="restore(item, $event)">⚡</button>
-            <button class="action-btn btn-delete"  title="Supprimer définitivement" (click)="openDeleteModal(item, $event)">❌</button>
+            <button class="admin-action-label" title="Restaurer en brouillon" (click)="restore(item, $event)">
+              <span class="material-symbols-outlined" aria-hidden="true">restore_from_trash</span>
+              Restaurer
+            </button>
+            <button class="admin-action-label admin-action-label--danger" title="Supprimer définitivement" (click)="openDeleteModal(item, $event)">
+              <span class="material-symbols-outlined" aria-hidden="true">delete_forever</span>
+              Supprimer
+            </button>
           </ng-container>
         </div>
       </div>
@@ -175,26 +149,29 @@
   </div>
 
   <!-- Pagination Controls -->
-  <div *ngIf="!loading && totalPages > 1" style="display:flex; justify-content:center; align-items:center; gap:16px; margin-top:40px; margin-bottom:40px;">
-    <button (click)="prevPage()" [disabled]="currentPage === 1"
-            style="background:#f1f5f9; border:none; padding:10px 24px; border-radius:50px; font-weight:700; cursor:pointer; color:#475569; transition:all 0.2s;"
-            [ngStyle]="{'opacity': currentPage === 1 ? '0.4' : '1'}">
-      ← Précédent
-    </button>
-    <span style="font-weight:800; color:#1e293b; font-size:0.95rem;">
-      Page {{ currentPage }} / {{ totalPages }}
-    </span>
-    <button (click)="nextPage()" [disabled]="currentPage === totalPages"
-            style="background:#1565C0; border:none; padding:10px 24px; border-radius:50px; font-weight:700; cursor:pointer; color:white; transition:all 0.2s;"
-            [ngStyle]="{'opacity': currentPage === totalPages ? '0.4' : '1'}">
-      Suivant →
-    </button>
+  <div *ngIf="!loading && totalPages > 1" class="admin-pagination press-pagination">
+    <span class="admin-pagination__info">Page {{ currentPage }} sur {{ totalPages }}</span>
+    <nav class="admin-pagination__nav" aria-label="Pagination presse">
+      <ul class="pagination pagination-sm mb-0">
+        <li class="page-item" [class.disabled]="currentPage === 1">
+          <button class="page-link" (click)="prevPage()">Précédent</button>
+        </li>
+        <li class="page-item active">
+          <span class="page-link">{{ currentPage }}</span>
+        </li>
+        <li class="page-item" [class.disabled]="currentPage === totalPages">
+          <button class="page-link" (click)="nextPage()">Suivant</button>
+        </li>
+      </ul>
+    </nav>
   </div>
 
   <!-- CONFIRMATION MODAL -->
   <div class="modal-overlay" *ngIf="showConfirmModal" (click)="closeModal()">
     <div class="modal-content" style="max-width: 480px; text-align: center;" (click)="$event.stopPropagation()">
-      <div style="font-size: 3.5rem; margin-bottom: 20px;">{{ isHardDelete ? '⚠️' : '🗑️' }}</div>
+      <div class="confirm-modal-icon" [class.confirm-modal-icon--danger]="isHardDelete">
+        <i class="bi" [ngClass]="isHardDelete ? 'bi-exclamation-triangle' : 'bi-trash'"></i>
+      </div>
       <h2 class="form-title" style="font-size: 1.4rem;">{{ modalTitle }}</h2>
       <p style="color: #64748b; margin: 16px 0 32px;">{{ modalMessage }}</p>
       <div class="modal-footer" style="margin-top: 0; padding-top: 0; border: none;">
@@ -213,7 +190,7 @@
       
       <div class="modal-header-premium">
         <h2 class="form-title" style="margin-top: 0; font-size: 1.8rem;">
-          {{ editingItem ? 'Modifier le' : 'Nouveau' }} <span class="accent">Contenu</span> ✨
+          {{ editingItem ? 'Modifier le' : 'Nouveau' }} <span class="accent">Contenu</span>
         </h2>
         <p class="subtitle" style="margin: 0; font-size: 0.95rem;">Structurez et publiez vos informations rapidement sur la plateforme FTN.</p>
       </div>
@@ -225,14 +202,14 @@
           
           <!-- Mode Extraction -->
           <div class="premium-choice-card" (click)="setCreationMode('EXTRACTION')">
-            <div class="choice-icon extraction-icon">🔗</div>
+            <div class="choice-icon extraction-icon"><i class="bi bi-link-45deg"></i></div>
             <h4 class="choice-title">Extraction Automatique</h4>
             <p class="choice-desc">Collez un lien (YouTube, Article externe) et l'IA extraira automatiquement les informations clés pour vous.</p>
           </div>
 
           <!-- Mode Manuel -->
           <div class="premium-choice-card" (click)="setCreationMode('MANUAL')">
-            <div class="choice-icon manual-icon">✍️</div>
+            <div class="choice-icon manual-icon"><i class="bi bi-pencil-square"></i></div>
             <h4 class="choice-title">Création Manuelle</h4>
             <p class="choice-desc">Rédigez votre article de zéro avec l'éditeur riche, importez vos photos et structurez votre contenu librement.</p>
           </div>
@@ -291,7 +268,7 @@
 
           <!-- FINAL SECTION: WORKFLOW -->
           <div class="premium-section workflow-section">
-            <div class="section-badge workflow-badge">⚙️</div>
+            <div class="section-badge workflow-badge"><i class="bi bi-gear"></i></div>
             <div class="section-content">
               <h4 class="section-title">Publication</h4>
               <div class="form-group full-width">
@@ -314,7 +291,7 @@
 
           <!-- EXTRACTION MODE URL LINK -->
           <div class="premium-section extraction-section" *ngIf="creationMode === 'EXTRACTION'">
-            <div class="section-badge ai-badge">✨</div>
+            <div class="section-badge ai-badge"><i class="bi bi-stars"></i></div>
             <div class="section-content">
               <h4 class="section-title text-success">Lien Source à Extraire</h4>
               <div class="form-group full-width">
@@ -341,12 +318,12 @@
                 <label>Lien direct (URL) ou importation d'un fichier local</label>
                 <div class="upload-wrapper">
                   <div class="input-with-icon flex-grow">
-                    <span class="input-icon">🔗</span>
+                    <span class="input-icon"><i class="bi bi-link-45deg"></i></span>
                     <input type="text" class="form-control premium-input pl-10" [(ngModel)]="formData.mediaUrl" [placeholder]="formData.type === 'VIDEO' ? 'Lien YouTube (https://youtu.be/...)' : 'Lien image (https://...)'"/>
                   </div>
                   <div class="divider-text">OU</div>
                   <label class="btn-premium-upload">
-                    📁 Parcourir mon PC
+                    <i class="bi bi-folder2-open"></i> Parcourir mon PC
                     <input type="file" style="display: none;" (change)="onFileSelected($event)"/>
                   </label>
                 </div>
@@ -366,7 +343,7 @@
                 <div class="upload-wrapper compact-wrapper">
                   <input type="text" class="form-control premium-input flex-grow" [(ngModel)]="formData.mediaUrl" placeholder="Coller une URL d'image..."/>
                   <label class="btn-premium-upload small-upload">
-                    📁 Parcourir
+                    <i class="bi bi-folder2-open"></i> Parcourir
                     <input type="file" style="display: none;" (change)="onFileSelected($event)"/>
                   </label>
                 </div>
@@ -394,9 +371,9 @@
                     </div>
                     <div class="toolbar-separator"></div>
                     <div class="toolbar-group">
-                      <button type="button" (click)="insertLink()" title="Ajouter un lien">🔗</button>
+                      <button type="button" (click)="insertLink()" title="Ajouter un lien"><i class="bi bi-link-45deg"></i></button>
                       <button type="button" (click)="execEditorCommand('formatBlock', 'blockquote')" title="Citation">❝</button>
-                      <button type="button" (click)="execEditorCommand('removeFormat')" title="Effacer le formatage">🧹</button>
+                      <button type="button" (click)="execEditorCommand('removeFormat')" title="Effacer le formatage"><i class="bi bi-eraser"></i></button>
                     </div>
                   </div>
                   <div #editorDiv contenteditable="true" class="wysiwyg-content premium-content-area" 
@@ -409,14 +386,14 @@
 
           <!-- SECTION 3: PIÈCES JOINTES (COMMUNIQUE) -->
           <div class="premium-section pdf-section" *ngIf="formData.type === 'COMMUNIQUE'">
-            <div class="section-badge pdf-badge">📎</div>
+            <div class="section-badge pdf-badge"><i class="bi bi-paperclip"></i></div>
             <div class="section-content">
               <h4 class="section-title">Pièces Jointes & PDF</h4>
               <div class="form-group full-width">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                   <label style="margin: 0;">Documents PDF (URLs ou fichiers)</label>
                   <label style="cursor: pointer; background: #e0f2fe; color: #0284c7; padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
-                    📁 Depuis mon PC
+                    <i class="bi bi-folder2-open"></i> Depuis mon PC
                     <input type="file" accept="application/pdf" style="display: none;" (change)="onPdfSelected($event)">
                   </label>
                 </div>
@@ -476,7 +453,7 @@
 
       <!-- Meta Info -->
       <div style="display: flex; flex-wrap: wrap; gap: 20px; font-size: 0.9rem; color: #94a3b8; font-weight: 700; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #f1f5f9;">
-        <span>📅 Publié le : <b style="color: #475569;">{{ selectedItem.publishedAt || selectedItem.createdAt | date:'dd MMMM yyyy HH:mm' }}</b></span>
+        <span><i class="bi bi-calendar-event"></i> Publié le : <b style="color: #475569;">{{ selectedItem.publishedAt || selectedItem.createdAt | date:'dd MMMM yyyy HH:mm' }}</b></span>
       </div>
 
       <!-- Main Media Banner -->
@@ -496,13 +473,15 @@
       <!-- Read More Button -->
       <div style="text-align: center; margin-bottom: 40px;" *ngIf="!showFullContent">
         <button (click)="selectedItem.documents ? openLink(selectedItem.documents.split(',')[0]) : (selectedItem.linkUrl ? openLink(selectedItem.linkUrl) : showFullContent = true)" style="background: #1565C0; color: white; border: none; padding: 12px 24px; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
-          {{ selectedItem.type === 'VIDEO' ? '▶ Regarder la vidéo' : (selectedItem.documents ? '📄 Ouvrir le PDF' : 'Lire la suite') }}
+          <ng-container *ngIf="selectedItem.type === 'VIDEO'"><i class="bi bi-play-circle"></i> Regarder la vidéo</ng-container>
+          <ng-container *ngIf="selectedItem.type !== 'VIDEO' && selectedItem.documents"><i class="bi bi-file-earmark-pdf"></i> Ouvrir le PDF</ng-container>
+          <ng-container *ngIf="selectedItem.type !== 'VIDEO' && !selectedItem.documents">Lire la suite</ng-container>
         </button>
       </div>
 
       <!-- MULTIPLE IMAGES GALLERY -->
       <section *ngIf="getGalleryImages(selectedItem.gallery).length > 0" style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #f1f5f9;">
-        <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">📸 Galerie Photos</h3>
+        <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;"><i class="bi bi-images"></i> Galerie Photos</h3>
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
           <div *ngFor="let imgUrl of getGalleryImages(selectedItem.gallery)" style="border-radius: 12px; overflow: hidden; height: 150px; border: 1px solid #e2e8f0; cursor: pointer;">
             <img [src]="imgUrl" alt="Photo galerie" style="width: 100%; height: 100%; object-fit: cover;">
@@ -512,7 +491,7 @@
 
       <!-- INTERACTIONS ADMIN VIEW -->
       <section *ngIf="interactions" style="border-top:2px solid #f1f5f9;padding-top:24px;margin-top:24px;">
-        <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">📊 Interactions des Nageurs</h3>
+        <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;"><i class="bi bi-bar-chart"></i> Interactions des Nageurs</h3>
         
         <!-- Reactions + Favorite -->
         <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;background:#f8fafc;padding:14px 18px;border-radius:14px;margin-bottom:24px;gap:10px;">
@@ -520,19 +499,19 @@
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <div *ngFor="let r of availableReactions"
                     style="background:white; border:2px solid #e2e8f0;border-radius:50px;padding:7px 14px;font-size:1.1rem;display:flex;align-items:center;gap:6px;font-weight:700;color:#475569;">
-              {{ r.emoji }} <span style="font-size:0.85rem;">{{ getReactionCount(r.type) }}</span>
+              {{ getReactionLabel(r.type) }} <span style="font-size:0.85rem;">{{ getReactionCount(r.type) }}</span>
             </div>
           </div>
           <!-- Favorite Count -->
           <div style="background:white; border:2px solid #e2e8f0;border-radius:50px;padding:8px 18px;font-size:1rem;font-weight:700;display:flex;align-items:center;gap:8px;">
-            <span>⭐ Favoris</span>
+            <span><i class="bi bi-star"></i> Favoris</span>
             <span style="background:#e2e8f0;color:#475569;font-size:0.78rem;padding:2px 8px;border-radius:20px;">{{ interactions?.totalFavorites || 0 }}</span>
           </div>
         </div>
 
         <!-- Comments -->
         <h3 style="font-size:1.1rem;font-weight:800;color:#1e293b;margin-bottom:18px;display:flex;align-items:center;gap:8px;">
-          💬 Tous les Commentaires
+          <i class="bi bi-chat-dots"></i> Tous les Commentaires
           <span style="background:#e0f2fe;color:#0284c7;font-size:0.78rem;padding:2px 10px;border-radius:20px;font-weight:700;">{{ interactions?.comments?.length || 0 }}</span>
         </h3>
 

@@ -5,7 +5,8 @@
     <h2>Gestion des performances</h2>
 
     <button class="btn-add" (click)="openCreate()">
-      ➕ Ajouter performance
+      <span class="material-symbols-outlined" aria-hidden="true">add</span>
+      Ajouter performance
     </button>
   </div>
 
@@ -32,9 +33,15 @@
             <td>{{ p.time }}s</td>
             <td>{{ p.date }}</td>
 
-            <td class="actions">
-              <button (click)="openEdit(p)">✏️</button>
-              <button (click)="delete(p.id)">🗑️</button>
+            <td class="actions admin-row-actions">
+              <button class="admin-action-label" type="button" (click)="openEdit(p)">
+                <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+                Modifier
+              </button>
+              <button class="admin-action-label admin-action-label--danger" type="button" (click)="delete(p.id)">
+                <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                Supprimer
+              </button>
             </td>
           </tr>
         }

@@ -72,14 +72,22 @@ function dateRangeValidator(control: AbstractControl): ValidationErrors | null {
                     {{ comp.programmeStatus === 'APPROVED' ? 'Approuvé' : comp.programmeStatus === 'DRAFT' ? 'Brouillon' : 'Non généré' }}
                   </span>
                 </td>
-                <td class="action-cell">
-                  <a [routerLink]="['/admin/competitions', comp.id, 'programme']" class="btn-action btn-prog">Programme</a>
-                  <a [routerLink]="['/admin/competitions', comp.id, 'distribution']" class="btn-action btn-dist">Répartition</a>
+                <td class="action-cell admin-row-actions">
+                  <a [routerLink]="['/admin/competitions', comp.id, 'programme']" class="admin-action-icon" title="Programme" aria-label="Programme">
+                    <span class="material-symbols-outlined" aria-hidden="true">list_alt</span>
+                  </a>
+                  <a [routerLink]="['/admin/competitions', comp.id, 'distribution']" class="admin-action-icon" title="Répartition" aria-label="Répartition">
+                    <span class="material-symbols-outlined" aria-hidden="true">account_tree</span>
+                  </a>
                   @if (comp.programmeStatus !== 'APPROVED') {
-                    <button class="btn-action btn-edit" (click)="openEdit(comp)">Modifier</button>
-                    <button class="btn-action btn-del" (click)="confirmDelete(comp)">Supprimer</button>
+                    <button class="admin-action-icon" (click)="openEdit(comp)" title="Modifier" aria-label="Modifier">
+                      <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+                    </button>
+                    <button class="admin-action-icon admin-action-icon--danger" (click)="confirmDelete(comp)" title="Supprimer" aria-label="Supprimer">
+                      <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                    </button>
                   } @else {
-                    <span class="lock-badge">🔒 Verrouillée</span>
+                    <span class="lock-badge"><span class="material-symbols-outlined" aria-hidden="true">lock</span> Verrouillée</span>
                   }
                 </td>
               </tr>
@@ -318,17 +326,11 @@ function dateRangeValidator(control: AbstractControl): ValidationErrors | null {
       &.none { background: #e9ecef; color: #6c757d; }
     }
     .action-cell { display: flex; gap: 0.4rem; flex-wrap: wrap; }
-    .btn-action {
-      padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600;
-      text-decoration: none; border: none; cursor: pointer;
-    }
-    .btn-prog { background: #1565C0; color: white; &:hover { background: #0d47a1; } }
-    .btn-dist { background: #e8f5e9; color: #2e7d32; &:hover { background: #c8e6c9; } }
-    .btn-edit { background: #e3f2fd; color: #1565C0; &:hover { background: #bbdefb; } }
-    .btn-del { background: #fce4ec; color: #c62828; &:hover { background: #ffcdd2; } }
     .lock-badge {
+      display: inline-flex; align-items: center; gap: 0.25rem;
       font-size: 0.7rem; font-weight: 600; color: #6c757d; padding: 0.3rem 0.6rem;
       background: #f1f3f5; border-radius: 6px; white-space: nowrap;
+      .material-symbols-outlined { font-size: 16px; }
     }
     .empty { text-align: center; padding: 3rem; color: #6c757d; font-size: 0.9rem; }
 

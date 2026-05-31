@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
 import jakarta.persistence.*;
 import lombok.*;
+import tn.federation.backend.entities.converter.PiscineConverter;
+import tn.federation.backend.entities.converter.RegionConverter;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -35,11 +37,12 @@ public class Competition {
 
     private LocalDate endDate;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = PiscineConverter.class)
     @Column(columnDefinition = "VARCHAR(255)")
     private Piscine lieu;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = RegionConverter.class)
+    @Column(columnDefinition = "VARCHAR(50)")
     private Region region;
 
     /** Allowed age categories (multiple). Empty = all categories allowed. */

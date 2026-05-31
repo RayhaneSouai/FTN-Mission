@@ -8,3 +8,15 @@ export interface Club {
   affiliationDate?: string;
   swimmers?: unknown[];
 }
+
+export interface ClubJoinRequest {
+  id: number;
+  swimmerId: number;
+  swimmerName: string;
+  swimmerEmail: string;
+  clubId: number;
+  clubName: string;
+  clubRegion: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+  requestedAt: string;
+}

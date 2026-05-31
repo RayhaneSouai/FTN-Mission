@@ -5,9 +5,9 @@
 }
 
 .dashboard-container {
-  padding: 32px;
-  background: #f8fafc;
-  min-height: 100vh;
+  padding: 0;
+  background: transparent;
+  min-height: auto;
   animation: fadeIn 0.4s ease-out;
 }
 
@@ -244,12 +244,64 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s;
-  font-size: 1.2rem;
+  font-size: 1rem;
+  color: #64748b;
 }
 
 .action-btn:hover {
   background: #f1f5f9;
-  transform: scale(1.1) rotate(5deg);
+  transform: translateY(-1px);
+}
+
+.btn-publish,
+.btn-read-more {
+  color: #1565C0;
+}
+
+.btn-edit,
+.btn-draft {
+  color: #0284c7;
+}
+
+.btn-archive,
+.btn-restore {
+  color: #7c3aed;
+}
+
+.btn-trash,
+.btn-delete {
+  color: #dc2626;
+}
+
+.empty-state-icon {
+  width: 68px;
+  height: 68px;
+  border-radius: 22px;
+  background: #eff6ff;
+  color: #1565C0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.confirm-modal-icon {
+  width: 68px;
+  height: 68px;
+  border-radius: 22px;
+  background: #fffbeb;
+  color: #d97706;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto 20px;
+}
+
+.confirm-modal-icon--danger {
+  background: #fef2f2;
+  color: #dc2626;
 }
 
 .btn-add {

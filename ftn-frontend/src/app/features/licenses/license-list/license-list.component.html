@@ -104,15 +104,15 @@
                 </div>
               </td>
               <td class="text-center">
-                <div class="admin-icon-actions">
-                  <button type="button" class="admin-icon-btn admin-icon-btn--view" (click)="openViewModal(license.id)" title="Voir">
-                    <i class="bi bi-eye"></i>
+                <div class="admin-row-actions">
+                  <button type="button" class="admin-action-icon" (click)="openViewModal(license.id)" title="Voir" aria-label="Voir">
+                    <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
                   </button>
-                  <button type="button" class="admin-icon-btn admin-icon-btn--edit" (click)="openEditModal(license.id)" title="Modifier">
-                    <i class="bi bi-pencil"></i>
+                  <button type="button" class="admin-action-icon" (click)="openEditModal(license.id)" title="Modifier" aria-label="Modifier">
+                    <span class="material-symbols-outlined" aria-hidden="true">edit</span>
                   </button>
-                  <button type="button" class="admin-icon-btn admin-icon-btn--delete" (click)="confirmDelete(license.id)" title="Supprimer">
-                    <i class="bi bi-trash"></i>
+                  <button type="button" class="admin-action-icon admin-action-icon--danger" (click)="confirmDelete(license.id)" title="Supprimer" aria-label="Supprimer">
+                    <span class="material-symbols-outlined" aria-hidden="true">delete</span>
                   </button>
                 </div>
               </td>

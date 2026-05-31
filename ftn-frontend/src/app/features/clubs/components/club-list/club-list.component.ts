@@ -2,7 +2,7 @@ import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ClubService } from '../../services/club.service';
-import { Club } from '../../models/club.model';
+import { Club, ClubJoinRequest } from '../../models/club.model';
 import { RegionOption } from '../../models/region.model';
 import {
   ALL_GOVERNORATES,
@@ -12,6 +12,8 @@ import {
 import { ToastService } from '../../../competitions/services/toast.service';
 
 export type ClubListMode = 'public' | 'admin';
+type ClubViewMode = 'grid' | 'list';
+type ClubTab = 'browse' | 'mine' | 'requests';
 
 @Component({
   selector: 'app-club-list',
@@ -32,6 +34,17 @@ export class ClubListComponent implements OnInit {
   mode: ClubListMode = 'public';
   canManage = false;
   savingClub = false;
+  viewMode: ClubViewMode = 'grid';
+  joiningClubId: number | null = null;
+  requestedClubIds = new Set<number>();
+  rejectedClubIds = new Set<number>();
+  currentUser: any = null;
+  activeTab: ClubTab = 'browse';
+  myClubs: Club[] = [];
+  loadingMyClubs = false;
+  joinRequests: ClubJoinRequest[] = [];
+  loadingJoinRequests = false;
+  processingJoinRequestId: number | null = null;
 
   readonly zoneOptions = FTN_ZONES;
   formZone = '';
@@ -52,11 +65,20 @@ export class ClubListComponent implements OnInit {
     return this.mode === 'admin';
   }
 
+  get canRequestClubJoin(): boolean {
+    return !this.isAdminMode && this.currentUser?.role === 'SWIMMER' && !this.currentUser?.clubId;
+  }
+
   ngOnInit(): void {
     this.mode = (this.route.snapshot.data['clubMode'] as ClubListMode) ?? 'public';
     this.refreshAuthState();
     this.loadClubs();
     this.loadTopClubs();
+    if (this.isAdminMode && this.canManage) {
+      this.loadJoinRequests();
+    } else {
+      this.loadMyClubData();
+    }
   }
 
   getRegionLabel(code: string | undefined): string {
@@ -80,6 +102,8 @@ export class ClubListComponent implements OnInit {
 
   private refreshAuthState(): void {
     if (isPlatformBrowser(this.platformId)) {
+      const userStr = localStorage.getItem('user');
+      this.currentUser = userStr ? JSON.parse(userStr) : null;
       this.canManage = this.isAdminMode && !!localStorage.getItem('token');
     }
   }
@@ -119,8 +143,166 @@ export class ClubListComponent implements OnInit {
 
   loadTopClubs(): void {
     this.clubService.getTopClubs().subscribe({
-      next: (data) => (this.topClubs = data),
+      next: (data) => (this.topClubs = data.slice(0, 3)),
       error: () => {}
+    });
+  }
+
+  loadJoinRequests(): void {
+    this.loadingJoinRequests = true;
+    this.clubService.getPendingJoinRequests().subscribe({
+      next: (requests) => {
+        this.joinRequests = requests;
+        this.loadingJoinRequests = false;
+      },
+      error: (err) => {
+        this.loadingJoinRequests = false;
+        this.handleWriteError(err, 'le chargement des demandes');
+      }
+    });
+  }
+
+  loadMyClubData(): void {
+    if (this.isAdminMode || !this.currentUser) {
+      return;
+    }
+    this.loadingMyClubs = true;
+    this.clubService.getMyClubs().subscribe({
+      next: (clubs) => {
+        this.myClubs = clubs;
+        this.loadingMyClubs = false;
+        if (clubs.length > 0) {
+          this.syncCurrentUserClub(clubs[0]);
+        }
+      },
+      error: () => {
+        this.loadingMyClubs = false;
+      }
+    });
+    this.clubService.getMyJoinRequests().subscribe({
+      next: (requests) => {
+        this.requestedClubIds = new Set(
+          requests.filter((r) => r.status === 'PENDING').map((r) => r.clubId)
+        );
+        this.rejectedClubIds = new Set(
+          requests.filter((r) => r.status === 'REJECTED').map((r) => r.clubId)
+        );
+      },
+      error: () => {}
+    });
+  }
+
+  private syncCurrentUserClub(club: Club): void {
+    if (!isPlatformBrowser(this.platformId) || !this.currentUser) {
+      return;
+    }
+    this.currentUser = {
+      ...this.currentUser,
+      clubId: club.id,
+      clubName: club.name,
+      clubRegion: club.region
+    };
+    localStorage.setItem('user', JSON.stringify(this.currentUser));
+  }
+
+  approveJoinRequest(request: ClubJoinRequest): void {
+    this.processingJoinRequestId = request.id;
+    this.clubService.approveJoinRequest(request.id).subscribe({
+      next: () => {
+        this.processingJoinRequestId = null;
+        this.toast.showSuccess('Demande acceptée. Le nageur est maintenant affilié au club.');
+        this.loadJoinRequests();
+        this.loadClubs();
+        this.loadTopClubs();
+      },
+      error: (err) => {
+        this.processingJoinRequestId = null;
+        this.handleWriteError(err, 'l\'acceptation de la demande');
+      }
+    });
+  }
+
+  rejectJoinRequest(request: ClubJoinRequest): void {
+    this.processingJoinRequestId = request.id;
+    this.clubService.rejectJoinRequest(request.id).subscribe({
+      next: () => {
+        this.processingJoinRequestId = null;
+        this.toast.showSuccess('Demande refusée.');
+        this.loadJoinRequests();
+      },
+      error: (err) => {
+        this.processingJoinRequestId = null;
+        this.handleWriteError(err, 'le refus de la demande');
+      }
+    });
+  }
+
+  setViewMode(mode: ClubViewMode): void {
+    this.viewMode = mode;
+  }
+
+  setActiveTab(tab: ClubTab): void {
+    this.activeTab = tab;
+    if (tab === 'mine') {
+      this.loadMyClubData();
+    } else if (tab === 'requests') {
+      this.loadJoinRequests();
+    }
+  }
+
+  isJoinedClub(club: Club): boolean {
+    return !!club.id && this.myClubs.some((joined) => joined.id === club.id);
+  }
+
+  joinButtonLabel(club: Club): string {
+    if (this.isJoinedClub(club)) {
+      return 'Joined';
+    }
+    if (club.id && this.requestedClubIds.has(club.id)) {
+      return 'Demande envoyée';
+    }
+    if (this.joiningClubId === club.id) {
+      return 'Envoi...';
+    }
+    return 'Demander à rejoindre';
+  }
+
+  isJoinButtonDisabled(club: Club): boolean {
+    return this.isJoinedClub(club)
+      || this.joiningClubId === club.id
+      || (!!club.id && this.requestedClubIds.has(club.id));
+  }
+
+  requestToJoin(club: Club): void {
+    this.refreshAuthState();
+    if (!club.id) return;
+    if (!this.currentUser) {
+      this.toast.showError('Connectez-vous pour demander à rejoindre un club.');
+      this.router.navigate(['/auth/login'], { queryParams: { returnUrl: '/clubs' } });
+      return;
+    }
+    if (!this.canRequestClubJoin) {
+      this.toast.showError('Votre compte ne peut pas envoyer une demande d\'adhésion club.');
+      return;
+    }
+
+    this.joiningClubId = club.id;
+    this.clubService.requestToJoin(club.id).subscribe({
+      next: (res) => {
+        this.requestedClubIds.add(club.id!);
+        this.joiningClubId = null;
+        this.toast.showSuccess(res.message || 'Demande envoyée.');
+        this.loadMyClubData();
+      },
+      error: (err) => {
+        this.joiningClubId = null;
+        if (err?.status === 401 || err?.status === 403) {
+          this.toast.showError('Session expirée. Veuillez vous reconnecter.');
+          this.router.navigate(['/auth/login'], { queryParams: { returnUrl: '/clubs' } });
+          return;
+        }
+        this.toast.showError(err?.error?.message || 'Impossible d\'envoyer la demande.');
+      }
     });
   }
 

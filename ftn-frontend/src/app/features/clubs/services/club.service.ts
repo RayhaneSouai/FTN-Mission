@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Club } from '../models/club.model';
+import { Club, ClubJoinRequest } from '../models/club.model';
 import { apiUrl } from '../../../core/config/api.config';
 
 @Injectable({ providedIn: 'root' })
@@ -24,6 +24,30 @@ export class ClubService {
 
   getStatistics(id: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${id}/stats`);
+  }
+
+  requestToJoin(id: number): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/${id}/join-request`, {});
+  }
+
+  getMyClubs(): Observable<Club[]> {
+    return this.http.get<Club[]>(`${this.apiUrl}/my-clubs`);
+  }
+
+  getMyJoinRequests(): Observable<ClubJoinRequest[]> {
+    return this.http.get<ClubJoinRequest[]>(`${this.apiUrl}/my-join-requests`);
+  }
+
+  getPendingJoinRequests(): Observable<ClubJoinRequest[]> {
+    return this.http.get<ClubJoinRequest[]>(`${this.apiUrl}/join-requests`);
+  }
+
+  approveJoinRequest(requestId: number): Observable<ClubJoinRequest> {
+    return this.http.put<ClubJoinRequest>(`${this.apiUrl}/join-requests/${requestId}/approve`, {});
+  }
+
+  rejectJoinRequest(requestId: number): Observable<ClubJoinRequest> {
+    return this.http.put<ClubJoinRequest>(`${this.apiUrl}/join-requests/${requestId}/reject`, {});
   }
 
   create(club: Club): Observable<Club> {

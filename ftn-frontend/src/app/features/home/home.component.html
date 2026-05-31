@@ -5,11 +5,11 @@
     <h1>Fédération Tunisienne de <br/> Natation</h1>
     <p>Excellence, Performance et Développement du Sport Aquatique en Tunisie</p>
     <div class="hero-actions">
-      <button class="btn-primary">
+      <button class="btn-primary" type="button">
         Accéder à mon espace
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </button>
-      <button class="btn-outline">Actualités</button>
+      <button class="btn-outline btn-outline-on-dark" type="button" routerLink="/press/visitor">Actualités</button>
     </div>
   </div>
 </section>
@@ -32,29 +32,37 @@
 <section class="partners-section" id="partenaires">
   <div class="news-header">
     <h2>Nos Partenaires</h2>
-
-    <button class="btn-link" type="button"  routerLink="/partenaires" (click)="openPartnerPopup()">
-      Devenir partenaire
-    </button>
   </div>
 
-  <div class="premium-grid">
-    <article *ngFor="let p of partners" class="premium-card">
-      <div class="premium-image-wrapper">
-        <div class="premium-placeholder">
-          {{ p.initials }}
+  <div class="partners-carousel-shell">
+    <button class="carousel-nav" type="button" aria-label="Partenaire précédent" (click)="scrollPartners('prev')">‹</button>
+
+    <div class="partners-carousel" #partnersCarousel>
+      <article *ngFor="let p of partners" class="premium-card partner-card">
+
+        <div class="premium-image-wrapper">
+          <img [src]="p.image" [alt]="p.name" class="partner-image" />
+
+          <span class="category-badge cat-sport">
+            {{ p.category }}
+          </span>
         </div>
 
-        <span class="category-badge">
-          {{ p.category }}
-        </span>
-      </div>
 
       <div class="premium-content">
         <h3 class="premium-title">{{ p.name }}</h3>
         <p class="premium-excerpt">{{ p.description }}</p>
       </div>
-    </article>
+      </article>
+    </div>
+
+    <button class="carousel-nav" type="button" aria-label="Partenaire suivant" (click)="scrollPartners('next')">›</button>
+  </div>
+
+  <div class="partners-cta">
+    <button class="btn-primary" type="button" routerLink="/partenaires" (click)="openPartnerPopup()">
+      Devenir Partenaire
+    </button>
   </div>
 </section>
 
@@ -62,10 +70,14 @@
 
 
 
-<section class="news-section">
-  <div class="news-header">
-    <h2>Actualités</h2>
-    <a routerLink="/press/visitor" class="view-all">Voir tout <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+<section class="news-section news-section--editorial">
+  <div class="news-title-block">
+    <span class="section-kicker">Plongez plus loin</span>
+    <h2>Actualités FTN</h2>
+    <p>
+      Retrouvez les dernières nouvelles de la Fédération Tunisienne de Natation :
+      compétitions, résultats, communiqués et temps forts de nos nageurs.
+    </p>
   </div>
 
   <!-- Loading -->
@@ -73,40 +85,45 @@
     <div class="spinner"></div>
   </div>
 
-  <!-- News Grid -->
-  <div class="premium-grid" *ngIf="!loading && news.length > 0">
-    <article *ngFor="let item of news" class="premium-card animate__animated animate__fadeInUp">
-      <div class="premium-image-wrapper">
-        <!-- Video Handling -->
-        <div *ngIf="item.type === 'VIDEO'" class="video-overlay">
-          <div class="play-icon">▶</div>
-        </div>
-
-        <img *ngIf="item.mediaUrl && item.type !== 'VIDEO'" [src]="item.mediaUrl" [alt]="item.title" (error)="item.mediaUrl = 'assets/default-news.jpg'">
-        <img *ngIf="item.type === 'VIDEO'" [src]="pressService.getVideoThumbnail(item.mediaUrl || '')" [alt]="item.title">
-        <div *ngIf="!item.mediaUrl && item.type !== 'VIDEO'" class="premium-placeholder">📰</div>
-
-        <span class="category-badge" [class]="'cat-' + (item.type || '').toLowerCase()">
-          {{ item.type === 'VIDEO' ? 'VIDÉO' : item.type === 'PHOTO' ? 'PHOTO' : 'ARTICLE' }}
-        </span>
+  <!-- News Editorial Layout -->
+  <div class="news-editorial" *ngIf="!loading && featuredNews as featured">
+    <article class="featured-news-card" (click)="openLink(featured.linkUrl || featured.mediaUrl)">
+      <div class="featured-news-media">
+        <img [src]="newsImage(featured, 0)" [alt]="featured.title" (error)="onNewsImageError($event, featured, 0)">
       </div>
-
-      <div class="premium-content">
-        <div class="card-top-meta">
-          <span class="discipline">{{ item.discipline || 'FTN' }}</span>
-          <span class="date">{{ item.publishedAt | date:'dd MMM yyyy' }}</span>
+      <div class="featured-news-content">
+        <div class="news-meta">
+          <span>{{ newsTypeLabel(featured) }}</span>
+          <span>{{ featured.publishedAt | date:'dd MMM yyyy' }}</span>
         </div>
-        <h3 class="premium-title">{{ item.title }}</h3>
-        <p class="premium-excerpt">{{ (item.content || '') | slice:0:100 }}...</p>
-
-        <div class="premium-footer">
-          <button class="premium-read-more" (click)="openLink(item.linkUrl || item.mediaUrl)">
-            <span>{{ item.type === 'VIDEO' ? 'Regarder' : 'Lire la suite' }}</span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </button>
-        </div>
+        <h3>{{ featured.title }}</h3>
+        <p>{{ plainText(featured.content) | slice:0:160 }}{{ plainText(featured.content).length > 160 ? '...' : '' }}</p>
+        <button class="premium-read-more" type="button" (click)="openLink(featured.linkUrl || featured.mediaUrl); $event.stopPropagation()">
+          Lire la suite
+        </button>
       </div>
     </article>
+
+    <div class="news-cards-row" *ngIf="secondaryNews.length > 0">
+      <article *ngFor="let item of secondaryNews; let i = index" class="compact-news-card" (click)="openLink(item.linkUrl || item.mediaUrl)">
+        <div class="compact-news-media">
+          <img [src]="newsImage(item, i + 1)" [alt]="item.title" (error)="onNewsImageError($event, item, i + 1)">
+          <span class="compact-news-type">{{ newsTypeLabel(item) }}</span>
+        </div>
+        <div class="compact-news-content">
+          <span class="news-accent-line"></span>
+          <h3>{{ item.title }}</h3>
+          <div class="news-meta">
+            <span>{{ item.discipline || 'FTN' }}</span>
+            <span>{{ item.publishedAt | date:'dd MMM yyyy' }}</span>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="news-view-all">
+      <a routerLink="/press/visitor" class="btn-primary">Voir toutes les actualités</a>
+    </div>
   </div>
 
   <!-- Empty State -->

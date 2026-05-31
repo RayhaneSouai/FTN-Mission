@@ -3,6 +3,7 @@ package tn.federation.backend.controllers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import tn.federation.backend.config.OpenApiConfig;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,7 +25,7 @@ public class AthleteController {
     }
 
     @GetMapping("/profile")
-    @SecurityRequirement(name = "Bearer Authentication")
+    @SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)
     @Operation(summary = "Consulter mon profil", description = "Affiche le profil personnalisé du nageur connecté")
     public ResponseEntity<UserDTO> getProfile() {
         String email = getCurrentEmail();
@@ -32,7 +33,7 @@ public class AthleteController {
     }
 
     @GetMapping("/progress")
-    @SecurityRequirement(name = "Bearer Authentication")
+    @SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)
     @Operation(summary = "Consulter ma courbe de progression", description = "Affiche la progression par distance et nage du nageur connecté")
     public ResponseEntity<AthleteProgressDTO> getProgress() {
         String email = getCurrentEmail();
@@ -43,5 +44,6 @@ public class AthleteController {
     private String getCurrentEmail() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return authentication.getName();
+
     }
 }

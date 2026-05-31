@@ -81,7 +81,36 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
     } else if (url.startsWith('/admin/licences')) {
       crumbs.push({ label: 'Licences', path: '/admin/licences' });
     } else if (url.startsWith('/admin/mon-profil')) {
-      crumbs.push({ label: 'Mon profil' });
+      crumbs.push({ label: 'Mon profil', path: '/admin/mon-profil' });
+      if (url.endsWith('/settings')) {
+        crumbs.push({ label: 'Paramètres' });
+      } else {
+        crumbs.push({ label: 'Vue globale' });
+      }
+    } else if (url.startsWith('/admin/competitions')) {
+      crumbs.push({ label: 'Compétitions', path: '/admin/competitions' });
+      if (url.includes('/programme')) {
+        crumbs.push({ label: 'Programme' });
+      } else if (url.includes('/distribution')) {
+        crumbs.push({ label: 'Distribution' });
+      }
+    } else if (url.startsWith('/admin/participations')) {
+      crumbs.push({ label: 'Participations' });
+    } else if (url.startsWith('/admin/clubs')) {
+      crumbs.push({ label: 'Clubs' });
+    } else if (url.startsWith('/admin/press')) {
+      crumbs.push({ label: 'Gestion Presse' });
+    } else if (url.startsWith('/admin/performances')) {
+      crumbs.push({ label: 'Performances' });
+      if (url.includes('/new')) {
+        crumbs.push({ label: 'Nouvelle performance' });
+      }
+    } else if (url.startsWith('/admin/partenariats')) {
+      crumbs.push({ label: 'Partenariats & Sponsoring' });
+    } else if (url.startsWith('/admin/formations')) {
+      crumbs.push({ label: 'Formations' });
+    } else if (url.startsWith('/admin/ranking')) {
+      crumbs.push({ label: 'Classements' });
     } else {
       crumbs.push({ label: 'Administration' });
     }

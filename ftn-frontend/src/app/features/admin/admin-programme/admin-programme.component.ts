@@ -39,7 +39,8 @@ import { ToastContainerComponent } from '../../competitions/components/toast-con
 
         @if (getCurrentStatus() === 'APPROVED') {
           <div class="lock-notice">
-            🔒 Cette compétition est verrouillée car le programme a été approuvé. Aucune modification n'est possible.
+            <span class="material-symbols-outlined" aria-hidden="true">lock</span>
+            Cette compétition est verrouillée car le programme a été approuvé. Aucune modification n'est possible.
           </div>
 
           <!-- Post-approval action buttons -->
@@ -128,6 +129,9 @@ import { ToastContainerComponent } from '../../competitions/components/toast-con
       &:disabled { opacity: 0.5; cursor: not-allowed; }
     }
     .lock-notice {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
       padding: 0.75rem 1rem;
       background: #fff3cd;
       border: 1px solid #ffc107;
@@ -136,6 +140,7 @@ import { ToastContainerComponent } from '../../competitions/components/toast-con
       font-size: 0.85rem;
       font-weight: 600;
       margin-bottom: 1rem;
+      .material-symbols-outlined { font-size: 18px; }
     }
     .post-approval-actions {
       display: flex;

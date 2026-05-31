@@ -39,6 +39,9 @@ public final class AgeCategoryUtil {
     public static boolean isCategoryAllowed(Categorie swimmerCategory, Set<Categorie> allowedCategories) {
         if (allowedCategories == null || allowedCategories.isEmpty())
             return true;
+        if (swimmerCategory == Categorie.JUNIORS_SENIORS &&
+                (allowedCategories.contains(Categorie.JUNIORS) || allowedCategories.contains(Categorie.SENIORS)))
+            return true;
         return allowedCategories.contains(swimmerCategory);
     }
 
@@ -62,7 +65,9 @@ public final class AgeCategoryUtil {
     public static Integer deriveMaxAge(Set<Categorie> categories) {
         if (categories == null || categories.isEmpty())
             return null;
-        if (categories.contains(Categorie.JUNIORS_SENIORS))
+        if (categories.contains(Categorie.JUNIORS_SENIORS)
+                || categories.contains(Categorie.JUNIORS)
+                || categories.contains(Categorie.SENIORS))
             return null;
         return categories.stream()
                 .mapToInt(Categorie::getMaxAge)

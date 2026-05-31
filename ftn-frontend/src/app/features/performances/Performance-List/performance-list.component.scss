@@ -85,20 +85,6 @@
 .actions {
   display: flex;
   gap: 8px;
-
-  button {
-    border: none;
-    background: var(--bg-secondary);
-    padding: 6px 10px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: all var(--transition);
-
-    &:hover {
-      background: var(--accent-soft);
-      color: var(--accent);
-    }
-  }
 }
 
 /* ================= OVERLAY FORM ================= */

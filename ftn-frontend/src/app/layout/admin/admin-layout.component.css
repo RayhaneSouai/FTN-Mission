@@ -17,7 +17,7 @@
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
   z-index: 100;
-  overflow-y: auto;
+  overflow-y: hidden;
   overflow-x: hidden;
   height: 100vh;
   scrollbar-width: none; /* Firefox */
@@ -34,7 +34,7 @@
 }
 
 .sidebar-header {
-  padding: 24px;
+  padding: 16px 20px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -56,11 +56,11 @@
 
 .sidebar-nav {
   flex: 1;
-  padding: 20px 0;
+  padding: 12px 0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  overflow-y: auto;
+  gap: 10px;
+  overflow-y: hidden;
   overflow-x: hidden;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE 10+ */
@@ -78,20 +78,20 @@
 }
 
 .section-label {
-  padding: 0 24px;
-  font-size: 0.7rem;
+  padding: 0 20px;
+  font-size: 0.66rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   letter-spacing: 1px;
 }
 
 .sidebar-link, .logout-link {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 24px;
+  gap: 10px;
+  padding: 8px 20px;
   color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
   transition: all 0.2s;
@@ -123,14 +123,18 @@
 }
 
 .link-text {
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 500;
   white-space: nowrap;
 }
 
 .sidebar-footer {
-  padding: 16px 0;
+  padding: 10px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-section--profile {
+  margin-top: auto;
 }
 
 .sidebar-nav-badge {

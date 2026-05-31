@@ -40,17 +40,18 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
         // ── ADMIN ─────────────────────────────────────────────────
         User admin = userRepository.findByEmail(ADMIN_EMAIL).orElse(null);
-        if (admin == null) {
+        boolean newAdmin = admin == null;
+        if (newAdmin) {
             admin = new User();
             admin.setFirstName(ADMIN_FIRST_NAME);
             admin.setLastName(ADMIN_LAST_NAME);
             admin.setEmail(ADMIN_EMAIL);
             admin.setCreatedAt(LocalDateTime.now());
             System.out.println("✅ Création du compte ADMIN...");
-        } else {
-            System.out.println("🔄 Réinitialisation du mot de passe ADMIN...");
         }
-        admin.setPasswordHash(passwordEncoder.encode(ADMIN_PASSWORD));
+        if (newAdmin || admin.getPasswordHash() == null || admin.getPasswordHash().isBlank()) {
+            admin.setPasswordHash(passwordEncoder.encode(ADMIN_PASSWORD));
+        }
         admin.setRole(Role.ADMIN);
         admin.setActive(true);
         admin.setRegistrationStatus(RegistrationStatus.CONFIRMEE);
@@ -59,7 +60,8 @@ public class DataInitializer implements CommandLineRunner {
 
         // ── SWIMMER de test ────────────────────────────────────────
         User swimmer = userRepository.findByEmail(SWIMMER_EMAIL).orElse(null);
-        if (swimmer == null) {
+        boolean newSwimmer = swimmer == null;
+        if (newSwimmer) {
             swimmer = new User();
             swimmer.setFirstName("Ahmed");
             swimmer.setLastName("Ben Salah");
@@ -70,12 +72,13 @@ public class DataInitializer implements CommandLineRunner {
             swimmer.setNiveau(Niveau.SENIOR);
             swimmer.setDiscipline(Discipline.NATATION);
             System.out.println("✅ Création du compte SWIMMER de test...");
-        } else {
-            System.out.println("🔄 Réinitialisation du mot de passe SWIMMER...");
         }
-        swimmer.setPasswordHash(passwordEncoder.encode(SWIMMER_PASSWORD));
+        if (newSwimmer || swimmer.getPasswordHash() == null || swimmer.getPasswordHash().isBlank()) {
+            swimmer.setPasswordHash(passwordEncoder.encode(SWIMMER_PASSWORD));
+        }
         swimmer.setRole(Role.SWIMMER);
         swimmer.setActive(true);
+        swimmer.setRegistrationStatus(RegistrationStatus.CONFIRMEE);
         userRepository.save(swimmer);
         System.out.println("✅ Compte SWIMMER prêt (nageur@ftn.tn / nageur123)");
 

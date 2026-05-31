@@ -50,13 +50,17 @@
         </td>
 
         <td>
-          <button (click)="approvePartnership(p.id)" class="approve">
+          <div class="admin-row-actions">
+          <button (click)="approvePartnership(p.id)" class="admin-action-label">
+            <span class="material-symbols-outlined" aria-hidden="true">check</span>
             Approuver
           </button>
 
-          <button (click)="rejectPartnership(p.id)" class="reject">
+          <button (click)="rejectPartnership(p.id)" class="admin-action-label">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
             Refuser
           </button>
+          </div>
         </td>
       </tr>
       </tbody>
@@ -94,13 +98,17 @@
         </td>
 
         <td>
-          <button (click)="approveSponsorship(s.id)" class="approve">
+          <div class="admin-row-actions">
+          <button (click)="approveSponsorship(s.id)" class="admin-action-label">
+            <span class="material-symbols-outlined" aria-hidden="true">check</span>
             Approuver
           </button>
 
-          <button (click)="rejectSponsorship(s.id)" class="reject">
+          <button (click)="rejectSponsorship(s.id)" class="admin-action-label">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
             Refuser
           </button>
+          </div>
         </td>
       </tr>
       </tbody>

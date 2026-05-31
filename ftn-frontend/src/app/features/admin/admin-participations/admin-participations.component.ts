@@ -57,16 +57,18 @@ import { ToastContainerComponent } from '../../competitions/components/toast-con
                     <span class="no-conditions">—</span>
                   }
                 </td>
-                <td class="action-cell">
+                <td class="action-cell admin-row-actions">
                   @if (req.status === 'PENDING') {
-                    <button class="btn-action btn-approve"
+                    <button class="admin-action-label"
                       (click)="approve(req)"
                       [disabled]="processing().has(req.id)">
+                      <span class="material-symbols-outlined" aria-hidden="true">check</span>
                       Approuver
                     </button>
-                    <button class="btn-action btn-reject"
+                    <button class="admin-action-label"
                       (click)="reject(req)"
                       [disabled]="processing().has(req.id)">
+                      <span class="material-symbols-outlined" aria-hidden="true">close</span>
                       Rejeter
                     </button>
                   } @else {
@@ -106,13 +108,6 @@ import { ToastContainerComponent } from '../../competitions/components/toast-con
       &.rejected { background: #f8d7da; color: #842029; }
     }
     .action-cell { display: flex; gap: 0.4rem; flex-wrap: wrap; }
-    .btn-action {
-      padding: 0.35rem 0.7rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600;
-      border: none; cursor: pointer;
-      &:disabled { opacity: 0.5; cursor: not-allowed; }
-    }
-    .btn-approve { background: #d1e7dd; color: #0f5132; &:hover:not(:disabled) { background: #b7dbc8; } }
-    .btn-reject { background: #fce4ec; color: #c62828; &:hover:not(:disabled) { background: #ffcdd2; } }
     .handled { color: #6c757d; font-size: 0.8rem; font-style: italic; }
     .empty { text-align: center; padding: 3rem; color: #6c757d; font-size: 0.9rem; }
     .custom-conditions-cell {

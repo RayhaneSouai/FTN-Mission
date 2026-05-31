@@ -163,13 +163,15 @@
                         </span>
                       }
                     </div>
-                    <div class="timeline-actions">
+                    <div class="timeline-actions admin-row-actions">
                       @if (!programmeLocked()) {
-                      <button class="btn btn-xs btn-outline" (click)="editItem(item)" title="Modifier">
-                        ✎
+                      <button class="admin-action-label" type="button" (click)="editItem(item)">
+                        <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+                        Modifier
                       </button>
-                      <button class="btn btn-xs btn-danger" (click)="requestDelete(item)" title="Supprimer">
-                        &times;
+                      <button class="admin-action-label admin-action-label--danger" type="button" (click)="requestDelete(item)">
+                        <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                        Supprimer
                       </button>
                       }
                     </div>

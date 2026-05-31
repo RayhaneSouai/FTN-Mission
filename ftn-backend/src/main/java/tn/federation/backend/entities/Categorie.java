@@ -9,7 +9,10 @@ public enum Categorie {
     BENJAMINS(12, 13),
     MINIMES(14, 15),
     CADETS(16, 17),
-    JUNIORS_SENIORS(18, Integer.MAX_VALUE);
+    JUNIORS_SENIORS(18, Integer.MAX_VALUE),
+    /** Legacy DB values kept for existing rows created before JUNIORS_SENIORS. */
+    JUNIORS(18, Integer.MAX_VALUE),
+    SENIORS(18, Integer.MAX_VALUE);
 
     private final int minAge;
     private final int maxAge;

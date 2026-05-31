@@ -1,0 +1,99 @@
+<section class="formation-hero">
+  <div class="formation-hero__content">
+    <span class="formation-kicker">Formation FTN</span>
+    <h1>Programmes de formation</h1>
+    <p>
+      Consultez la saison en cours, les formations BF1 / BF2 ouvertes et l'historique
+      des saisons précédentes.
+    </p>
+  </div>
+</section>
+
+<main class="formation-public">
+  <section class="season-tabs" *ngIf="!loadingSeasons && seasons.length > 0">
+    <button
+      type="button"
+      *ngFor="let season of seasons"
+      class="season-tab"
+      [class.active]="selectedSeason?.id === season.id"
+      (click)="selectSeason(season)">
+      <span>{{ season.label }}</span>
+      <small *ngIf="season.active">Saison ouverte</small>
+      <small *ngIf="!season.active">Ancienne saison</small>
+    </button>
+  </section>
+
+  <div class="loading-state" *ngIf="loadingSeasons">
+    Chargement des saisons...
+  </div>
+
+  <section class="current-season" *ngIf="selectedSeason">
+    <div class="section-heading">
+      <div>
+        <span class="section-kicker">{{ selectedSeason.active ? 'Saison en cours' : 'Saison archivée' }}</span>
+        <h2>{{ selectedSeason.label }}</h2>
+      </div>
+      <span class="season-status" [class.season-status--open]="selectedSeason.active">
+        {{ selectedSeason.active ? 'Ouverte' : 'Archive' }}
+      </span>
+    </div>
+
+    <div class="loading-state" *ngIf="loadingPrograms">
+      Chargement des formations...
+    </div>
+
+    <div class="formation-grid" *ngIf="!loadingPrograms && programs.length > 0">
+      <article class="formation-card" *ngFor="let program of programs">
+        <div class="formation-card__top">
+          <span class="brevet-tag">{{ program.brevetType }}</span>
+          <span class="published-tag">Publié</span>
+        </div>
+
+        <h3>{{ program.title }}</h3>
+
+        <div class="formation-info">
+          <span>Inscriptions</span>
+          <strong>{{ formatDateRange(program.registrationStartDate, program.registrationEndDate) }}</strong>
+        </div>
+
+        <div class="formation-info" *ngIf="program.theoreticalStartDate || program.theoreticalEndDate">
+          <span>Formation théorique</span>
+          <strong>{{ formatDateRange(program.theoreticalStartDate, program.theoreticalEndDate) }}</strong>
+        </div>
+
+        <div class="formation-info" *ngIf="program.registrationLocation">
+          <span>Lieu d'inscription</span>
+          <strong>{{ program.registrationLocation }}</strong>
+        </div>
+
+        <div class="formation-info" *ngIf="program.registrationFee !== undefined && program.registrationFee !== null">
+          <span>Cotisation</span>
+          <strong>{{ program.registrationFee }} DT</strong>
+        </div>
+
+        <p class="conditions" *ngIf="program.registrationConditions">
+          {{ program.registrationConditions }}
+        </p>
+
+        <div class="schedule" *ngIf="program.scheduleItems?.length">
+          <h4>Emploi du temps</h4>
+          <div class="schedule-row" *ngFor="let item of program.scheduleItems">
+            <span>{{ item.dayLabel }}</span>
+            <strong>{{ item.timeSlot }}</strong>
+            <p>{{ item.content }}</p>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="empty-state" *ngIf="!loadingPrograms && programs.length === 0">
+      <h3>Aucune formation publiée</h3>
+      <p>Cette saison ne contient pas encore de formations visibles.</p>
+    </div>
+  </section>
+
+  <div class="empty-state" *ngIf="!loadingSeasons && seasons.length === 0">
+    <h3>Aucune saison disponible</h3>
+    <p>Les formations seront affichées ici dès leur publication.</p>
+  </div>
+</main>

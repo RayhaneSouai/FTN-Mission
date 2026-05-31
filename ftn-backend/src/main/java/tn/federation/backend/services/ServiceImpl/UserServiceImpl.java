@@ -420,11 +420,17 @@ public class UserServiceImpl implements IUserService {
     }
 
     public void changePassword(String currentEmail, String oldPassword, String newPassword) {
+        passwordPolicyValidator.validate(newPassword);
+
         User user = userRepository.findByEmail(currentEmail)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable avec l'email: " + currentEmail));
 
         if (!passwordEncoder.matches(oldPassword, user.getPasswordHash())) {
             throw new IllegalArgumentException("L'ancien mot de passe est incorrect");
+        }
+
+        if (passwordEncoder.matches(newPassword, user.getPasswordHash())) {
+            throw new IllegalArgumentException("Le nouveau mot de passe doit être différent de l'ancien mot de passe.");
         }
 
         user.setPasswordHash(passwordEncoder.encode(newPassword));

@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Router } from '@angular/router';
+import { apiUrl } from '../../../core/config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8083/ftn/api/auth';
+  private apiUrl = apiUrl('auth');
   private currentUserSubject = new BehaviorSubject<any>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -50,6 +51,10 @@ export class AuthService {
 
   requestPasswordReset(email: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/password-reset-request`, { email });
+  }
+
+  validateResetToken(token: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/password-reset/validate/${encodeURIComponent(token)}`);
   }
 
   resetPassword(data: any): Observable<any> {

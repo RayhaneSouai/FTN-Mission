@@ -2,6 +2,11 @@
   display: block;
 }
 
+:host ::ng-deep .admin-stats-row app-admin-stat-card,
+:host ::ng-deep .admin-stats-row .admin-stat-card {
+  height: 100%;
+}
+
 .search-box {
   position: relative;
   min-width: 220px;

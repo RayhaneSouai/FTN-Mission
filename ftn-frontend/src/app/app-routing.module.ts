@@ -7,23 +7,17 @@ import { AdminLayoutComponent } from './layout/admin/admin-layout.component';
 import { DashboardComponent } from './features/admin/dashboard/dashboard.component';
 import { adminGuard } from './core/guards/admin.guard';
 import { publicGuard } from './core/guards/public.guard';
-
 import { AdminCompetitionsComponent } from './features/admin/admin-competitions/admin-competitions.component';
 import { AdminProgrammeComponent } from './features/admin/admin-programme/admin-programme.component';
 import { AdminParticipationsComponent } from './features/admin/admin-participations/admin-participations.component';
 import { AdminDistributionComponent } from './features/admin/admin-distribution/admin-distribution.component';
-
-import { MyPerformancesComponent } from './features/my-performance/my-performances.component';
 import { RankingComponent } from './features/ranking/ranking.component';
-import { PerformanceListComponent } from './features/performances/Performance-List/performance-list.component';
 
 const routes: Routes = [
-  // Admin Space (Backoffice)
   {
     path: 'admin',
     component: AdminLayoutComponent,
     canActivate: [adminGuard],
-
     children: [
       { path: '', component: DashboardComponent },
       {
@@ -51,6 +45,11 @@ const routes: Routes = [
         component: ClubListComponent,
         data: { clubMode: 'admin' }
       },
+      {
+        path: 'formations',
+        loadChildren: () =>
+          import('./features/formation/formation.module').then((m) => m.FormationModule)
+      },
       { path: 'ranking', component: RankingComponent },
       {
         path: 'performances',
@@ -69,12 +68,9 @@ const routes: Routes = [
           import('./features/admin/partenariats/admin-partenariats.component')
             .then(m => m.AdminPartenariatsComponent)
       },
-
-      { path: '**', redirectTo: '' },
-    ],
+      { path: '**', redirectTo: '' }
+    ]
   },
-
-  // Main Layout Space (Includes Navbar/Footer) - Frontoffice
   {
     path: '',
     component: PublicLayoutComponent,
@@ -85,13 +81,13 @@ const routes: Routes = [
         path: 'partenaires',
         loadChildren: () => import('./features/partners/partners.module').then(m => m.PartnersModule)
       },
-      { path: 'clubs', component: ClubListComponent },
+      { path: 'clubs', component: ClubListComponent, data: { clubMode: 'public' } },
       {
         path: 'competitions',
         loadChildren: () =>
           import('./features/competitions/competition.routes').then(
             (m) => m.COMPETITION_ROUTES
-          ),
+          )
       },
       // Keep Mon Profil for everyone in Frontoffice too
       {
@@ -114,6 +110,12 @@ const routes: Routes = [
           import('./features/my-performance/my-performances.component').then(m => m.MyPerformancesComponent),
       },
       {
+        path: 'formations',
+        loadComponent: () =>
+          import('./features/formation/components/formation-public/formation-public.component')
+            .then(m => m.FormationPublicComponent),
+      },
+      {
         path: 'espace-nageur',
         loadChildren: () => import('./features/swimmer/swimmer.module').then(m => m.SwimmerModule)
       },
@@ -127,19 +129,17 @@ const routes: Routes = [
       }
     ],
   },
-
-  // Auth Space (Clean interface, no Navbar/Footer)
   {
     path: 'auth',
     loadChildren: () => import('./features/auth/auth.module').then(m => m.AuthModule)
   },
-
-  // Wildcard redirect
+  { path: 'utilisateurs', redirectTo: 'admin/utilisateurs', pathMatch: 'full' },
+  { path: 'licences', redirectTo: 'admin/licences', pathMatch: 'full' },
   { path: '**', redirectTo: '' }
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes,{scrollPositionRestoration: 'top'})],
+  imports: [RouterModule.forRoot(routes, { scrollPositionRestoration: 'top' })],
   exports: [RouterModule]
 })
 export class AppRoutingModule {}

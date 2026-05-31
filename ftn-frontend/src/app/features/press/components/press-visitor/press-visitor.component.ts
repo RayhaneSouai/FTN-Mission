@@ -11,6 +11,15 @@ export class PressVisitorComponent implements OnInit {
   items: PressItem[] = [];
   loading = false;
 
+  private readonly articleImages = [
+    'https://images.unsplash.com/photo-1560090947-5307abc46ffc?ixlib=rb-4.1.0&q=85&fm=jpg&crop=entropy&cs=srgb&w=1200',
+    'https://images.unsplash.com/photo-1530549387789-4c1017266635?ixlib=rb-4.1.0&q=85&fm=jpg&crop=entropy&cs=srgb&w=1200'
+  ];
+  private readonly coupeImages = [
+    'https://plus.unsplash.com/premium_photo-1713836954462-6e6cd1eecc1c?fm=jpg&q=80&w=1200&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1754487436530-11d3140ec634?fm=jpg&q=80&w=1200&auto=format&fit=crop'
+  ];
+
   categoryLabels: { [key: string]: string } = {
     'ARTICLE': 'Articles',
     'VIDEO': 'Vidéos',
@@ -33,12 +42,33 @@ export class PressVisitorComponent implements OnInit {
   itemsPerPage = 3;
 
   get pagedItems(): PressItem[] {
+    if (this.useEqualCardLayout) {
+      const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+      return this.getFilteredItems().slice(startIndex, startIndex + this.itemsPerPage);
+    }
+    return this.cardItems;
+  }
+
+  get useEqualCardLayout(): boolean {
+    return this.activeFilter === 'FAVORITES' || this.activeFilter === 'PINNED';
+  }
+
+  get featuredItem(): PressItem | null {
+    if (this.useEqualCardLayout) return null;
+    return this.getFilteredItems()[0] ?? null;
+  }
+
+  get cardItems(): PressItem[] {
+    const source = this.getFilteredItems().slice(1);
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    return this.getFilteredItems().slice(startIndex, startIndex + this.itemsPerPage);
+    return source.slice(startIndex, startIndex + this.itemsPerPage);
   }
 
   get totalPages(): number {
-    return Math.max(1, Math.ceil(this.getFilteredItems().length / this.itemsPerPage));
+    if (this.useEqualCardLayout) {
+      return Math.max(1, Math.ceil(this.getFilteredItems().length / this.itemsPerPage));
+    }
+    return Math.max(1, Math.ceil(Math.max(0, this.getFilteredItems().length - 1) / this.itemsPerPage));
   }
 
   nextPage() {
@@ -62,11 +92,11 @@ export class PressVisitorComponent implements OnInit {
   generatingAiRecap = false;
 
   availableReactions = [
-    { type: 'LIKE',    emoji: '👍' },
-    { type: 'DISLIKE', emoji: '👎' },
-    { type: 'SAD',     emoji: '😢' },
-    { type: 'ANGRY',   emoji: '😡' },
-    { type: 'HEART',   emoji: '❤️' }
+    { type: 'LIKE',    label: 'J’aime',       icon: 'thumb_up' },
+    { type: 'DISLIKE', label: 'Je n’aime pas', icon: 'thumb_down' },
+    { type: 'SAD',     label: 'Triste',       icon: 'sentiment_dissatisfied' },
+    { type: 'ANGRY',   label: 'Mécontent',    icon: 'sentiment_very_dissatisfied' },
+    { type: 'HEART',   label: 'Favori',       icon: 'favorite' }
   ];
 
   constructor(public pressService: PressService) {}
@@ -135,6 +165,49 @@ export class PressVisitorComponent implements OnInit {
       );
     }
     return filtered;
+  }
+
+  getArticleImage(item: PressItem, index = 0): string {
+    if (item.type === 'VIDEO' && item.mediaUrl) {
+      return this.pressService.getVideoThumbnail(item.mediaUrl);
+    }
+    if (item.mediaUrl) {
+      return item.mediaUrl;
+    }
+
+    return this.getFallbackArticleImage(item, index);
+  }
+
+  getFallbackArticleImage(item: PressItem, index = 0): string {
+    const haystack = `${item.title || ''} ${item.summary || ''} ${item.content || ''}`.toLowerCase();
+    if (haystack.includes('coupe') || haystack.includes('troph') || haystack.includes('finale')) {
+      return this.coupeImages[index % this.coupeImages.length];
+    }
+
+    return this.articleImages[index % this.articleImages.length];
+  }
+
+  onArticleImageError(event: Event, item: PressItem, index = 0): void {
+    const img = event.target as HTMLImageElement;
+    img.src = this.getFallbackArticleImage(item, index);
+  }
+
+  getTypeLabel(item: PressItem): string {
+    return this.categoryLabels[item.type] || 'Actualité';
+  }
+
+  plainText(value?: string | null): string {
+    if (!value) return '';
+    return value
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'")
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 
   onFilterChange(filter: string): void {

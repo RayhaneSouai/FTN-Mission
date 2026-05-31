@@ -8,6 +8,7 @@ import { LicenseService } from '../../licenses/services/license.service';
 import { ClubService } from '../../clubs/services/club.service';
 import { DashboardActivityComponent } from '../../../dashboard/dashboard-activity/dashboard-activity.component';
 import { AdminStatVariant } from '../../../shared/admin-ui/components/admin-stat-card/admin-stat-card.component';
+import { ToastService } from '../../competitions/services/toast.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -35,6 +36,7 @@ export class DashboardComponent implements OnInit {
     private userService: UserService,
     private licenseService: LicenseService,
     private clubService: ClubService,
+    private toast: ToastService,
     private router: Router,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}

@@ -64,6 +64,10 @@ public enum Region {
             return Optional.empty();
         }
         String trimmed = value.trim();
+        // Legacy DB labels from older Module4 imports
+        if ("Lac".equalsIgnoreCase(trimmed)) {
+            return Optional.of(GRAND_TUNIS);
+        }
         return Arrays.stream(values())
                 .filter(r -> r.name().equalsIgnoreCase(trimmed)
                         || r.label.equalsIgnoreCase(trimmed)
