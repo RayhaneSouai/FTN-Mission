@@ -50,6 +50,7 @@ public class SecurityConfig {
                                 "/api/partners/requests",
                                 "/api/partners/sponsorships",
                                 // Public competition endpoints (read-only)
+                                "/api/competitions",
                                 "/api/competitions/getAll",
                                 "/api/competitions/get/**",
                                 "/api/competitions/*/programme",
