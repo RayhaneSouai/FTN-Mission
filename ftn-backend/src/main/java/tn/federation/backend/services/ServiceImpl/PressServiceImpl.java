@@ -124,6 +124,12 @@ public class PressServiceImpl implements IPressService {
         if (item != null) {
             if (item.getStatus() == PressStatus.DELETED) {
                 System.out.println("DEBUG: Hard Delete de l'item " + id);
+                // Supprimer d'abord les entités liées (clés étrangères)
+                commentRepository.deleteAll(commentRepository.findByPressItemIdOrderByCreatedAtAsc(id));
+                reactionRepository.deleteAll(reactionRepository.findByPressItemId(id));
+                favoriteRepository.deleteAll(favoriteRepository.findByPressItemId(id));
+                pinRepository.deleteAll(pinRepository.findByPressItemId(id));
+                // Supprimer l'article
                 pressItemRepository.deleteById(id);
             } else {
                 System.out.println("DEBUG: Soft Delete (Corbeille) de l'item " + id);
