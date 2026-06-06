@@ -25,8 +25,13 @@ public class GeminiService {
 
     public String generateSummary(String title, String summary, String content, String linkUrl) {
         if (apiKey == null || apiKey.isEmpty()) {
-            return "<div style=\"padding:15px; background:#fee2e2; color:#991b1b; border-radius:8px;\">" +
-                   "⚠️ Clé API Gemini non configurée. Veuillez ajouter <code>gemini.api.key</code> dans application.properties.</div>";
+            String shortContent = "Aucun contenu disponible.";
+            if (content != null && !content.isEmpty()) {
+                shortContent = content.length() > 150 ? content.substring(0, 150) + "..." : content;
+            } else if (summary != null && !summary.isEmpty()) {
+                shortContent = summary;
+            }
+            return "<ul><li><b>Résumé rapide (Mode Hors-Ligne) :</b></li><li>" + shortContent + "</li><li><i>Note : Le service IA complet nécessite une clé Gemini active.</i></li></ul>";
         }
 
         try {
