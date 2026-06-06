@@ -31,7 +31,7 @@ public class GeminiService {
             } else if (summary != null && !summary.isEmpty()) {
                 shortContent = summary;
             }
-            return "<ul><li><b>Résumé rapide (Mode Hors-Ligne) :</b></li><li>" + shortContent + "</li><li><i>Note : Le service IA complet nécessite une clé Gemini active.</i></li></ul>";
+            return "<ul><li><b>Résumé rapide (Mode Hors-Ligne) :</b></li><li>" + shortContent + "</li></ul>";
         }
 
         try {
