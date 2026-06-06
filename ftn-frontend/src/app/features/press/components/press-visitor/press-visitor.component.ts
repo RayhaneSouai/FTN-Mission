@@ -39,7 +39,7 @@ export class PressVisitorComponent implements OnInit {
   showFullContent = false;
 
   currentPage = 1;
-  itemsPerPage = 8;
+  itemsPerPage = 4;
 
   get pagedItems(): PressItem[] {
     if (this.useEqualCardLayout) {
