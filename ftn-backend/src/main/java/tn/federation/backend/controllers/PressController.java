@@ -59,8 +59,21 @@ public class PressController {
     }
 
     @GetMapping("/images/{filename:.+}")
-    public @ResponseBody byte[] getImage(@PathVariable String filename) throws Exception {
-        return Files.readAllBytes(root.resolve(filename));
+    public org.springframework.http.ResponseEntity<org.springframework.core.io.Resource> getImage(@PathVariable String filename) {
+        try {
+            org.springframework.core.io.Resource file = new org.springframework.core.io.UrlResource(root.resolve(filename).toUri());
+            if (file.exists() || file.isReadable()) {
+                String mimeType = Files.probeContentType(root.resolve(filename));
+                if (mimeType == null) mimeType = "application/octet-stream";
+                return org.springframework.http.ResponseEntity.ok()
+                        .header(org.springframework.http.HttpHeaders.CONTENT_TYPE, mimeType)
+                        .body(file);
+            } else {
+                return org.springframework.http.ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.internalServerError().build();
+        }
     }
 
     // =====================================================================

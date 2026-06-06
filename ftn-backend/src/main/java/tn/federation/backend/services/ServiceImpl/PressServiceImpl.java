@@ -187,8 +187,10 @@ public class PressServiceImpl implements IPressService {
 
     @Override
     public List<PressItem> getPopular(int limit) {
+        java.util.Set<Long> seenIds = new java.util.HashSet<>();
         return pressItemRepository.findAll().stream()
                 .filter(p -> p.getStatus() == PressStatus.PUBLISHED)
+                .filter(p -> seenIds.add(p.getIdPressItem()))
                 .sorted((p1, p2) -> Long.compare(p2.getViews() != null ? p2.getViews() : 0L, p1.getViews() != null ? p1.getViews() : 0L))
                 .limit(limit)
                 .collect(java.util.stream.Collectors.toList());
