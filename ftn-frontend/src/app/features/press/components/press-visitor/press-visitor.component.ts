@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+ÿþimport { Component, OnInit } from '@angular/core';
 import { PressItem, PressType } from '../../models/press-item.model';
 import { PressService } from '../../services/press.service';
 
@@ -368,3 +368,5 @@ export class PressVisitorComponent implements OnInit {
     return url.startsWith('http') ? url : `http://localhost:8083/ftn${url}`;
   }
 }
+ 
+ 

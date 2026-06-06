@@ -129,18 +129,24 @@
 
       <!-- COMMUNIQUE : affichage PDF + boutons spécifiques -->
       <ng-container *ngIf="selectedItem.type === 'COMMUNIQUE'">
-        <!-- PDF embed -->
-        <div *ngIf="getPdfUrl()" style="border-radius:16px;overflow:hidden;margin-bottom:20px;border:1px solid #e2e8f0;">
-          <iframe [src]="getPdfUrl() | safe" style="width:100%;height:480px;border:none;display:block;"></iframe>
+        <!-- PDF Preview Card (iframe bloqué par Chrome, on utilise un lien direct) -->
+        <div *ngIf="getPdfUrl()" style="background:#f8fafc;border:2px dashed #e2e8f0;border-radius:16px;padding:32px;margin-bottom:20px;text-align:center;">
+          <div style="font-size:3rem;margin-bottom:12px;">📄</div>
+          <p style="color:#64748b;font-size:1rem;margin-bottom:16px;">Communiqué officiel PDF</p>
+          <a [href]="getPdfUrl()" target="_blank"
+             style="display:inline-flex;align-items:center;gap:8px;background:#1565C0;color:white;padding:12px 24px;border-radius:12px;font-weight:700;text-decoration:none;">
+            <span class="material-symbols-outlined" style="font-size:1.1rem;">open_in_new</span>
+            Ouvrir le PDF dans le navigateur
+          </a>
         </div>
 
-        <!-- Bouton Résumé IA -->
+        <!-- Bouton Résumé IA (lit le vrai contenu du PDF) -->
         <div style="margin-bottom: 20px; display: flex; justify-content: flex-end;">
           <button (click)="generateSummary()" [disabled]="generatingAiRecap"
                   style="background: linear-gradient(135deg, #8b5cf6, #3b82f6); color: white; border: none; padding: 10px 20px; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.2);"
                   [style.opacity]="generatingAiRecap ? '0.7' : '1'">
             <span *ngIf="!generatingAiRecap">✨ Résumé IA du communiqué</span>
-            <span *ngIf="generatingAiRecap">Analyse en cours...</span>
+            <span *ngIf="generatingAiRecap">Lecture du PDF en cours...</span>
           </button>
         </div>
 

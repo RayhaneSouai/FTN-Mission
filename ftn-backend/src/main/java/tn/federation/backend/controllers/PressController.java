@@ -290,6 +290,35 @@ public class PressController {
         return geminiService.generateSummary(item.getTitle(), item.getSummary(), item.getContent(), item.getLinkUrl());
     }
 
+    @Operation(summary = "Générer un résumé IA du contenu PDF d'un communiqué")
+    @GetMapping(value = "/{id}/pdf-summary", produces = "text/html;charset=UTF-8")
+    public String generatePdfSummary(@PathVariable("id") Long id) {
+        PressItem item = pressService.getPressItemById(id);
+        if (item == null) return "<i>Article introuvable.</i>";
+
+        String pdfUrl = null;
+        if (item.getDocuments() != null && !item.getDocuments().isEmpty()) {
+            pdfUrl = item.getDocuments().split(",")[0].trim();
+        } else if (item.getMediaUrl() != null && (item.getMediaUrl().endsWith(".pdf") || item.getMediaUrl().contains("upload"))) {
+            pdfUrl = item.getMediaUrl();
+        } else if (item.getLinkUrl() != null && item.getLinkUrl().endsWith(".pdf")) {
+            pdfUrl = item.getLinkUrl();
+        }
+
+        String pdfText = null;
+        if (pdfUrl != null) {
+            String filename = pdfUrl.substring(pdfUrl.lastIndexOf('/') + 1);
+            String localPath = "uploads/" + filename;
+            System.out.println("DEBUG PDF path: " + localPath);
+            pdfText = geminiService.extractPdfText(localPath);
+        }
+        // Fallback to article text content if PDF not readable
+        if (pdfText == null && item.getContent() != null) pdfText = item.getContent();
+        if (pdfText == null && item.getSummary() != null) pdfText = item.getSummary();
+
+        return geminiService.generatePdfSummary(item.getTitle(), pdfText);
+    }
+
     @Operation(summary = "Ajouter un commentaire")
     @PostMapping("/{id}/comment")
     public org.springframework.http.ResponseEntity<?> addComment(
