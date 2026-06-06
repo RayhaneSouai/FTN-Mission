@@ -151,7 +151,7 @@ export class PressListComponent implements OnInit {
 
   // ── Pagination ──────────────────────────────────────────────────────────
   currentPage = 1;
-  itemsPerPage = 3;
+  itemsPerPage = 8;
 
   get pagedItems(): PressItem[] {
     const start = (this.currentPage - 1) * this.itemsPerPage;
