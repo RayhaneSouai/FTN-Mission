@@ -39,36 +39,28 @@ export class PressVisitorComponent implements OnInit {
   showFullContent = false;
 
   currentPage = 1;
-  itemsPerPage = 4;
+  itemsPerPage = 3;
 
   get pagedItems(): PressItem[] {
-    if (this.useEqualCardLayout) {
-      const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-      return this.getFilteredItems().slice(startIndex, startIndex + this.itemsPerPage);
-    }
-    return this.cardItems;
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    return this.getFilteredItems().slice(startIndex, startIndex + this.itemsPerPage);
   }
 
+  // Always use equal card layout (uniform 3-col grid, no featured article)
   get useEqualCardLayout(): boolean {
-    return this.activeFilter === 'FAVORITES' || this.activeFilter === 'PINNED';
+    return true;
   }
 
   get featuredItem(): PressItem | null {
-    if (this.useEqualCardLayout) return null;
-    return this.getFilteredItems()[0] ?? null;
+    return null;
   }
 
   get cardItems(): PressItem[] {
-    const source = this.getFilteredItems().slice(1);
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    return source.slice(startIndex, startIndex + this.itemsPerPage);
+    return this.pagedItems;
   }
 
   get totalPages(): number {
-    if (this.useEqualCardLayout) {
-      return Math.max(1, Math.ceil(this.getFilteredItems().length / this.itemsPerPage));
-    }
-    return Math.max(1, Math.ceil(Math.max(0, this.getFilteredItems().length - 1) / this.itemsPerPage));
+    return Math.max(1, Math.ceil(this.getFilteredItems().length / this.itemsPerPage));
   }
 
   nextPage() {
@@ -348,5 +340,31 @@ export class PressVisitorComponent implements OnInit {
         this.generatingAiRecap = false;
       }
     });
+  }
+
+  downloadCommunique(): void {
+    if (!this.selectedItem) return;
+    const url = this.selectedItem.documents?.split(',')[0]?.trim()
+              || this.selectedItem.linkUrl
+              || this.selectedItem.mediaUrl;
+    if (url) {
+      const link = document.createElement('a');
+      link.href = url.startsWith('http') ? url : `http://localhost:8083/ftn${url}`;
+      link.download = this.selectedItem.title || 'communique';
+      link.target = '_blank';
+      link.click();
+      // increment download count
+      if (this.selectedItem.idPressItem) {
+        this.pressService.incrementDownloads(this.selectedItem.idPressItem).subscribe();
+      }
+    }
+  }
+
+  getPdfUrl(): string {
+    if (!this.selectedItem) return '';
+    const url = this.selectedItem.documents?.split(',')[0]?.trim()
+              || this.selectedItem.linkUrl
+              || this.selectedItem.mediaUrl || '';
+    return url.startsWith('http') ? url : `http://localhost:8083/ftn${url}`;
   }
 }
