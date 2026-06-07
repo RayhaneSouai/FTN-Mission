@@ -102,7 +102,7 @@ export class SwimmerActualitesComponent implements OnInit {
       next: (pins) => {
         this.pinnedIds = new Set(pins.map(p => p.idPressItem).filter((id): id is number => id !== undefined));
       },
-      error: (err) => console.error('Erreur chargement épingles', err)
+      error: (err: any) => console.error('Erreur chargement épingles', err)
     });
   }
 
@@ -113,7 +113,7 @@ export class SwimmerActualitesComponent implements OnInit {
       next: (favs) => {
         this.favoriteIds = new Set(favs.map(f => f.idPressItem).filter((id): id is number => id !== undefined));
       },
-      error: (err) => console.error('Erreur chargement favoris', err)
+      error: (err: any) => console.error('Erreur chargement favoris', err)
     });
   }
 
@@ -213,14 +213,21 @@ export class SwimmerActualitesComponent implements OnInit {
     return null;
   }
 
+  private getItemId(): number | undefined {
+    if (!this.selectedItem) return undefined;
+    return this.selectedItem.idPressItem || this.selectedItem.id;
+  }
+
   loadInteractions() {
     if (!this.selectedItem) return;
+    const itemId = this.getItemId();
+    if (!itemId) return;
     const userId = this.getCurrentUserId();
-    this.pressService.getInteractions(this.selectedItem.idPressItem, userId).subscribe({
+    this.pressService.getInteractions(itemId, userId).subscribe({
       next: (res) => {
         this.interactions = res;
       },
-      error: (err) => console.error('Error loading interactions', err)
+      error: (err: any) => console.error('Error loading interactions', err)
     });
   }
 
@@ -228,15 +235,17 @@ export class SwimmerActualitesComponent implements OnInit {
     if (!this.newCommentText.trim() || this.isSubmittingComment || !this.selectedItem) return;
     const userId = this.getCurrentUserId();
     if (!userId) return;
+    const itemId = this.getItemId();
+    if (!itemId) return;
 
     this.isSubmittingComment = true;
-    this.pressService.addComment(this.selectedItem.idPressItem, userId, this.newCommentText).subscribe({
+    this.pressService.addComment(itemId, userId, this.newCommentText).subscribe({
       next: () => {
         this.newCommentText = '';
         this.isSubmittingComment = false;
-        this.loadInteractions(); // Reload to see the new comment
+        this.loadInteractions();
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error adding comment', err);
         this.isSubmittingComment = false;
       }
@@ -247,12 +256,14 @@ export class SwimmerActualitesComponent implements OnInit {
     if (!this.selectedItem) return;
     const userId = this.getCurrentUserId();
     if (!userId) return;
+    const itemId = this.getItemId();
+    if (!itemId) return;
 
-    this.pressService.toggleReaction(this.selectedItem.idPressItem, userId, type).subscribe({
+    this.pressService.toggleReaction(itemId, userId, type).subscribe({
       next: () => {
-        this.loadInteractions(); // Reload to see updated reactions
+        this.loadInteractions();
       },
-      error: (err) => console.error('Error toggling reaction', err)
+      error: (err: any) => console.error('Error toggling reaction', err)
     });
   }
 
@@ -260,12 +271,14 @@ export class SwimmerActualitesComponent implements OnInit {
     if (!this.selectedItem) return;
     const userId = this.getCurrentUserId();
     if (!userId) return;
+    const itemId = this.getItemId();
+    if (!itemId) return;
 
-    this.pressService.toggleFavorite(this.selectedItem.idPressItem, userId).subscribe({
+    this.pressService.toggleFavorite(itemId, userId).subscribe({
       next: () => {
-        this.loadInteractions(); // Reload to see updated favorite status
+        this.loadInteractions();
       },
-      error: (err) => console.error('Error toggling favorite', err)
+      error: (err: any) => console.error('Error toggling favorite', err)
     });
   }
 
@@ -273,20 +286,19 @@ export class SwimmerActualitesComponent implements OnInit {
     if (!this.selectedItem) return;
     const userId = this.getCurrentUserId();
     if (!userId) return;
+    const itemId = this.getItemId();
+    if (!itemId) return;
 
-    this.pressService.togglePin(this.selectedItem.idPressItem, userId).subscribe({
+    this.pressService.togglePin(itemId, userId).subscribe({
       next: () => {
-        this.loadInteractions(); // Reload to see updated pin status
-        
-        // Update local pinnedIds for immediate visual feedback on cards
-        const itemId = this.selectedItem.idPressItem || this.selectedItem.id;
+        this.loadInteractions();
         if (this.pinnedIds.has(itemId)) {
           this.pinnedIds.delete(itemId);
         } else {
           this.pinnedIds.add(itemId);
         }
       },
-      error: (err) => console.error('Error toggling pin', err)
+      error: (err: any) => console.error('Error toggling pin', err)
     });
   }
 
@@ -298,9 +310,17 @@ export class SwimmerActualitesComponent implements OnInit {
   generateSummary() {
     if (!this.selectedItem) return;
     this.generatingAiRecap = true;
-    
-    this.pressService.generateAiRecap(this.selectedItem.idPressItem || this.selectedItem.id).subscribe({
-      next: (recap) => {
+    this.aiRecap = null;
+
+    const id = this.getItemId();
+    if (!id) { this.generatingAiRecap = false; return; }
+
+    const obs$ = this.selectedItem.type === 'COMMUNIQUE'
+      ? this.pressService.generatePdfSummary(id)
+      : this.pressService.generateAiRecap(id);
+
+    obs$.subscribe({
+      next: (recap: string) => {
         this.aiRecap = recap;
         this.generatingAiRecap = false;
       },

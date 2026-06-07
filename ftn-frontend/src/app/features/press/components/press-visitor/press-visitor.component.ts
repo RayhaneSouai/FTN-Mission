@@ -1,4 +1,4 @@
-��import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { PressItem, PressType } from '../../models/press-item.model';
 import { PressService } from '../../services/press.service';
 
@@ -10,15 +10,6 @@ import { PressService } from '../../services/press.service';
 export class PressVisitorComponent implements OnInit {
   items: PressItem[] = [];
   loading = false;
-
-  private readonly articleImages = [
-    'https://images.unsplash.com/photo-1560090947-5307abc46ffc?ixlib=rb-4.1.0&q=85&fm=jpg&crop=entropy&cs=srgb&w=1200',
-    'https://images.unsplash.com/photo-1530549387789-4c1017266635?ixlib=rb-4.1.0&q=85&fm=jpg&crop=entropy&cs=srgb&w=1200'
-  ];
-  private readonly coupeImages = [
-    'https://plus.unsplash.com/premium_photo-1713836954462-6e6cd1eecc1c?fm=jpg&q=80&w=1200&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1754487436530-11d3140ec634?fm=jpg&q=80&w=1200&auto=format&fit=crop'
-  ];
 
   categoryLabels: { [key: string]: string } = {
     'ARTICLE': 'Articles',
@@ -46,19 +37,6 @@ export class PressVisitorComponent implements OnInit {
     return this.getFilteredItems().slice(startIndex, startIndex + this.itemsPerPage);
   }
 
-  // Always use equal card layout (uniform 3-col grid, no featured article)
-  get useEqualCardLayout(): boolean {
-    return true;
-  }
-
-  get featuredItem(): PressItem | null {
-    return null;
-  }
-
-  get cardItems(): PressItem[] {
-    return this.pagedItems;
-  }
-
   get totalPages(): number {
     return Math.max(1, Math.ceil(this.getFilteredItems().length / this.itemsPerPage));
   }
@@ -84,12 +62,13 @@ export class PressVisitorComponent implements OnInit {
   generatingAiRecap = false;
 
   availableReactions = [
-    { type: 'LIKE',    label: 'J’aime',       icon: 'thumb_up' },
-    { type: 'DISLIKE', label: 'Je n’aime pas', icon: 'thumb_down' },
-    { type: 'SAD',     label: 'Triste',       icon: 'sentiment_dissatisfied' },
-    { type: 'ANGRY',   label: 'Mécontent',    icon: 'sentiment_very_dissatisfied' },
-    { type: 'HEART',   label: 'Favori',       icon: 'favorite' }
+    { type: 'LIKE',    emoji: '👍', icon: 'thumb_up',                   label: 'Aimer' },
+    { type: 'DISLIKE', emoji: '👎', icon: 'thumb_down',                  label: 'Pas aimer' },
+    { type: 'SAD',     emoji: '😢', icon: 'sentiment_dissatisfied',      label: 'Triste' },
+    { type: 'ANGRY',   emoji: '😡', icon: 'sentiment_very_dissatisfied', label: 'Mecontent' },
+    { type: 'HEART',   emoji: '❤️', icon: 'favorite',                   label: 'Favori' }
   ];
+
 
   constructor(public pressService: PressService) {}
 
@@ -159,49 +138,6 @@ export class PressVisitorComponent implements OnInit {
     return filtered;
   }
 
-  getArticleImage(item: PressItem, index = 0): string {
-    if (item.type === 'VIDEO' && item.mediaUrl) {
-      return this.pressService.getVideoThumbnail(item.mediaUrl);
-    }
-    if (item.mediaUrl) {
-      return item.mediaUrl;
-    }
-
-    return this.getFallbackArticleImage(item, index);
-  }
-
-  getFallbackArticleImage(item: PressItem, index = 0): string {
-    const haystack = `${item.title || ''} ${item.summary || ''} ${item.content || ''}`.toLowerCase();
-    if (haystack.includes('coupe') || haystack.includes('troph') || haystack.includes('finale')) {
-      return this.coupeImages[index % this.coupeImages.length];
-    }
-
-    return this.articleImages[index % this.articleImages.length];
-  }
-
-  onArticleImageError(event: Event, item: PressItem, index = 0): void {
-    const img = event.target as HTMLImageElement;
-    img.src = this.getFallbackArticleImage(item, index);
-  }
-
-  getTypeLabel(item: PressItem): string {
-    return this.categoryLabels[item.type] || 'Actualité';
-  }
-
-  plainText(value?: string | null): string {
-    if (!value) return '';
-    return value
-      .replace(/<[^>]*>/g, ' ')
-      .replace(/&nbsp;/gi, ' ')
-      .replace(/&amp;/gi, '&')
-      .replace(/&lt;/gi, '<')
-      .replace(/&gt;/gi, '>')
-      .replace(/&quot;/gi, '"')
-      .replace(/&#39;/gi, "'")
-      .replace(/\s+/g, ' ')
-      .trim();
-  }
-
   onFilterChange(filter: string): void {
     this.activeFilter = filter;
     this.currentPage = 1;
@@ -267,21 +203,28 @@ export class PressVisitorComponent implements OnInit {
     return null;
   }
 
+  private getItemId(): number | undefined {
+    if (!this.selectedItem) return undefined;
+    return this.selectedItem.idPressItem || (this.selectedItem as any).id;
+  }
+
   loadInteractions(): void {
-    if (!this.selectedItem?.idPressItem) return;
+    const itemId = this.getItemId();
+    if (!itemId) return;
     const userId = this.getCurrentUserId();
-    this.pressService.getInteractions(this.selectedItem.idPressItem, userId).subscribe({
+    this.pressService.getInteractions(itemId, userId).subscribe({
       next: (res) => { this.interactions = res; },
       error: (err) => console.error('Interactions error', err)
     });
   }
 
   addComment(): void {
-    if (!this.newCommentText.trim() || this.isSubmittingComment || !this.selectedItem?.idPressItem) return;
+    const itemId = this.getItemId();
+    if (!this.newCommentText.trim() || this.isSubmittingComment || !itemId) return;
     const userId = this.getCurrentUserId();
     if (!userId) { alert('Vous devez être connecté pour commenter.'); return; }
     this.isSubmittingComment = true;
-    this.pressService.addComment(this.selectedItem.idPressItem, userId, this.newCommentText).subscribe({
+    this.pressService.addComment(itemId, userId, this.newCommentText).subscribe({
       next: () => {
         this.newCommentText = '';
         this.isSubmittingComment = false;
@@ -292,31 +235,34 @@ export class PressVisitorComponent implements OnInit {
   }
 
   toggleReaction(type: string): void {
-    if (!this.selectedItem?.idPressItem) return;
+    const itemId = this.getItemId();
+    if (!itemId) return;
     const userId = this.getCurrentUserId();
     if (!userId) { alert('Vous devez être connecté pour réagir.'); return; }
-    this.pressService.toggleReaction(this.selectedItem.idPressItem, userId, type).subscribe({
+    this.pressService.toggleReaction(itemId, userId, type).subscribe({
       next: () => this.loadInteractions()
     });
   }
 
   toggleFavorite(): void {
-    if (!this.selectedItem?.idPressItem) return;
+    const itemId = this.getItemId();
+    if (!itemId) return;
     const userId = this.getCurrentUserId();
     if (!userId) { alert('Vous devez être connecté pour ajouter aux favoris.'); return; }
-    this.pressService.toggleFavorite(this.selectedItem.idPressItem, userId).subscribe({
+    this.pressService.toggleFavorite(itemId, userId).subscribe({
       next: () => {
         this.loadInteractions();
-        this.loadFavorites(); // Reload favorites list in background
+        this.loadFavorites();
       }
     });
   }
 
   togglePin(): void {
-    if (!this.selectedItem?.idPressItem) return;
+    const itemId = this.getItemId();
+    if (!itemId) return;
     const userId = this.getCurrentUserId();
     if (!userId) { alert('Vous devez être connecté pour épingler.'); return; }
-    this.pressService.togglePin(this.selectedItem.idPressItem, userId).subscribe({
+    this.pressService.togglePin(itemId, userId).subscribe({
       next: () => {
         this.loadInteractions();
       }
@@ -328,11 +274,17 @@ export class PressVisitorComponent implements OnInit {
   }
 
   generateSummary() {
-    if (!this.selectedItem?.idPressItem) return;
+    const itemId = this.getItemId();
+    if (!itemId) return;
     this.generatingAiRecap = true;
-    
-    this.pressService.generateAiRecap(this.selectedItem.idPressItem).subscribe({
-      next: (recap) => {
+    this.aiRecap = null;
+
+    const obs$ = this.selectedItem!.type === 'COMMUNIQUE'
+      ? this.pressService.generatePdfSummary(itemId)
+      : this.pressService.generateAiRecap(itemId);
+
+    obs$.subscribe({
+      next: (recap: string) => {
         this.aiRecap = recap;
         this.generatingAiRecap = false;
       },
@@ -342,31 +294,61 @@ export class PressVisitorComponent implements OnInit {
     });
   }
 
+  onArticleImageError(event: Event, item: any, index: number = 0): void {
+    const img = event.target as HTMLImageElement;
+    if (img) {
+      img.src = 'https://images.unsplash.com/photo-1504450758481-7338eba7524a?q=80&w=500&auto=format&fit=crop';
+    }
+  }
+
+  getArticleImage(item: any, index: number = 0): string {
+    if (!item) return '';
+    if (item.mediaUrl) return item.mediaUrl;
+    if (item.gallery) {
+      const imgs = this.getGalleryImages(item.gallery);
+      if (imgs.length > 0) return imgs[index % imgs.length] || imgs[0];
+    }
+    return 'https://images.unsplash.com/photo-1504450758481-7338eba7524a?q=80&w=500&auto=format&fit=crop';
+  }
+
+  getPdfUrl(): string {
+    if (!this.selectedItem) return '';
+    const url = this.selectedItem.documents?.split(',')[0]?.trim()
+      || this.selectedItem.linkUrl
+      || this.selectedItem.mediaUrl || '';
+    return url.startsWith('http') ? url : `http://localhost:8083/ftn${url}`;
+  }
+
   downloadCommunique(): void {
     if (!this.selectedItem) return;
-    const url = this.selectedItem.documents?.split(',')[0]?.trim()
-              || this.selectedItem.linkUrl
-              || this.selectedItem.mediaUrl;
+    const url = this.getPdfUrl();
     if (url) {
       const link = document.createElement('a');
-      link.href = url.startsWith('http') ? url : `http://localhost:8083/ftn${url}`;
+      link.href = url;
       link.download = this.selectedItem.title || 'communique';
       link.target = '_blank';
       link.click();
-      // increment download count
       if (this.selectedItem.idPressItem) {
         this.pressService.incrementDownloads(this.selectedItem.idPressItem).subscribe();
       }
     }
   }
 
-  getPdfUrl(): string {
-    if (!this.selectedItem) return '';
-    const url = this.selectedItem.documents?.split(',')[0]?.trim()
-              || this.selectedItem.linkUrl
-              || this.selectedItem.mediaUrl || '';
-    return url.startsWith('http') ? url : `http://localhost:8083/ftn${url}`;
+  getTypeLabel(item: any): string {
+    return this.categoryLabels?.[item?.type] || 'Actualité';
+  }
+
+  plainText(value?: string | null): string {
+    if (!value) return '';
+    return value
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'")
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 }
- 
- 
