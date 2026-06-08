@@ -107,10 +107,11 @@ export class PressService {
       videoId = url.split('embed/')[1].split('?')[0];
     }
 
-    // Si on a un ID, on renvoie la miniature, sinon une image générique de sport/vidéo
+    // Si on a un ID, on renvoie la miniature YouTube
+    // Sinon on renvoie l'URL telle quelle (qui peut être une image JPEG uploadée)
     return videoId 
       ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` 
-      : 'https://images.unsplash.com/photo-1504450758481-7338eba7524a?q=80&w=500&auto=format&fit=crop'; 
+      : url; 
   }
 
   openLink(url?: string): void {

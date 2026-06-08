@@ -178,6 +178,7 @@ export class PressListComponent implements OnInit {
   onStatusFilterChange(status: string): void {
     console.log('Changement de filtre statut vers:', status);
     this.filterStatus = status;
+    this.currentPage = 1;
   }
 
   goToAdd(): void { 

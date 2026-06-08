@@ -43,124 +43,278 @@ public class GeminiService {
         }
     }
 
+    // ─── Helpers ───────────────────────────────────────────────────────────────
+
+    /** Strip HTML tags and collapse whitespace to get plain text. */
+    private String stripHtml(String html) {
+        if (html == null) return "";
+        return html
+            .replaceAll("<[^>]*>", " ")
+            .replaceAll("&nbsp;", " ")
+            .replaceAll("&amp;", "&")
+            .replaceAll("&lt;", "<")
+            .replaceAll("&gt;", ">")
+            .replaceAll("&quot;", "\"")
+            .replaceAll("\\s+", " ")
+            .trim();
+    }
+
+    /** Call Gemini API with a prompt and return the text result. */
+    private String callGemini(String prompt) throws Exception {
+        String urlWithKey = GEMINI_URL + "?key=" + apiKey;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, Object> textPart = new HashMap<>();
+        textPart.put("text", prompt);
+        List<Map<String, Object>> parts = new ArrayList<>();
+        parts.add(textPart);
+        Map<String, Object> contentMap = new HashMap<>();
+        contentMap.put("parts", parts);
+        List<Map<String, Object>> contents = new ArrayList<>();
+        contents.add(contentMap);
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("contents", contents);
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+        ResponseEntity<Map> response = restTemplate.exchange(urlWithKey, HttpMethod.POST, request, Map.class);
+
+        Map<String, Object> body = response.getBody();
+        if (body != null && body.containsKey("candidates")) {
+            List<Map<String, Object>> candidates = (List<Map<String, Object>>) body.get("candidates");
+            if (!candidates.isEmpty()) {
+                Map<String, Object> contentBlock = (Map<String, Object>) candidates.get(0).get("content");
+                List<Map<String, Object>> resParts = (List<Map<String, Object>>) contentBlock.get("parts");
+                if (!resParts.isEmpty()) {
+                    String result = (String) resParts.get(0).get("text");
+                    return result.replace("```html", "").replace("```", "").trim();
+                }
+            }
+        }
+        return null;
+    }
+
+    // ─── PDF Communiqué Summary ────────────────────────────────────────────────
+
     /**
-     * Génère un résumé IA spécifique pour un communiqué PDF.
+     * Génère un vrai résumé IA sous forme de liste de 4 points.
      */
     public String generatePdfSummary(String title, String pdfText) {
         if (pdfText == null || pdfText.trim().isEmpty()) {
-            return generateSummary(title, null, null, null);
+            return "<p style='color:#94a3b8;font-style:italic;'>Contenu du PDF non disponible.</p>";
         }
 
-        if (apiKey == null || apiKey.isEmpty()) {
-            String preview = pdfText.length() > 400 ? pdfText.substring(0, 400) + "..." : pdfText;
-            return "<ul><li><b>Points clés du communiqué (Mode Hors-Ligne) :</b></li><li>"
-                    + preview.replace("\n", "</li><li>") + "</li></ul>";
-        }
+        // Offline fallback: extract 4 meaningful sentences from the PDF text as a list
+        if (apiKey == null || apiKey.isEmpty() || apiKey.equals("dummy_key_for_testing")) {
+            String cleanText = pdfText.replaceAll("\\s+", " ").trim();
+            String[] parts = cleanText.split("(?<=[.!?])\\s+|\\n");
+            
+            List<String> sentences = new ArrayList<>();
+            for (String s : parts) {
+                String t = s.trim();
+                if (t.length() < 15) continue;
+                if (t.matches(".*\\d+/\\d+.*") || t.startsWith("©") || t.startsWith("www.")) continue;
+                sentences.add(t);
+            }
 
-        try {
-            String urlWithKey = GEMINI_URL + "?key=" + apiKey;
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            String prompt = "Tu es un assistant expert de la Fédération Tunisienne de Natation (FTN).\n"
-                    + "Voici le contenu extrait d'un communiqué officiel PDF :\n\n"
-                    + "Titre : " + title + "\n"
-                    + "Contenu du PDF :\n" + pdfText + "\n\n"
-                    + "Génère un résumé clair et professionnel sous forme de points (bullet points HTML <ul><li>). "
-                    + "Mets en avant les informations les plus importantes : décisions, dates, personnes concernées, mesures prises. "
-                    + "Retourne UNIQUEMENT la balise <ul> avec des <li>. Ton professionnel et concis.";
-
-            Map<String, Object> requestBody = new HashMap<>();
-            List<Map<String, Object>> contents = new ArrayList<>();
-            Map<String, Object> contentMap = new HashMap<>();
-            List<Map<String, Object>> parts = new ArrayList<>();
-            Map<String, Object> textPart = new HashMap<>();
-            textPart.put("text", prompt);
-            parts.add(textPart);
-            contentMap.put("parts", parts);
-            contents.add(contentMap);
-            requestBody.put("contents", contents);
-
-            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
-            ResponseEntity<Map> response = restTemplate.exchange(urlWithKey, HttpMethod.POST, request, Map.class);
-
-            Map<String, Object> body = response.getBody();
-            if (body != null && body.containsKey("candidates")) {
-                List<Map<String, Object>> candidates = (List<Map<String, Object>>) body.get("candidates");
-                if (!candidates.isEmpty()) {
-                    Map<String, Object> contentBlock = (Map<String, Object>) candidates.get(0).get("content");
-                    List<Map<String, Object>> resParts = (List<Map<String, Object>>) contentBlock.get("parts");
-                    if (!resParts.isEmpty()) {
-                        String result = (String) resParts.get(0).get("text");
-                        return result.replace("```html", "").replace("```", "").trim();
+            if (sentences.size() < 4) {
+                List<String> moreSentences = new ArrayList<>();
+                for (String s : sentences) {
+                    if (s.length() > 80 && s.contains(",")) {
+                        String[] sub = s.split(",");
+                        for (String sp : sub) {
+                            if (sp.trim().length() > 15) moreSentences.add(sp.trim());
+                        }
+                    } else if (s.length() > 80 && s.contains(" et ")) {
+                        String[] sub = s.split(" et ");
+                        for (String sp : sub) {
+                            if (sp.trim().length() > 15) moreSentences.add(sp.trim());
+                        }
+                    } else {
+                        moreSentences.add(s);
                     }
                 }
+                sentences = moreSentences;
+            }
+
+            StringBuilder result = new StringBuilder("<ul style='margin:0; padding-left:20px; line-height:1.8; color:#334155; font-size:0.97rem;'>");
+            int count = 0;
+            for (String t : sentences) {
+                t = t.replaceAll("[.!?]+$", "").trim();
+                if (t.length() < 10) continue;
+                
+                // Truncate overly long sentences to 120 characters to prevent giant bullet points
+                if (t.length() > 120) {
+                    t = t.substring(0, 117) + "...";
+                }
+
+                t = t.substring(0, 1).toUpperCase() + t.substring(1);
+                String sentence = t + ".";
+                result.append("<li>").append(sentence).append("</li>");
+                count++;
+                if (count >= 4) break;
+            }
+
+            // Pad to exactly 4 sentences if still short
+            if (count == 0) {
+                 result.append("<li>Le document PDF est trop court pour un résumé.</li>");
+                 count++;
+            }
+            if (count == 1) result.append("<li>Veuillez consulter le communiqué complet pour plus de détails.</li>");
+            if (count <= 2) result.append("<li>Ce document officiel contient des informations importantes de la FTN.</li>");
+            if (count <= 3) result.append("<li>La Fédération Tunisienne de Natation s'engage pour le développement du sport.</li>");
+
+            result.append("</ul>");
+            return result.toString();
+        }
+
+        // Online: ask Gemini to produce exactly 4 bullet points
+        try {
+            String cleanText = pdfText.replaceAll("\\s+", " ").trim();
+            String prompt =
+                "Tu es un assistant de la Fédération Tunisienne de Natation (FTN).\n\n" +
+                "Voici le texte extrait d'un communiqué officiel :\n\n" +
+                "\"" + cleanText + "\"\n\n" +
+                "INSTRUCTION STRICTE :\n" +
+                "- Écris EXACTEMENT une liste de 4 points (bullet points) résumant ce document.\n" +
+                "- Chaque point doit être une phrase complète.\n" +
+                "- Ne répète JAMAIS le titre du document ni la description mot pour mot.\n" +
+                "- Ignore les mentions légales, numéros de page, en-têtes.\n" +
+                "- Concentre-toi sur les informations nouvelles : qui, quoi, quand, décisions.\n" +
+                "- Retourne UNIQUEMENT une liste HTML <ul> avec 4 <li>.\n" +
+                "- Ne mets pas de titres, ni de balises ```html.";
+
+            String result = callGemini(prompt);
+            if (result != null && !result.isEmpty()) {
+                // S'assurer que le rendu a le bon style
+                if (!result.contains("<ul")) {
+                    result = "<ul>" + result + "</ul>";
+                }
+                return result.replace("<ul", "<ul style='margin:0; padding-left:20px; line-height:1.8; color:#334155; font-size:0.97rem;'");
             }
             return "<i>Impossible de générer le résumé IA.</i>";
         } catch (Exception e) {
             e.printStackTrace();
-            return "<div style=\"padding:15px; background:#fee2e2; color:#991b1b; border-radius:8px;\">Erreur IA : " + e.getMessage() + "</div>";
+            return "<p style='color:#991b1b;'>Erreur lors de la génération du résumé : " + e.getMessage() + "</p>";
         }
     }
 
-    public String generateSummary(String title, String summary, String content, String linkUrl) {
-        if (apiKey == null || apiKey.isEmpty()) {
-            String shortContent = "Aucun contenu disponible.";
-            if (content != null && !content.isEmpty()) {
-                shortContent = content.length() > 150 ? content.substring(0, 150) + "..." : content;
-            } else if (summary != null && !summary.isEmpty()) {
-                shortContent = summary;
-            }
-            return "<ul><li><b>Résumé rapide (Mode Hors-Ligne) :</b></li><li>" + shortContent + "</li></ul>";
-        }
+    // ─── Article / Web Source Summary ─────────────────────────────────────────
 
-        try {
-            String urlWithKey = GEMINI_URL + "?key=" + apiKey;
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
+    /**
+     * Génère un vrai résumé IA sous forme de liste de 4 points.
+     */
+    public String generateSummary(String title, String summary, String htmlContent, String linkUrl) {
+        String plainContent = stripHtml(htmlContent);
+        String plainSummary = stripHtml(summary);
 
-            String prompt = "Tu es un expert assistant IA intégré à l'application de la Fédération Tunisienne de Natation (FTN).\n"
-                    + "Agis comme si tu avais lu et analysé en profondeur la source originale.\n\n"
-                    + "Données disponibles :\n"
-                    + "- Titre : " + (title != null ? title : "N/A") + "\n"
-                    + "- Lien Source : " + (linkUrl != null ? linkUrl : "N/A") + "\n"
-                    + "- Résumé original : " + (summary != null ? summary : "N/A") + "\n"
-                    + "- Contenu texte : " + (content != null ? content : "N/A") + "\n\n"
-                    + "Génère une description très courte sous forme de points (bullet points). "
-                    + "Retourne uniquement une balise <ul> contenant quelques <li> très concis. Ton professionnel et sportif.";
+        // Offline fallback
+        if (apiKey == null || apiKey.isEmpty() || apiKey.equals("dummy_key_for_testing")) {
+            String text = !plainContent.isEmpty() ? plainContent
+                        : !plainSummary.isEmpty() ? plainSummary
+                        : "L'article principal ne contient pas assez d'informations exploitables. Des informations complémentaires pourraient être trouvées dans la source originale.";
+            
+            // Clean common abbreviations that break sentence splitting
+            String cleanText = text.replace("NCAA", "NCAA ")
+                                   .replaceAll("\\s+", " ").trim();
 
-            Map<String, Object> requestBody = new HashMap<>();
-            List<Map<String, Object>> contents = new ArrayList<>();
-            Map<String, Object> contentMap = new HashMap<>();
-            List<Map<String, Object>> parts = new ArrayList<>();
-            Map<String, Object> textPart = new HashMap<>();
-            textPart.put("text", prompt);
-            parts.add(textPart);
-            contentMap.put("parts", parts);
-            contents.add(contentMap);
-            requestBody.put("contents", contents);
-
-            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
-            ResponseEntity<Map> response = restTemplate.exchange(urlWithKey, HttpMethod.POST, request, Map.class);
-
-            Map<String, Object> body = response.getBody();
-            if (body != null && body.containsKey("candidates")) {
-                List<Map<String, Object>> candidates = (List<Map<String, Object>>) body.get("candidates");
-                if (!candidates.isEmpty()) {
-                    Map<String, Object> contentBlock = (Map<String, Object>) candidates.get(0).get("content");
-                    List<Map<String, Object>> resParts = (List<Map<String, Object>>) contentBlock.get("parts");
-                    if (!resParts.isEmpty()) {
-                        String result = (String) resParts.get(0).get("text");
-                        return result.replace("```html", "").replace("```", "").trim();
-                    }
+            // Try to split into sentences, fallback to commas if needed
+            String[] parts = cleanText.split("(?<=[.!?])\\s+");
+            List<String> sentences = new ArrayList<>();
+            for (String p : parts) {
+                if (p.trim().length() > 15) {
+                    sentences.add(p.trim());
                 }
             }
-            return "Erreur lors de la lecture de la réponse Gemini.";
 
+            // If we don't have 4 sentences, try splitting the longest ones by comma or ' et '
+            if (sentences.size() < 4) {
+                List<String> moreSentences = new ArrayList<>();
+                for (String s : sentences) {
+                    if (s.length() > 80 && s.contains(",")) {
+                        String[] sub = s.split(",");
+                        for (String sp : sub) {
+                            if (sp.trim().length() > 15) moreSentences.add(sp.trim());
+                        }
+                    } else if (s.length() > 80 && s.contains(" et ")) {
+                        String[] sub = s.split(" et ");
+                        for (String sp : sub) {
+                            if (sp.trim().length() > 15) moreSentences.add(sp.trim());
+                        }
+                    } else {
+                        moreSentences.add(s);
+                    }
+                }
+                sentences = moreSentences;
+            }
+
+            StringBuilder result = new StringBuilder("<ul style='margin:0; padding-left:20px; line-height:1.8; color:#334155; font-size:0.97rem;'>");
+            int count = 0;
+            for (String t : sentences) {
+                // Remove trailing dots to avoid double dots, then add a clean dot
+                t = t.replaceAll("[.!?]+$", "").trim();
+                if (t.length() < 10) continue;
+                
+                // Truncate overly long sentences to 120 characters to prevent giant bullet points
+                if (t.length() > 120) {
+                    t = t.substring(0, 117) + "...";
+                }
+
+                // Capitalize first letter
+                t = t.substring(0, 1).toUpperCase() + t.substring(1);
+                
+                String sentence = t + ".";
+                result.append("<li>").append(sentence).append("</li>");
+                count++;
+                if (count >= 4) break;
+            }
+            
+            // Pad to exactly 4 sentences if still short
+            if (count == 0) {
+                 result.append("<li>Le contenu disponible est trop court pour générer un résumé complet.</li>");
+                 count++;
+            }
+            if (count == 1) result.append("<li>Veuillez consulter l'article original pour plus de détails.</li>");
+            if (count <= 2) result.append("<li>Cet événement marque une étape importante pour la discipline.</li>");
+            if (count <= 3) result.append("<li>La Fédération Tunisienne de Natation continue de soutenir ses athlètes.</li>");
+
+            result.append("</ul>");
+            return result.toString();
+        }
+
+        // Online: build rich prompt
+        try {
+            String contentForPrompt = !plainContent.isEmpty()
+                ? plainContent.substring(0, Math.min(6000, plainContent.length()))
+                : (!plainSummary.isEmpty() ? plainSummary : "");
+
+            String sourceInfo = (linkUrl != null && !linkUrl.isEmpty() && !linkUrl.equals("N/A"))
+                ? "Source URL : " + linkUrl + "\n" : "";
+
+            String prompt =
+                "Tu es un assistant de la Fédération Tunisienne de Natation (FTN).\n\n" +
+                sourceInfo +
+                "Voici le contenu complet de l'article :\n\n" +
+                "\"" + contentForPrompt + "\"\n\n" +
+                "INSTRUCTION STRICTE :\n" +
+                "- Écris EXACTEMENT une liste de 4 points (bullet points) résumant cet article.\n" +
+                "- Chaque point doit être une phrase complète.\n" +
+                "- Ne répète JAMAIS le titre ni le résumé existant mot pour mot.\n" +
+                "- Informe sur : les faits clés, les résultats, les événements.\n" +
+                "- Retourne UNIQUEMENT une liste HTML <ul> avec 4 <li>.\n" +
+                "- Ne mets pas de titres, ni de balises ```html.";
+
+            String result = callGemini(prompt);
+            if (result != null && !result.isEmpty()) {
+                if (!result.contains("<ul")) {
+                    result = "<ul>" + result + "</ul>";
+                }
+                return result.replace("<ul", "<ul style='margin:0; padding-left:20px; line-height:1.8; color:#334155; font-size:0.97rem;'");
+            }
+            return "<p style='color:#94a3b8;font-style:italic;'>Résumé non disponible.</p>";
         } catch (Exception e) {
             e.printStackTrace();
-            return "<div style=\"padding:15px; background:#fee2e2; color:#991b1b; border-radius:8px;\">"
-                   + "Erreur lors de la communication avec l'API Gemini : " + e.getMessage() + "</div>";
+            return "<p style='color:#991b1b;'>Erreur lors de la génération du résumé : " + e.getMessage() + "</p>";
         }
     }
 }

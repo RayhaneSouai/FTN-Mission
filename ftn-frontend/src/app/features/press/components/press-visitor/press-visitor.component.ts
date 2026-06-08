@@ -303,6 +303,7 @@ export class PressVisitorComponent implements OnInit {
 
   getArticleImage(item: any, index: number = 0): string {
     if (!item) return '';
+    if (item.type === 'VIDEO' && item.mediaUrl) return this.pressService.getVideoThumbnail(item.mediaUrl);
     if (item.mediaUrl) return item.mediaUrl;
     if (item.gallery) {
       const imgs = this.getGalleryImages(item.gallery);

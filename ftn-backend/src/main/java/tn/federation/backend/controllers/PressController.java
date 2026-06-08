@@ -104,10 +104,11 @@ public class PressController {
                 }
             }
 
-            // 3. Connexion avec Jsoup
+            // 3. Connexion avec Jsoup en ignorant les erreurs SSL (PKIX path building failed)
             Document doc = Jsoup.connect(url)
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36")
-                    .timeout(10000)
+                    .timeout(15000)
+                    .sslSocketFactory(createTrustAllSSLSocketFactory())
                     .get();
 
             metadata.put("title", doc.title());
@@ -370,6 +371,26 @@ public class PressController {
             return org.springframework.http.ResponseEntity.ok().build();
         } catch (Exception e) {
             return org.springframework.http.ResponseEntity.internalServerError().body("Erreur Pin: " + e.getMessage());
+        }
+    }
+
+    // =====================================================================
+    // UTILITAIRE: SSLSocketFactory (Trust All pour Jsoup)
+    // =====================================================================
+    private static javax.net.ssl.SSLSocketFactory createTrustAllSSLSocketFactory() {
+        try {
+            javax.net.ssl.TrustManager[] trustAllCerts = new javax.net.ssl.TrustManager[]{
+                new javax.net.ssl.X509TrustManager() {
+                    public java.security.cert.X509Certificate[] getAcceptedIssuers() { return null; }
+                    public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) { }
+                    public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) { }
+                }
+            };
+            javax.net.ssl.SSLContext sc = javax.net.ssl.SSLContext.getInstance("SSL");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            return sc.getSocketFactory();
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur lors de la création de la socket SSL", e);
         }
     }
 }

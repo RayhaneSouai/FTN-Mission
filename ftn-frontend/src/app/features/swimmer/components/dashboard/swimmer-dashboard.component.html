@@ -159,7 +159,8 @@
       <div class="premium-grid">
         <div *ngFor="let item of news | slice:0:3" class="premium-card animate__animated animate__fadeInUp">
           <div class="premium-image-wrapper">
-            <img *ngIf="item.mediaUrl" [src]="item.mediaUrl" alt="News Image">
+            <img *ngIf="item.mediaUrl && item.type !== 'VIDEO'" [src]="item.mediaUrl" alt="News Image">
+            <img *ngIf="item.mediaUrl && item.type === 'VIDEO'" [src]="pressService.getVideoThumbnail(item.mediaUrl)" alt="News Image">
             <div *ngIf="!item.mediaUrl" class="premium-placeholder" style="height: 100%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">
               📰
             </div>
