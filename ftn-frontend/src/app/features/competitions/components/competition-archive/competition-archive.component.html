@@ -1,0 +1,133 @@
+<div class="archive-page">
+  <!-- ══════ HERO BANNER ══════ -->
+  <section class="comp-hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <h1>Archives des compétitions</h1>
+      <p>Historique des compétitions passées et de leurs résultats</p>
+    </div>
+  </section>
+
+  <div class="archive-content">
+  <!-- Filters -->
+  <div class="archive-filters">
+    <div class="filter-search">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input
+        type="text"
+        placeholder="Rechercher une compétition..."
+        [value]="searchTerm()"
+        (input)="searchTerm.set($any($event.target).value)"
+        class="filter-input"
+      />
+    </div>
+    <select class="filter-select" [value]="selectedYear() ?? ''" (change)="selectedYear.set($any($event.target).value ? +$any($event.target).value : null)">
+      <option value="">Toutes les années</option>
+      @for (year of availableYears(); track year) {
+        <option [value]="year">{{ year }}</option>
+      }
+    </select>
+    <select class="filter-select" [value]="selectedDiscipline()" (change)="selectedDiscipline.set($any($event.target).value)">
+      <option value="">Toutes les disciplines</option>
+      @for (d of disciplines; track d) {
+        <option [value]="d">{{ getDisciplineLabel(d) }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="archive-loading">
+      <div class="spinner"></div>
+      <p>Chargement des archives...</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="archive-error">{{ error() }}</div>
+  }
+
+  <!-- Empty state -->
+  @if (!loading() && !error() && archives().length === 0) {
+    <div class="archive-empty">
+      <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none"
+        stroke="#d1d5db" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="21 8 21 21 3 21 3 8"/>
+        <rect x="1" y="3" width="22" height="5"/>
+        <line x1="10" y1="12" x2="14" y2="12"/>
+      </svg>
+      <p>Aucune compétition archivée pour le moment.</p>
+      <span>Les compétitions passées apparaîtront ici une fois archivées.</span>
+    </div>
+  }
+
+  <!-- No filter results -->
+  @if (!loading() && !error() && archives().length > 0 && filtered().length === 0) {
+    <div class="archive-empty">
+      <p>Aucune compétition ne correspond à votre recherche.</p>
+    </div>
+  }
+
+  <!-- Archive list grouped by year -->
+  @if (!loading() && !error() && filtered().length > 0) {
+    <div class="archive-groups">
+      @for (group of groupedByYear(); track group[0]) {
+        <div class="archive-year-group">
+          <h2 class="year-heading">{{ group[0] }}</h2>
+          <div class="archive-list">
+            @for (comp of group[1]; track comp.id) {
+              <div class="archive-card">
+                <div class="archive-card-main">
+                  <div class="archive-card-info">
+                    <h3 class="archive-card-name">{{ comp.name }}</h3>
+                    <div class="archive-card-meta">
+                      @if (comp.lieu) {
+                        <span class="meta-item">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                          </svg>
+                          {{ comp.lieu }}
+                        </span>
+                      }
+                      <span class="meta-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        {{ formatDateRange(comp.startDate, comp.endDate) }}
+                      </span>
+                      <span class="discipline-tag">{{ getDisciplineLabel(comp.discipline) }}</span>
+                      @if (comp.allowedCategories && comp.allowedCategories.length > 0) {
+                        <span class="category-tag">{{ comp.allowedCategories.join(', ') }}</span>
+                      }
+                    </div>
+                  </div>
+                  <div class="archive-card-actions">
+                    <a [routerLink]="['/competitions', comp.id, 'resultat']" class="btn-results">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 6 9 6 9Z"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 18 9 18 9Z"/>
+                        <path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+                        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+                      </svg>
+                      Voir les résultats
+                    </a>
+                    <a [routerLink]="['/competitions', comp.id]" class="btn-details">
+                      Détails
+                    </a>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+  </div>
+</div>

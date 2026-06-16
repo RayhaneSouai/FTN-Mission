@@ -49,7 +49,13 @@
   <nav class="navbar-nav">
     <div class="nav-links">
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" class="nav-link">ACCUEIL</a>
-      <a routerLink="/competitions" routerLinkActive="active" class="nav-link">COMPÉTITIONS</a>
+      <div class="nav-dropdown">
+        <a class="nav-link has-dropdown">COMPÉTITIONS <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
+        <div class="dropdown-content">
+          <a routerLink="/competitions">Compétitions</a>
+          <a routerLink="/competitions/archives">Archives</a>
+        </div>
+      </div>
       <a routerLink="/clubs" routerLinkActive="active" class="nav-link">CLUBS</a>
       <div class="nav-dropdown">
         <a routerLink="/formations" routerLinkActive="active" class="nav-link has-dropdown">FORMATION <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></a>

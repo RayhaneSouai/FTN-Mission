@@ -69,6 +69,7 @@ export interface Competition {
   medicalCertificateRequired?: boolean;
   hasMinimas?: boolean;
   minimaTime?: number | null;
+  isArchived?: boolean;
 }
 
 /** Backend response for GET /api/competitions/get/:id */

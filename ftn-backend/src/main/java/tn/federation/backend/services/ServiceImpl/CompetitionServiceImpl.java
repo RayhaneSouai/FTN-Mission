@@ -10,6 +10,7 @@ import tn.federation.backend.repositories.CompetitionRepository;
 import tn.federation.backend.services.Abstraction.ICompetitionService;
 import tn.federation.backend.utils.AgeCategoryUtil;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -79,6 +80,20 @@ public class CompetitionServiceImpl implements ICompetitionService {
     @Override
     public List<Competition> getAllCompetitions() {
         return (List<Competition>) competitionRepository.findAll();
+    }
+
+    @Override
+    public Competition archiveCompetition(long id) {
+        Competition comp = competitionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Competition not found: " + id));
+        comp.setArchived(true);
+        return competitionRepository.save(comp);
+    }
+
+    @Override
+    public List<Competition> getArchivedCompetitions() {
+        LocalDate firstDayOfCurrentMonth = LocalDate.now().withDayOfMonth(1);
+        return competitionRepository.findArchivedOrEndedBefore(firstDayOfCurrentMonth);
     }
 
     /**

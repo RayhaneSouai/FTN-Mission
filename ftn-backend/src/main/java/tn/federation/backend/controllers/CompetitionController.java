@@ -71,6 +71,11 @@ public class CompetitionController {
         return competitionService.getAllCompetitions();
     }
 
+    @GetMapping("/archived")
+    public List<Competition> getArchivedCompetitions() {
+        return competitionService.getArchivedCompetitions();
+    }
+
     @GetMapping("/{id}/participants")
     public List<ParticipationResponseDTO> getApprovedParticipants(@PathVariable Long id) {
         return participationRepository.findByCompetitionIdAndStatus(id, ParticipationRequestStatus.APPROVED)
