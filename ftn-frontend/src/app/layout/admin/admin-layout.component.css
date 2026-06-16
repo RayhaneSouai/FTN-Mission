@@ -116,6 +116,16 @@
   border-left-color: #00d2ff;
 }
 
+.sidebar-link--sub {
+  padding-left: 36px;
+  font-size: 0.83rem;
+  opacity: 0.85;
+}
+
+.sidebar-link--sub.active {
+  opacity: 1;
+}
+
 .return-link {
   margin-top: auto;
   border-top: 1px solid rgba(255, 255, 255, 0.1);

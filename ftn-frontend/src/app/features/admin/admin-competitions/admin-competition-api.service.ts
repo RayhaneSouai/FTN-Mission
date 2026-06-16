@@ -32,6 +32,11 @@ export class AdminCompetitionApiService {
         return this.http.delete<void>(`${this.baseUrl}/delete/${id}`);
     }
 
+    /** Archive a competition (move it to the archives) */
+    archive(id: number): Observable<Competition> {
+        return this.http.post<Competition>(`${this.baseUrl}/${id}/archive`, {});
+    }
+
     /** Generate participant distribution for a competition */
     generateDistribution(competitionId: number): Observable<DistributionResponse> {
         return this.http.post<DistributionResponse>(

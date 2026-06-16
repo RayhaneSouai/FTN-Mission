@@ -39,6 +39,13 @@ const routes: Routes = [
       { path: 'competitions', component: AdminCompetitionsComponent },
       { path: 'competitions/:id/programme', component: AdminProgrammeComponent },
       { path: 'competitions/:id/distribution', component: AdminDistributionComponent },
+      {
+        path: 'competitions/archives',
+        loadComponent: () =>
+          import('./features/competitions/components/competition-archive/competition-archive.component').then(
+            m => m.CompetitionArchiveComponent
+          )
+      },
       { path: 'participations', component: AdminParticipationsComponent },
       {
         path: 'clubs',

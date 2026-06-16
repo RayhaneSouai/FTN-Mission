@@ -9,6 +9,13 @@ export const COMPETITION_ROUTES: Routes = [
         children: [
             { path: '', component: CompetitionListComponent },
             {
+                path: 'archives',
+                loadComponent: () =>
+                    import('./components/competition-archive/competition-archive.component').then(
+                        (m) => m.CompetitionArchiveComponent
+                    ),
+            },
+            {
                 path: ':id',
                 loadComponent: () =>
                     import('./components/competition-details/competition-details.component').then(

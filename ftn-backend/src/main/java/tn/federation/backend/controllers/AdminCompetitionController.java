@@ -45,4 +45,9 @@ public class AdminCompetitionController {
     public Competition getCompetitionById(@PathVariable long id) {
         return competitionService.getCompetitionById(id);
     }
+
+    @PostMapping("/{id}/archive")
+    public Competition archiveCompetition(@PathVariable long id) {
+        return competitionService.archiveCompetition(id);
+    }
 }

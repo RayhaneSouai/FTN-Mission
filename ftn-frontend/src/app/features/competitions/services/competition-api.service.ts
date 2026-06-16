@@ -46,4 +46,16 @@ export class CompetitionApiService {
             `${this.baseUrl}/${competitionId}/distribution`
         );
     }
+
+    /** Get all archived competitions */
+    getArchivedCompetitions(): Observable<Competition[]> {
+        return this.http.get<Competition[]>(`${this.baseUrl}/archived`);
+    }
+
+    /** Archive a competition (admin only) */
+    archiveCompetition(id: number): Observable<Competition> {
+        return this.http.post<Competition>(
+            `http://localhost:8083/ftn/api/admin/competitions/${id}/archive`, {}
+        );
+    }
 }

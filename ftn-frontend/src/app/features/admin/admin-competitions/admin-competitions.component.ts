@@ -86,8 +86,14 @@ function dateRangeValidator(control: AbstractControl): ValidationErrors | null {
                     <button class="admin-action-icon admin-action-icon--danger" (click)="confirmDelete(comp)" title="Supprimer" aria-label="Supprimer">
                       <span class="material-symbols-outlined" aria-hidden="true">delete</span>
                     </button>
+                  } @else if (isInArchive(comp)) {
+                    <button class="admin-action-icon admin-action-icon--archived" disabled title="Déjà aux archives" aria-label="Déjà aux archives">
+                      <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
+                    </button>
                   } @else {
-                    <span class="lock-badge"><span class="material-symbols-outlined" aria-hidden="true">lock</span> Verrouillée</span>
+                    <button class="admin-action-icon admin-action-icon--archive" (click)="confirmArchive(comp)" title="Placer aux archives" aria-label="Placer aux archives">
+                      <span class="material-symbols-outlined" aria-hidden="true">archive</span>
+                    </button>
                   }
                 </td>
               </tr>
@@ -301,6 +307,20 @@ function dateRangeValidator(control: AbstractControl): ValidationErrors | null {
         </div>
       </div>
     }
+
+    <!-- Archive confirm -->
+    @if (archiveTarget()) {
+      <div class="modal-backdrop" (click)="archiveTarget.set(null)">
+        <div class="modal-content modal-content--sm" (click)="$event.stopPropagation()">
+          <h3>Placer aux archives</h3>
+          <p>Voulez-vous placer <strong>{{ archiveTarget()!.name }}</strong> aux archives ?</p>
+          <div class="form-actions">
+            <button class="btn-cancel" (click)="archiveTarget.set(null)">Annuler</button>
+            <button class="btn-submit" (click)="onArchiveConfirmed()">Placer aux archives</button>
+          </div>
+        </div>
+      </div>
+    }
   `,
   styles: [`
     .admin-competitions { padding: 1.5rem; }
@@ -325,12 +345,14 @@ function dateRangeValidator(control: AbstractControl): ValidationErrors | null {
       &.approved { background: #d1e7dd; color: #0f5132; }
       &.none { background: #e9ecef; color: #6c757d; }
     }
-    .action-cell { display: flex; gap: 0.4rem; flex-wrap: wrap; }
-    .lock-badge {
-      display: inline-flex; align-items: center; gap: 0.25rem;
-      font-size: 0.7rem; font-weight: 600; color: #6c757d; padding: 0.3rem 0.6rem;
-      background: #f1f3f5; border-radius: 6px; white-space: nowrap;
-      .material-symbols-outlined { font-size: 16px; }
+    .action-cell { display: flex; align-items: center; gap: 0.4rem; flex-wrap: nowrap; }
+    .admin-action-icon--archive {
+      color: #1565C0; border-color: #bbdefb;
+      &:hover { background: #e3f2fd; border-color: #90caf9; color: #0d47a1; }
+    }
+    .admin-action-icon--archived {
+      color: #2e7d32; border-color: #c8e6c9; background: #f1f8f3; cursor: not-allowed; opacity: 0.7;
+      &:hover { background: #f1f8f3; border-color: #c8e6c9; color: #2e7d32; }
     }
     .empty { text-align: center; padding: 3rem; color: #6c757d; font-size: 0.9rem; }
 
@@ -442,6 +464,7 @@ export class AdminCompetitionsComponent implements OnInit {
   modalOpen = signal(false);
   editingComp = signal<Competition | null>(null);
   deleteTarget = signal<Competition | null>(null);
+  archiveTarget = signal<Competition | null>(null);
   selectedRegion = signal('');
 
   readonly disciplines = Object.entries(DISCIPLINE_LABELS).map(([value, label]) => ({ value, label }));
@@ -502,6 +525,16 @@ export class AdminCompetitionsComponent implements OnInit {
   }
 
   disciplineLabel(d: string): string { return (DISCIPLINE_LABELS as Record<string, string>)[d] ?? d; }
+
+  /** A competition is already in the archive if the admin archived it,
+   *  or if it ended before the first day of the current month (past months). */
+  isInArchive(comp: Competition): boolean {
+    if (comp.isArchived) return true;
+    if (!comp.endDate) return false;
+    const now = new Date();
+    const firstDayOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    return new Date(comp.endDate) < firstDayOfCurrentMonth;
+  }
 
   ngOnInit(): void {
     this.loadAll();
@@ -597,5 +630,19 @@ export class AdminCompetitionsComponent implements OnInit {
     const comp = this.deleteTarget();
     if (!comp) return;
     this.api.delete(comp.id).subscribe(() => { this.loadAll(); this.deleteTarget.set(null); });
+  }
+
+  confirmArchive(comp: Competition): void {
+    this.archiveTarget.set(comp);
+  }
+
+  onArchiveConfirmed(): void {
+    const comp = this.archiveTarget();
+    if (!comp) return;
+    this.api.archive(comp.id).subscribe(() => {
+      this.toast.showSuccess('Compétition placée aux archives');
+      this.loadAll();
+      this.archiveTarget.set(null);
+    });
   }
 }

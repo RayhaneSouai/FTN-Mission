@@ -21,12 +21,12 @@ import java.time.LocalDateTime;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
-    
+
     private final UserRepository userRepository;
     private final ClubRepository clubRepository;
     private final IPressItemRepository pressItemRepository;
     private final PasswordEncoder passwordEncoder;
-    
+
     private static final String ADMIN_EMAIL = "admin@ftn.tn";
     private static final String ADMIN_PASSWORD = "admin123";
     private static final String ADMIN_FIRST_NAME = "Admin";
@@ -35,7 +35,8 @@ public class DataInitializer implements CommandLineRunner {
     private static final String SWIMMER_EMAIL = "nageur@ftn.tn";
     private static final String SWIMMER_PASSWORD = "nageur123";
 
-    public DataInitializer(UserRepository userRepository, ClubRepository clubRepository, IPressItemRepository pressItemRepository, PasswordEncoder passwordEncoder) {
+    public DataInitializer(UserRepository userRepository, ClubRepository clubRepository,
+            IPressItemRepository pressItemRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.clubRepository = clubRepository;
         this.pressItemRepository = pressItemRepository;
@@ -79,10 +80,10 @@ public class DataInitializer implements CommandLineRunner {
             swimmer.setDiscipline(Discipline.NATATION);
             System.out.println("✅ Création du compte SWIMMER de test...");
         }
-        
+
         // FORCE RESET du mot de passe pour les tests
         swimmer.setPasswordHash(passwordEncoder.encode(SWIMMER_PASSWORD));
-        
+
         swimmer.setRole(Role.SWIMMER);
         swimmer.setActive(true);
         swimmer.setRegistrationStatus(RegistrationStatus.CONFIRMEE);
@@ -119,13 +120,16 @@ public class DataInitializer implements CommandLineRunner {
             club.setManager("Mohamed Ben Salah");
             clubRepository.save(club);
             System.out.println("✅ Club par défaut créé avec succès!");
+        }
         // ── Articles & Vidéos par défaut ────────────────────────────────
         if (pressItemRepository.count() == 0) {
             System.out.println("✅ Initialisation des articles de presse par défaut...");
-            
+
             PressItem item1 = new PressItem();
-            item1.setTitle("Nos Dernières Informations sur fédération tunisienne de natation - Webdo.tn - L'Info Sans Détour.");
-            item1.setContent("Le Bureau directeur de la Fédération tunisienne de natation a annoncé sa démission dans un communiqué publié vendredi soir. La.");
+            item1.setTitle(
+                    "Nos Dernières Informations sur fédération tunisienne de natation - Webdo.tn - L'Info Sans Détour.");
+            item1.setContent(
+                    "Le Bureau directeur de la Fédération tunisienne de natation a annoncé sa démission dans un communiqué publié vendredi soir. La.");
             item1.setMediaUrl("https://www.webdo.tn/fr/wp-content/uploads/2026/04/Natation.jpg");
             item1.setLinkUrl("https://www.webdo.tn/fr/actualite/federation-tunisienne-de-natation/");
             item1.setDiscipline("Général");
@@ -138,9 +142,11 @@ public class DataInitializer implements CommandLineRunner {
 
             PressItem item2 = new PressItem();
             item2.setTitle("Natation : Hafnaoui en or, Jaouadi en argent... la Tunisie frappe fort aux NCAA - webdo");
-            item2.setContent("La natation tunisienne a brillé aux États-Unis. Lors de la dernière journée des championnats universitaires américains (NCAA), Ayoub Hafnaoui et");
+            item2.setContent(
+                    "La natation tunisienne a brillé aux États-Unis. Lors de la dernière journée des championnats universitaires américains (NCAA), Ayoub Hafnaoui et");
             item2.setMediaUrl("https://www.youtube.com/watch?v=FCVah2QUlKg");
-            item2.setLinkUrl("https://www.webdo.tn/fr/actualite/sport/natation-hafnaoui-en-or-jaouadi-en-argent-la-tunisie-frappe-fort-aux-ncaa/395327/#google_vignette");
+            item2.setLinkUrl(
+                    "https://www.webdo.tn/fr/actualite/sport/natation-hafnaoui-en-or-jaouadi-en-argent-la-tunisie-frappe-fort-aux-ncaa/395327/#google_vignette");
             item2.setDiscipline("Plongeon");
             item2.setType(PressType.VIDEO);
             item2.setStatus(PressStatus.PUBLISHED);
@@ -151,7 +157,8 @@ public class DataInitializer implements CommandLineRunner {
 
             PressItem item3 = new PressItem();
             item3.setTitle("Ahmed Jaouadi: Double World Champion \uD83C\uDFC6\uD83C\uDFC6 - YouTube");
-            item3.setContent("Two titles. One statement.Ahmed Jaouadi delivered a historic performance to become a double world champion, showcasing strength, composure, and world-class r...");
+            item3.setContent(
+                    "Two titles. One statement.Ahmed Jaouadi delivered a historic performance to become a double world champion, showcasing strength, composure, and world-class r...");
             item3.setMediaUrl("https://www.youtube.com/watch?v=RekjMo426is");
             item3.setLinkUrl("https://www.youtube.com/watch?v=RekjMo426is");
             item3.setDiscipline("Général");
@@ -163,10 +170,12 @@ public class DataInitializer implements CommandLineRunner {
             pressItemRepository.save(item3);
 
             PressItem item4 = new PressItem();
-            item4.setTitle("Natation - South Sectional Championship : Hafnaoui domine les 400m et 1500m NL - Tunisie Numerique");
+            item4.setTitle(
+                    "Natation - South Sectional Championship : Hafnaoui domine les 400m et 1500m NL - Tunisie Numerique");
             item4.setContent("Natation - South Sectional Championship : Hafnaoui domine les 400m et 1500m NL");
             item4.setMediaUrl("https://www.tunisienumerique.com/wp-content/uploads/2026/06/HafnaouiTN46-1000x600.jpg");
-            item4.setLinkUrl("https://www.tunisienumerique.com/natation-south-sectional-championship-hafnaoui-domine-les-400m-et-1500m-nl/");
+            item4.setLinkUrl(
+                    "https://www.tunisienumerique.com/natation-south-sectional-championship-hafnaoui-domine-les-400m-et-1500m-nl/");
             item4.setDiscipline("Général");
             item4.setType(PressType.ARTICLE);
             item4.setStatus(PressStatus.PUBLISHED);
@@ -174,7 +183,7 @@ public class DataInitializer implements CommandLineRunner {
             item4.setPublishedAt(LocalDateTime.of(2026, 6, 8, 22, 10, 42));
             item4.setCreatedAt(LocalDateTime.of(2026, 6, 8, 21, 10, 9));
             pressItemRepository.save(item4);
-            
+
             System.out.println("✅ Articles de presse insérés avec succès!");
         }
     }

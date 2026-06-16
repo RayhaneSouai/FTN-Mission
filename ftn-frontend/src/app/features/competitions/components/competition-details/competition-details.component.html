@@ -10,14 +10,58 @@
         </a>
 
         @if (state.selectedCompetition(); as comp) {
-        <h1 class="details-title">{{ comp.name }}</h1>
-        <p class="details-subtitle">
-            {{ comp.startDate | date:'dd MMM yyyy' }} — {{ comp.endDate | date:'dd MMM yyyy' }}
-        </p>
+        <div class="header-title-row">
+            <div>
+                <h1 class="details-title">{{ comp.name }}</h1>
+                <p class="details-subtitle">
+                    {{ comp.startDate | date:'dd MMM yyyy' }} — {{ comp.endDate | date:'dd MMM yyyy' }}
+                </p>
+            </div>
+            @if (isAdmin() && comp.programmeStatus === 'APPROVED') {
+            <div class="admin-actions">
+                @if (!comp.isArchived) {
+                <button class="btn-archive-action" (click)="confirmArchive()" [disabled]="archiving()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="21 8 21 21 3 21 3 8"/>
+                        <rect x="1" y="3" width="22" height="5"/>
+                        <line x1="10" y1="12" x2="14" y2="12"/>
+                    </svg>
+                    {{ archiving() ? 'Archivage...' : 'Placer aux archives' }}
+                </button>
+                } @else {
+                <span class="archived-badge">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="21 8 21 21 3 21 3 8"/>
+                        <rect x="1" y="3" width="22" height="5"/>
+                        <line x1="10" y1="12" x2="14" y2="12"/>
+                    </svg>
+                    Archivée
+                </span>
+                }
+            </div>
+            }
+        </div>
         } @else if (state.isLoading()) {
         <h1 class="details-title">Chargement...</h1>
         }
     </header>
+
+    <!-- Archive confirmation dialog -->
+    @if (showArchiveConfirm()) {
+    <div class="archive-confirm-overlay">
+        <div class="archive-confirm-dialog">
+            <h3>Archiver la compétition</h3>
+            <p>Cette compétition sera marquée comme archivée et apparaîtra dans les archives. Elle restera visible dans la liste des compétitions actives.</p>
+            <p>Continuer ?</p>
+            <div class="archive-confirm-actions">
+                <button class="btn-confirm-archive" (click)="doArchive()">Confirmer</button>
+                <button class="btn-cancel-archive" (click)="cancelArchive()">Annuler</button>
+            </div>
+        </div>
+    </div>
+    }
 
     <!-- Tabs -->
     <nav class="tabs-nav">
