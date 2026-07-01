@@ -151,7 +151,7 @@ export class PressListComponent implements OnInit {
 
   // ── Pagination ──────────────────────────────────────────────────────────
   currentPage = 1;
-  itemsPerPage = 3;
+  itemsPerPage = 4;
 
   get pagedItems(): PressItem[] {
     const start = (this.currentPage - 1) * this.itemsPerPage;
@@ -178,6 +178,7 @@ export class PressListComponent implements OnInit {
   onStatusFilterChange(status: string): void {
     console.log('Changement de filtre statut vers:', status);
     this.filterStatus = status;
+    this.currentPage = 1;
   }
 
   goToAdd(): void { 

@@ -15,4 +15,8 @@ public interface ICompetitionService {
     Competition getCompetitionById(long id);
 
     List<Competition> getAllCompetitions();
+
+    Competition archiveCompetition(long id);
+
+    List<Competition> getArchivedCompetitions();
 }

@@ -112,20 +112,20 @@
 
         <div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600; margin-bottom: 15px; display: flex; gap: 15px;">
           <span><i class="bi bi-person"></i> {{ item.author || 'Admin' }}</span>
+          <span title="Vues" style="color: #f59e0b;"><i class="bi bi-eye"></i> {{ item.views || 0 }}</span>
+          <span title="Téléchargements" style="color: #10b981;"><i class="bi bi-download"></i> {{ item.downloadsCount || 0 }}</span>
         </div>
 
         <div class="card-actions admin-row-actions admin-row-actions--end">
           <ng-container *ngIf="item.status !== 'DELETED'">
-            <!-- DRAFT state -->
-            <button class="admin-action-icon" title="Publier directement" aria-label="Publier directement" *ngIf="item.status === 'DRAFT' || item.status === 'SCHEDULED'" (click)="publish(item, $event)"><span class="material-symbols-outlined" aria-hidden="true">send</span></button>
+            <!-- Bouton Publier : visible si l'article n'est PAS encore publié -->
+            <button class="admin-action-icon" title="Publier (visible par les nageurs)" aria-label="Publier" *ngIf="item.status !== 'PUBLISHED'" (click)="publish(item, $event)" style="color: #16a34a;">
+              <span class="material-symbols-outlined" aria-hidden="true">send</span>
+            </button>
 
             <!-- PUBLISHED state -->
             <button class="admin-action-icon" title="Archiver" aria-label="Archiver" *ngIf="item.status === 'PUBLISHED'" (click)="archive(item, $event)"><span class="material-symbols-outlined" aria-hidden="true">archive</span></button>
             <button class="admin-action-icon" title="Remettre en brouillon" aria-label="Remettre en brouillon" *ngIf="item.status === 'PUBLISHED'" (click)="setDraft(item, $event)"><span class="material-symbols-outlined" aria-hidden="true">draft</span></button>
-
-            <!-- ARCHIVED state -->
-            <button class="admin-action-icon" title="Re-publier" aria-label="Re-publier" *ngIf="item.status === 'ARCHIVED'" (click)="publish(item, $event)"><span class="material-symbols-outlined" aria-hidden="true">send</span></button>
-            <button class="admin-action-icon" title="Mettre en brouillon" aria-label="Mettre en brouillon" *ngIf="item.status === 'ARCHIVED'" (click)="setDraft(item, $event)"><span class="material-symbols-outlined" aria-hidden="true">draft</span></button>
 
             <!-- Always visible -->
             <button class="admin-action-icon" title="Aperçu / Traduction / Recap IA" aria-label="Aperçu / Traduction / Recap IA" (click)="openArticle(item)"><span class="material-symbols-outlined" aria-hidden="true">visibility</span></button>

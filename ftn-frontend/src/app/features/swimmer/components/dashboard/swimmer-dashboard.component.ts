@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { SwimmerService } from '../../services/swimmer.service';
 
+import { PressService } from '../../../press/services/press.service';
+
 @Component({
   selector: 'app-swimmer-dashboard',
   templateUrl: './swimmer-dashboard.component.html',
@@ -15,7 +17,10 @@ export class SwimmerDashboardComponent implements OnInit {
   loading = true;
   error = false;
 
-  constructor(private swimmerService: SwimmerService) {}
+  constructor(
+    private swimmerService: SwimmerService,
+    public pressService: PressService
+  ) {}
 
   ngOnInit() {
     const stored = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('user') : null;

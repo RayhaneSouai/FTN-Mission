@@ -1,6 +1,7 @@
 package tn.federation.backend.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
 import jakarta.persistence.*;
@@ -117,4 +118,11 @@ public class Competition {
      */
     @Column(name = "minima_time")
     private Double minimaTime;
+
+    /* ─── Archive ─── */
+
+    /** Whether this competition has been archived (historical / completed) */
+    @Column(name = "is_archived", nullable = false)
+    @JsonProperty("isArchived")
+    private boolean archived = false;
 }

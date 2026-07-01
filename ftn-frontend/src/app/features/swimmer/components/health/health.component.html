@@ -1,0 +1,254 @@
+<div style="padding:24px;max-width:1200px;margin:0 auto;font-family:'Inter', sans-serif;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+    <h2 style="font-size:1.8rem;color:#1e293b;margin:0;font-weight:800;">❤️ Santé & Récupération</h2>
+    <button (click)="showInjuryModal = true" style="background:#ef4444;color:white;border:none;padding:10px 20px;border-radius:8px;font-weight:600;cursor:pointer;transition:background 0.2s;">
+      + Déclarer une blessure
+    </button>
+  </div>
+
+  <!-- Alerts Section -->
+  <div *ngIf="alerts && alerts.length > 0" style="margin-bottom:24px;display:flex;flex-direction:column;gap:12px;">
+    <div *ngFor="let alert of alerts" 
+         style="padding:16px;border-radius:12px;font-weight:600;display:flex;align-items:center;gap:12px;"
+         [ngStyle]="{
+           'background': alert.includes('ALERTE ROUGE') || alert.includes('ALERTE NUTRITION') ? '#fef2f2' : (alert.includes('ATTENTION') ? '#fffbeb' : '#f0fdf4'),
+           'color': alert.includes('ALERTE ROUGE') || alert.includes('ALERTE NUTRITION') ? '#991b1b' : (alert.includes('ATTENTION') ? '#b45309' : '#166534'),
+           'border-left': alert.includes('ALERTE ROUGE') || alert.includes('ALERTE NUTRITION') ? '6px solid #ef4444' : (alert.includes('ATTENTION') ? '6px solid #f59e0b' : '6px solid #22c55e')
+         }">
+      <span style="font-size:1.5rem;">
+        {{ alert.includes('ALERTE ROUGE') ? '🚨' : alert.includes('ATTENTION') ? '⚠️' : '✅' }}
+      </span>
+      {{ alert }}
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:minmax(350px, 1fr) 2fr;gap:24px;">
+    
+    <!-- Questionnaire Bien-être -->
+    <div style="background:white;padding:24px;border-radius:16px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+      <h3 style="color:#1e293b;margin-top:0;">Questionnaire Quotidien (1-5)</h3>
+      <p style="color:#64748b;font-size:0.9rem;margin-bottom:20px;">Comment vous sentez-vous aujourd'hui ? (5 = Excellent)</p>
+      
+      <div style="margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.9rem;font-weight:600;color:#475569;">
+          <span>😴 Énergie / Fatigue</span>
+          <span>{{ newWellness.fatigue }} / 5</span>
+        </div>
+        <input type="range" min="1" max="5" [(ngModel)]="newWellness.fatigue" style="width:100%;accent-color:#3b82f6;">
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.9rem;font-weight:600;color:#475569;">
+          <span>🛌 Sommeil</span>
+          <span>{{ newWellness.sleep }} / 5</span>
+        </div>
+        <input type="range" min="1" max="5" [(ngModel)]="newWellness.sleep" style="width:100%;accent-color:#8b5cf6;">
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.9rem;font-weight:600;color:#475569;">
+          <span>🧘 Stress</span>
+          <span>{{ newWellness.stress }} / 5</span>
+        </div>
+        <input type="range" min="1" max="5" [(ngModel)]="newWellness.stress" style="width:100%;accent-color:#10b981;">
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.9rem;font-weight:600;color:#475569;">
+          <span>🔥 Motivation</span>
+          <span>{{ newWellness.motivation }} / 5</span>
+        </div>
+        <input type="range" min="1" max="5" [(ngModel)]="newWellness.motivation" style="width:100%;accent-color:#f59e0b;">
+      </div>
+      
+      <div style="margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.9rem;font-weight:600;color:#475569;">
+          <span>🤕 Douleurs musculaires (5 = Aucune douleur)</span>
+          <span>{{ newWellness.pain }} / 5</span>
+        </div>
+        <input type="range" min="1" max="5" [(ngModel)]="newWellness.pain" style="width:100%;accent-color:#ef4444;">
+      </div>
+
+      <button (click)="submitWellness()" style="width:100%;padding:12px;background:#3b82f6;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;transition:background 0.2s;">
+        Soumettre mon bilan
+      </button>
+    </div>
+
+    <!-- Historique et Blessures -->
+    <div>
+      <div style="background:white;padding:24px;border-radius:16px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);margin-bottom:24px;">
+        <h3 style="color:#1e293b;margin-top:0;">Historique Bien-être (7 derniers jours)</h3>
+        
+        <div *ngIf="wellnessHistory.length === 0" style="color:#94a3b8;font-style:italic;">
+          Aucun historique récent.
+        </div>
+        
+        <div style="display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;">
+          <div *ngFor="let w of wellnessHistory" style="min-width:100px;background:#f8fafc;padding:12px;border-radius:12px;text-align:center;border:1px solid #e2e8f0;">
+            <div style="font-size:0.8rem;color:#64748b;margin-bottom:8px;font-weight:600;">{{ w.entryDate | date:'dd MMM' }}</div>
+            <div style="font-size:1.5rem;font-weight:800;" 
+                 [style.color]="w.overallScore >= 4 ? '#10b981' : w.overallScore >= 2.5 ? '#f59e0b' : '#ef4444'">
+              {{ w.overallScore | number:'1.1-1' }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:white;padding:24px;border-radius:16px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+          <h3 style="color:#1e293b;margin:0;">Mes Blessures</h3>
+          <button (click)="selectBodyPart('OTHER')" style="background:#f1f5f9;color:#3b82f6;border:none;padding:8px 16px;border-radius:8px;font-weight:600;cursor:pointer;">
+            + Autre blessure
+          </button>
+        </div>
+        
+        <div style="display:flex;gap:24px;">
+          <!-- SVG Body Map Column -->
+          <div style="flex:1;text-align:center;background:#f8fafc;padding:20px;border-radius:12px;border:1px dashed #cbd5e1;">
+            <div style="font-size:0.9rem;color:#64748b;margin-bottom:12px;font-weight:600;">Cliquez sur une zone pour déclarer une douleur</div>
+            <svg viewBox="0 0 200 400" style="width:100%;max-width:200px;height:auto;">
+              <!-- Head -->
+              <circle cx="100" cy="40" r="25" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2" 
+                      (click)="selectBodyPart('HEAD')" (mouseenter)="hoveredZone = 'HEAD'" (mouseleave)="hoveredZone = null"
+                      [style.fill]="hoveredZone === 'HEAD' || selectedZone === 'HEAD' ? '#ef4444' : '#e2e8f0'"
+                      style="cursor:pointer;transition:fill 0.2s;"/>
+              
+              <!-- Neck -->
+              <rect x="90" y="65" width="20" height="20" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2" 
+                    (click)="selectBodyPart('NECK')" (mouseenter)="hoveredZone = 'NECK'" (mouseleave)="hoveredZone = null"
+                    [style.fill]="hoveredZone === 'NECK' || selectedZone === 'NECK' ? '#ef4444' : '#e2e8f0'"
+                    style="cursor:pointer;transition:fill 0.2s;"/>
+              
+              <!-- Shoulders -->
+              <path d="M 60,85 L 140,85 A 20 20 0 0 1 160,105 L 160,115 L 40,115 L 40,105 A 20 20 0 0 1 60,85 Z" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"
+                    (click)="selectBodyPart('SHOULDER')" (mouseenter)="hoveredZone = 'SHOULDER'" (mouseleave)="hoveredZone = null"
+                    [style.fill]="hoveredZone === 'SHOULDER' || selectedZone === 'SHOULDER' ? '#ef4444' : '#e2e8f0'"
+                    style="cursor:pointer;transition:fill 0.2s;"/>
+
+              <!-- Chest/Torso -->
+              <rect x="65" y="115" width="70" height="90" rx="10" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"
+                    (click)="selectBodyPart('CHEST')" (mouseenter)="hoveredZone = 'CHEST'" (mouseleave)="hoveredZone = null"
+                    [style.fill]="hoveredZone === 'CHEST' || selectedZone === 'CHEST' ? '#ef4444' : '#e2e8f0'"
+                    style="cursor:pointer;transition:fill 0.2s;"/>
+
+              <!-- Arms (Left and Right) grouped as ELBOW/WRIST roughly -->
+              <rect x="40" y="115" width="20" height="70" rx="10" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"
+                    (click)="selectBodyPart('ELBOW')" (mouseenter)="hoveredZone = 'ELBOW'" (mouseleave)="hoveredZone = null"
+                    [style.fill]="hoveredZone === 'ELBOW' || selectedZone === 'ELBOW' ? '#ef4444' : '#e2e8f0'"
+                    style="cursor:pointer;transition:fill 0.2s;"/>
+              <rect x="140" y="115" width="20" height="70" rx="10" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"
+                    (click)="selectBodyPart('ELBOW')" (mouseenter)="hoveredZone = 'ELBOW'" (mouseleave)="hoveredZone = null"
+                    [style.fill]="hoveredZone === 'ELBOW' || selectedZone === 'ELBOW' ? '#ef4444' : '#e2e8f0'"
+                    style="cursor:pointer;transition:fill 0.2s;"/>
+              
+              <rect x="35" y="190" width="25" height="25" rx="5" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"
+                    (click)="selectBodyPart('WRIST')" (mouseenter)="hoveredZone = 'WRIST'" (mouseleave)="hoveredZone = null"
+                    [style.fill]="hoveredZone === 'WRIST' || selectedZone === 'WRIST' ? '#ef4444' : '#e2e8f0'"
+                    style="cursor:pointer;transition:fill 0.2s;"/>
+              <rect x="140" y="190" width="25" height="25" rx="5" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"
+                    (click)="selectBodyPart('WRIST')" (mouseenter)="hoveredZone = 'WRIST'" (mouseleave)="hoveredZone = null"
+                    [style.fill]="hoveredZone === 'WRIST' || selectedZone === 'WRIST' ? '#ef4444' : '#e2e8f0'"
+                    style="cursor:pointer;transition:fill 0.2s;"/>
+
+              <!-- Hips -->
+              <rect x="65" y="205" width="70" height="30" rx="10" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"
+                    (click)="selectBodyPart('HIP')" (mouseenter)="hoveredZone = 'HIP'" (mouseleave)="hoveredZone = null"
+                    [style.fill]="hoveredZone === 'HIP' || selectedZone === 'HIP' ? '#ef4444' : '#e2e8f0'"
+                    style="cursor:pointer;transition:fill 0.2s;"/>
+
+              <!-- Legs (Knee and Ankle) -->
+              <rect x="65" y="235" width="30" height="80" rx="10" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"
+                    (click)="selectBodyPart('KNEE')" (mouseenter)="hoveredZone = 'KNEE'" (mouseleave)="hoveredZone = null"
+                    [style.fill]="hoveredZone === 'KNEE' || selectedZone === 'KNEE' ? '#ef4444' : '#e2e8f0'"
+                    style="cursor:pointer;transition:fill 0.2s;"/>
+              <rect x="105" y="235" width="30" height="80" rx="10" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"
+                    (click)="selectBodyPart('KNEE')" (mouseenter)="hoveredZone = 'KNEE'" (mouseleave)="hoveredZone = null"
+                    [style.fill]="hoveredZone === 'KNEE' || selectedZone === 'KNEE' ? '#ef4444' : '#e2e8f0'"
+                    style="cursor:pointer;transition:fill 0.2s;"/>
+
+              <rect x="65" y="320" width="30" height="30" rx="5" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"
+                    (click)="selectBodyPart('ANKLE')" (mouseenter)="hoveredZone = 'ANKLE'" (mouseleave)="hoveredZone = null"
+                    [style.fill]="hoveredZone === 'ANKLE' || selectedZone === 'ANKLE' ? '#ef4444' : '#e2e8f0'"
+                    style="cursor:pointer;transition:fill 0.2s;"/>
+              <rect x="105" y="320" width="30" height="30" rx="5" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"
+                    (click)="selectBodyPart('ANKLE')" (mouseenter)="hoveredZone = 'ANKLE'" (mouseleave)="hoveredZone = null"
+                    [style.fill]="hoveredZone === 'ANKLE' || selectedZone === 'ANKLE' ? '#ef4444' : '#e2e8f0'"
+                    style="cursor:pointer;transition:fill 0.2s;"/>
+            </svg>
+          </div>
+
+          <!-- Injuries List Column -->
+          <div style="flex:2;">
+            <div *ngIf="injuries.length === 0" style="color:#94a3b8;font-style:italic;text-align:center;padding:40px;">
+              Aucune blessure déclarée. Continuez comme ça !
+            </div>
+            
+            <div *ngFor="let injury of injuries" style="display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:1px solid #f1f5f9;">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+              <span style="font-weight:700;color:#1e293b;font-size:1.1rem;">{{ getZoneLabel(injury.bodyZone) }}</span>
+              <span style="font-size:0.75rem;font-weight:700;color:white;padding:4px 8px;border-radius:12px;"
+                    [style.background]="injury.status === 'ACTIVE' ? '#ef4444' : injury.status === 'RECOVERING' ? '#f59e0b' : '#10b981'">
+                {{ injury.status }}
+              </span>
+            </div>
+            <div style="font-size:0.9rem;color:#64748b;">Déclarée le : {{ injury.startDate | date }}</div>
+            <div style="font-size:0.9rem;color:#475569;margin-top:4px;">{{ injury.description }}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:0.8rem;color:#64748b;font-weight:600;">Douleur</div>
+            <div style="font-size:1.5rem;font-weight:800;color:#ef4444;">{{ injury.painLevel }}/10</div>
+          </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Blessure -->
+  <div *ngIf="showInjuryModal" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;">
+    <div style="background:white;padding:32px;border-radius:16px;width:100%;max-width:500px;">
+      <h3 style="margin-top:0;color:#1e293b;">Déclarer une douleur : {{ getZoneLabel(newInjury.bodyZone) }}</h3>
+      
+      <div style="margin-bottom:16px;">
+        <label style="display:block;margin-bottom:8px;font-size:0.9rem;font-weight:600;color:#475569;">Zone corporelle (choix libre si Autre)</label>
+        <select [(ngModel)]="newInjury.bodyZone" style="width:100%;padding:10px;border-radius:8px;border:1px solid #cbd5e1;" [disabled]="selectedZone !== 'OTHER' && selectedZone !== null">
+          <option value="HEAD">Tête / Visage</option>
+          <option value="SHOULDER">Épaule</option>
+          <option value="CHEST">Torse / Poitrine</option>
+          <option value="BACK">Dos</option>
+          <option value="ELBOW">Coude</option>
+          <option value="WRIST">Poignet / Main</option>
+          <option value="HIP">Hanche / Bassin</option>
+          <option value="KNEE">Genou</option>
+          <option value="ANKLE">Cheville / Pied</option>
+          <option value="NECK">Cou / Cervicales</option>
+          <option value="OTHER">Autre</option>
+          <option value="OTHER">Autre</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.9rem;font-weight:600;color:#475569;">
+          <span>Niveau de douleur (1 = Léger, 10 = Insupportable)</span>
+          <span>{{ newInjury.painLevel }} / 10</span>
+        </div>
+        <input type="range" min="1" max="10" [(ngModel)]="newInjury.painLevel" style="width:100%;accent-color:#ef4444;">
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <label style="display:block;margin-bottom:8px;font-size:0.9rem;font-weight:600;color:#475569;">Description / Symptômes</label>
+        <textarea [(ngModel)]="newInjury.description" rows="3" placeholder="Ex: Douleur aigüe lors des coulées..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #cbd5e1;font-family:inherit;"></textarea>
+      </div>
+
+      <div style="display:flex;gap:12px;">
+        <button (click)="showInjuryModal = false; selectedZone = null" style="flex:1;padding:12px;background:#f1f5f9;color:#475569;border:none;border-radius:8px;font-weight:600;cursor:pointer;">
+          Annuler
+        </button>
+        <button (click)="declareInjury()" style="flex:1;padding:12px;background:#ef4444;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;">
+          Déclarer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

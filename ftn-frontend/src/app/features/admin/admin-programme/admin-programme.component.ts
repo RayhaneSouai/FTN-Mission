@@ -42,29 +42,6 @@ import { ToastContainerComponent } from '../../competitions/components/toast-con
             <span class="material-symbols-outlined" aria-hidden="true">lock</span>
             Cette compétition est verrouillée car le programme a été approuvé. Aucune modification n'est possible.
           </div>
-
-          <!-- Post-approval action buttons -->
-          <div class="post-approval-actions">
-            <button class="btn btn-distribution" (click)="goToDistribution()">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
-              Répartition
-            </button>
-            <button class="btn btn-archive" (click)="archiveCompetition()">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="21 8 21 21 3 21 3 8"/>
-                <rect x="1" y="3" width="22" height="5"/>
-                <line x1="10" y1="12" x2="14" y2="12"/>
-              </svg>
-              Placer aux archives
-            </button>
-          </div>
         }
 
         <!-- Programme stepper (full CRUD) -->
@@ -142,31 +119,6 @@ import { ToastContainerComponent } from '../../competitions/components/toast-con
       margin-bottom: 1rem;
       .material-symbols-outlined { font-size: 18px; }
     }
-    .post-approval-actions {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-      padding: 1rem;
-      background: #f0f7ff;
-      border-radius: 8px;
-      border: 1px solid #b6d4fe;
-    }
-    .btn-distribution {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: #0d6efd;
-      color: white;
-      &:hover { background: #0b5ed7; }
-    }
-    .btn-archive {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: #6c757d;
-      color: white;
-      &:hover { background: #5c636a; }
-    }
     .loading { text-align: center; padding: 3rem; color: #6c757d; }
   `]
 })
@@ -223,9 +175,5 @@ export class AdminProgrammeComponent implements OnInit {
     const comp = this.competition();
     if (!comp) return;
     this.router.navigate(['/admin/competitions', comp.id, 'distribution']);
-  }
-
-  archiveCompetition(): void {
-    this.toast.showInfo('Fonctionnalité bientôt disponible');
   }
 }

@@ -7,17 +7,12 @@ import org.springframework.web.bind.annotation.*;
 import tn.federation.backend.dto.CompetitionDetailDTO;
 import tn.federation.backend.dto.DistributionResponseDTO;
 import tn.federation.backend.dto.ParticipationResponseDTO;
-import tn.federation.backend.entities.Competition;
-import tn.federation.backend.entities.Participation;
-import tn.federation.backend.entities.ParticipationRequestStatus;
-import tn.federation.backend.entities.User;
-import tn.federation.backend.repositories.ParticipationRepository;
-import tn.federation.backend.repositories.UserRepository;
+import tn.federation.backend.entities.*;
+import tn.federation.backend.repositories.*;
 import tn.federation.backend.services.Abstraction.ICompetitionService;
 import tn.federation.backend.services.Abstraction.IDistributionService;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Public controller — read-only, returns approved/public competition data.
@@ -37,6 +32,12 @@ public class CompetitionController {
 
     @Autowired
     private IDistributionService distributionService;
+
+    @Autowired
+    private MediaItemRepository mediaItemRepository;
+
+    @Autowired
+    private MediaCommentRepository mediaCommentRepository;
 
     @GetMapping("/get/{id}")
     public CompetitionDetailDTO getCompetitionById(
@@ -70,6 +71,11 @@ public class CompetitionController {
         return competitionService.getAllCompetitions();
     }
 
+    @GetMapping("/archived")
+    public List<Competition> getArchivedCompetitions() {
+        return competitionService.getArchivedCompetitions();
+    }
+
     @GetMapping("/{id}/participants")
     public List<ParticipationResponseDTO> getApprovedParticipants(@PathVariable Long id) {
         return participationRepository.findByCompetitionIdAndStatus(id, ParticipationRequestStatus.APPROVED)
@@ -94,5 +100,63 @@ public class CompetitionController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(result);
+    }
+
+    // =====================================================================
+    // MEDIA & COMMENTAIRES MEDIA
+    // =====================================================================
+
+    /** Liste des médias d'une compétition */
+    @GetMapping("/{id}/media")
+    public ResponseEntity<List<MediaItem>> getMediaByCompetition(@PathVariable Long id) {
+        List<MediaItem> items = mediaItemRepository.findByCompetitionId(id);
+        return ResponseEntity.ok(items);
+    }
+
+    /** Commentaires d'un média */
+    @GetMapping("/{compId}/media/{mediaId}/comments")
+    public ResponseEntity<List<Map<String, Object>>> getMediaComments(
+            @PathVariable Long compId,
+            @PathVariable Long mediaId) {
+        List<MediaComment> comments = mediaCommentRepository.findByMediaItemIdOrderByCreatedAtAsc(mediaId);
+        List<Map<String, Object>> result = comments.stream().map(c -> {
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("id", c.getId());
+            map.put("text", c.getText());
+            map.put("createdAt", c.getCreatedAt());
+            if (c.getUser() != null) {
+                map.put("userName", c.getUser().getFirstName() + " " + c.getUser().getLastName());
+                map.put("userInitials", c.getUser().getFirstName().substring(0, 1).toUpperCase() +
+                        c.getUser().getLastName().substring(0, 1).toUpperCase());
+                map.put("userId", c.getUser().getId());
+            }
+            return map;
+        }).toList();
+        return ResponseEntity.ok(result);
+    }
+
+    /** Ajouter un commentaire sur un média */
+    @PostMapping("/{compId}/media/{mediaId}/comments")
+    public ResponseEntity<?> addMediaComment(
+            @PathVariable Long compId,
+            @PathVariable Long mediaId,
+            @RequestParam Long userId,
+            @RequestBody Map<String, String> payload) {
+        try {
+            Optional<MediaItem> mediaOpt = mediaItemRepository.findById(mediaId);
+            Optional<User> userOpt = userRepository.findById(userId);
+            if (mediaOpt.isEmpty() || userOpt.isEmpty()) {
+                return ResponseEntity.badRequest().body("Média ou utilisateur introuvable");
+            }
+            MediaComment comment = MediaComment.builder()
+                    .text(payload.get("text"))
+                    .user(userOpt.get())
+                    .mediaItem(mediaOpt.get())
+                    .build();
+            mediaCommentRepository.save(comment);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Erreur: " + e.getMessage());
+        }
     }
 }

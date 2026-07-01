@@ -1,6 +1,19 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { SwimmerService } from '../../services/swimmer.service';
 import { PressService } from '../../../press/services/press.service';
+
+interface CommentResponse {
+  id: number;
+  text: string;
+  createdAt: string;
+  userId: number;
+  userFirstName: string;
+  userLastName: string;
+  pressItemId: number;
+  parentCommentId?: number | null;
+  replies?: CommentResponse[] | null;
+}
 
 @Component({
   selector: 'app-swimmer-actualites',
@@ -67,8 +80,11 @@ export class SwimmerActualitesComponent implements OnInit {
   };
 
   interactions: any = null;
-  newCommentText: string = '';
   isSubmittingComment = false;
+  newCommentText: string = '';
+  comments: any[] = [];
+  replyingTo: any = null;
+  pollingInterval: any = null;
 
   aiRecap: string | null = null;
   generatingAiRecap = false;
@@ -81,7 +97,12 @@ export class SwimmerActualitesComponent implements OnInit {
     { type: 'HEART', emoji: '❤️' }
   ];
 
-  constructor(private svc: SwimmerService, public pressService: PressService) {}
+  constructor(
+    private svc: SwimmerService,
+    public pressService: PressService,
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     this.svc.getNews().subscribe({
@@ -95,6 +116,12 @@ export class SwimmerActualitesComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+    }
+  }
+
   loadPinnedItems() {
     const userId = this.getCurrentUserId();
     if (!userId) return;
@@ -102,7 +129,7 @@ export class SwimmerActualitesComponent implements OnInit {
       next: (pins) => {
         this.pinnedIds = new Set(pins.map(p => p.idPressItem).filter((id): id is number => id !== undefined));
       },
-      error: (err) => console.error('Erreur chargement épingles', err)
+      error: (err: any) => console.error('Erreur chargement épingles', err)
     });
   }
 
@@ -113,7 +140,7 @@ export class SwimmerActualitesComponent implements OnInit {
       next: (favs) => {
         this.favoriteIds = new Set(favs.map(f => f.idPressItem).filter((id): id is number => id !== undefined));
       },
-      error: (err) => console.error('Erreur chargement favoris', err)
+      error: (err: any) => console.error('Erreur chargement favoris', err)
     });
   }
 
@@ -131,18 +158,21 @@ export class SwimmerActualitesComponent implements OnInit {
     this.selectedItem = item;
     this.showFullContent = false;
     this.aiRecap = null;
+    this.comments = [];
     document.body.style.overflow = 'hidden';
     this.loadInteractions();
+    this.fetchComments();
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+    }
+    this.pollingInterval = setInterval(() => this.fetchComments(), 2000);
 
     const articleId = item.idPressItem || item.id;
     if (articleId) {
-      // Increment optimisticly
       item.views = (item.views || 0) + 1;
       
       this.pressService.incrementViews(articleId).subscribe({
-        next: () => {
-          // already incremented
-        },
+        next: () => {},
         error: err => console.error('Erreur incrementation vues:', err)
       });
     }
@@ -152,10 +182,13 @@ export class SwimmerActualitesComponent implements OnInit {
     this.selectedItem = null;
     this.interactions = null;
     this.aiRecap = null;
+    this.replyingTo = null;
     document.body.style.overflow = 'auto';
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+    }
   }
-
-
 
   getGalleryImages(galleryStr: string): string[] {
     if (!galleryStr) return [];
@@ -167,7 +200,6 @@ export class SwimmerActualitesComponent implements OnInit {
     return docsStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
   }
 
-  // Alias used in the template
   getDocuments(docsStr: string): string[] {
     return this.getDocumentsList(docsStr);
   }
@@ -190,8 +222,6 @@ export class SwimmerActualitesComponent implements OnInit {
     if (url) window.open(url, '_blank');
   }
 
-  // --- INTERACTIONS METHODS ---
-
   get currentUserId(): number | null {
     return this.getCurrentUserId();
   }
@@ -213,14 +243,21 @@ export class SwimmerActualitesComponent implements OnInit {
     return null;
   }
 
+  private getItemId(): number | undefined {
+    if (!this.selectedItem) return undefined;
+    return this.selectedItem.idPressItem || this.selectedItem.id;
+  }
+
   loadInteractions() {
     if (!this.selectedItem) return;
+    const itemId = this.getItemId();
+    if (!itemId) return;
     const userId = this.getCurrentUserId();
-    this.pressService.getInteractions(this.selectedItem.idPressItem, userId).subscribe({
+    this.pressService.getInteractions(itemId, userId).subscribe({
       next: (res) => {
         this.interactions = res;
       },
-      error: (err) => console.error('Error loading interactions', err)
+      error: (err: any) => console.error('Error loading interactions', err)
     });
   }
 
@@ -228,15 +265,17 @@ export class SwimmerActualitesComponent implements OnInit {
     if (!this.newCommentText.trim() || this.isSubmittingComment || !this.selectedItem) return;
     const userId = this.getCurrentUserId();
     if (!userId) return;
+    const itemId = this.getItemId();
+    if (!itemId) return;
 
     this.isSubmittingComment = true;
-    this.pressService.addComment(this.selectedItem.idPressItem, userId, this.newCommentText).subscribe({
+    this.pressService.addComment(itemId, userId, this.newCommentText).subscribe({
       next: () => {
         this.newCommentText = '';
         this.isSubmittingComment = false;
-        this.loadInteractions(); // Reload to see the new comment
+        this.loadInteractions();
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error adding comment', err);
         this.isSubmittingComment = false;
       }
@@ -247,12 +286,14 @@ export class SwimmerActualitesComponent implements OnInit {
     if (!this.selectedItem) return;
     const userId = this.getCurrentUserId();
     if (!userId) return;
+    const itemId = this.getItemId();
+    if (!itemId) return;
 
-    this.pressService.toggleReaction(this.selectedItem.idPressItem, userId, type).subscribe({
+    this.pressService.toggleReaction(itemId, userId, type).subscribe({
       next: () => {
-        this.loadInteractions(); // Reload to see updated reactions
+        this.loadInteractions();
       },
-      error: (err) => console.error('Error toggling reaction', err)
+      error: (err: any) => console.error('Error toggling reaction', err)
     });
   }
 
@@ -260,12 +301,14 @@ export class SwimmerActualitesComponent implements OnInit {
     if (!this.selectedItem) return;
     const userId = this.getCurrentUserId();
     if (!userId) return;
+    const itemId = this.getItemId();
+    if (!itemId) return;
 
-    this.pressService.toggleFavorite(this.selectedItem.idPressItem, userId).subscribe({
+    this.pressService.toggleFavorite(itemId, userId).subscribe({
       next: () => {
-        this.loadInteractions(); // Reload to see updated favorite status
+        this.loadInteractions();
       },
-      error: (err) => console.error('Error toggling favorite', err)
+      error: (err: any) => console.error('Error toggling favorite', err)
     });
   }
 
@@ -273,20 +316,19 @@ export class SwimmerActualitesComponent implements OnInit {
     if (!this.selectedItem) return;
     const userId = this.getCurrentUserId();
     if (!userId) return;
+    const itemId = this.getItemId();
+    if (!itemId) return;
 
-    this.pressService.togglePin(this.selectedItem.idPressItem, userId).subscribe({
+    this.pressService.togglePin(itemId, userId).subscribe({
       next: () => {
-        this.loadInteractions(); // Reload to see updated pin status
-        
-        // Update local pinnedIds for immediate visual feedback on cards
-        const itemId = this.selectedItem.idPressItem || this.selectedItem.id;
+        this.loadInteractions();
         if (this.pinnedIds.has(itemId)) {
           this.pinnedIds.delete(itemId);
         } else {
           this.pinnedIds.add(itemId);
         }
       },
-      error: (err) => console.error('Error toggling pin', err)
+      error: (err: any) => console.error('Error toggling pin', err)
     });
   }
 
@@ -298,9 +340,17 @@ export class SwimmerActualitesComponent implements OnInit {
   generateSummary() {
     if (!this.selectedItem) return;
     this.generatingAiRecap = true;
-    
-    this.pressService.generateAiRecap(this.selectedItem.idPressItem || this.selectedItem.id).subscribe({
-      next: (recap) => {
+    this.aiRecap = null;
+
+    const id = this.getItemId();
+    if (!id) { this.generatingAiRecap = false; return; }
+
+    const obs$ = this.selectedItem.type === 'COMMUNIQUE'
+      ? this.pressService.generatePdfSummary(id)
+      : this.pressService.generateAiRecap(id);
+
+    obs$.subscribe({
+      next: (recap: string) => {
         this.aiRecap = recap;
         this.generatingAiRecap = false;
       },
@@ -308,5 +358,55 @@ export class SwimmerActualitesComponent implements OnInit {
         this.generatingAiRecap = false;
       }
     });
+  }
+  // --- Real-time Comments (Long Polling) ---
+
+  fetchComments() {
+    if (!this.selectedItem) return;
+    const articleId = this.selectedItem.idPressItem || this.selectedItem.id;
+    if (!articleId) return;
+    this.http.get<any[]>(`http://localhost:8083/ftn/api/press-comments/${articleId}`).subscribe({
+      next: (data) => {
+        this.comments = data;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Erreur fetch comments:', err)
+    });
+  }
+
+  postComment() {
+    if (!this.newCommentText.trim() || !this.selectedItem) return;
+    const articleId = this.selectedItem.idPressItem || this.selectedItem.id;
+    const userId = this.getCurrentUserId();
+    if (!userId) return;
+
+    const payload = {
+      pressItemId: articleId,
+      text: this.newCommentText,
+      userId: userId,
+      parentCommentId: this.replyingTo ? this.replyingTo.id : null
+    };
+
+    this.http.post<CommentResponse>('http://localhost:8083/ftn/api/press-comments', payload).subscribe({
+      next: (saved) => {
+        this.newCommentText = '';
+        this.replyingTo = null;
+        if (saved.parentCommentId) {
+          this.fetchComments();
+        } else {
+          this.comments = [...this.comments, saved];
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Erreur post comment:', err)
+    });
+  }
+
+  replyTo(comment: any) {
+    this.replyingTo = comment;
+  }
+
+  cancelReply() {
+    this.replyingTo = null;
   }
 }

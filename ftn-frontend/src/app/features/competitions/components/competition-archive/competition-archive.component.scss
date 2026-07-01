@@ -1,0 +1,302 @@
+:host {
+  display: block;
+  background: #f8f9fa;
+  min-height: 100vh;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+.archive-page {
+  width: 100%;
+}
+
+.archive-content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem;
+}
+
+// ─── Hero Banner ──────────────────────────────────
+.comp-hero {
+  position: relative;
+  background: linear-gradient(135deg, #0d47a1 0%, #1565C0 40%, #1976D2 100%);
+  color: #fff;
+  padding: 80px 48px 64px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 24px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.05)" d="M0,96L48,112C96,128,192,160,288,176C384,192,480,192,576,170.7C672,149,768,107,864,101.3C960,96,1056,128,1152,138.7C1248,149,1344,139,1392,133.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"/></svg>');
+    background-size: cover;
+    background-position: bottom;
+    opacity: 0.4;
+  }
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 700px;
+
+  h1 {
+    font-size: 36px;
+    font-weight: 700;
+    margin: 0 0 12px;
+    letter-spacing: -0.5px;
+    text-align: left;
+  }
+
+  p {
+    font-size: 16px;
+    opacity: 0.9;
+    margin: 0;
+    line-height: 1.6;
+    text-align: left;
+  }
+}
+
+// ─── Filters ──────────────────────────────────────
+.archive-filters {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+}
+
+.filter-search {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 7px;
+  padding: 0.4rem 0.7rem;
+
+  svg { color: #9ca3af; flex-shrink: 0; }
+}
+
+.filter-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.88rem;
+  color: #374151;
+
+  &::placeholder { color: #9ca3af; }
+}
+
+.filter-select {
+  padding: 0.45rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 7px;
+  font-size: 0.88rem;
+  color: #374151;
+  background: #f9fafb;
+  cursor: pointer;
+  outline: none;
+
+  &:focus { border-color: #1565C0; }
+}
+
+// ─── Loading / Error / Empty ───────────────────────
+.archive-loading {
+  text-align: center;
+  padding: 4rem;
+  color: #6b7280;
+
+  .spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #1565C0;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 1rem;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.archive-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.archive-empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #9ca3af;
+
+  svg { margin-bottom: 1rem; }
+  p { font-size: 1rem; font-weight: 600; margin: 0 0 0.4rem; color: #6b7280; }
+  span { font-size: 0.85rem; }
+}
+
+// ─── Year Groups ───────────────────────────────────
+.archive-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.year-heading {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #374151;
+  margin: 0 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 18px;
+    background: #1565C0;
+    border-radius: 2px;
+  }
+}
+
+.archive-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+// ─── Archive Card ──────────────────────────────────
+.archive-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 1.1rem 1.25rem;
+  transition: box-shadow 0.2s, border-color 0.2s;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(21, 101, 192, 0.08);
+    border-color: #bfdbfe;
+  }
+}
+
+.archive-card-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.archive-card-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 0.5rem;
+}
+
+.archive-card-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  color: #6b7280;
+}
+
+.discipline-tag {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 5px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.category-tag {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  background: #f0fdf4;
+  color: #15803d;
+  border-radius: 5px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.archive-card-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.btn-results {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  background: #1565C0;
+  color: #fff;
+  border-radius: 7px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s;
+
+  &:hover { background: #1251a3; }
+}
+
+.btn-details {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.9rem;
+  background: #f3f4f6;
+  color: #374151;
+  border-radius: 7px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s;
+
+  &:hover { background: #e5e7eb; }
+}
+
+// ─── Responsive ────────────────────────────────────
+@media (max-width: 640px) {
+  .archive-page { padding: 1.5rem 1rem; }
+
+  .archive-card-main { flex-direction: column; align-items: flex-start; }
+
+  .archive-card-actions { width: 100%; }
+
+  .archive-header-title h1 { font-size: 1.3rem; }
+}

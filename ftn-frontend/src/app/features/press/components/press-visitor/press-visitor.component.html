@@ -58,50 +58,14 @@
     <p style="color: #94a3b8;">Revenez bientôt !</p>
   </div>
 
-  <!-- News Editorial Layout -->
-  <section class="press-editorial" *ngIf="!loading && !useEqualCardLayout && featuredItem as featured">
-    <article class="press-featured-card" (click)="openArticle(featured)">
-      <div class="press-featured-media">
-        <img [src]="getArticleImage(featured, 0)" [alt]="featured.title" (error)="onArticleImageError($event, featured, 0)">
-      </div>
-      <div class="press-featured-content">
-        <div class="press-meta">
-          <span>{{ getTypeLabel(featured) }}</span>
-          <span>{{ featured.publishedAt || featured.createdAt | date:'dd MMM yyyy' }}</span>
-        </div>
-        <h2>{{ featured.title }}</h2>
-        <p>{{ plainText(featured.summary || featured.content) | slice:0:180 }}{{ plainText(featured.summary || featured.content).length > 180 ? '...' : '' }}</p>
-        <button class="press-primary-btn" type="button" (click)="openArticle(featured); $event.stopPropagation()">
-          Lire la suite
-        </button>
-      </div>
-    </article>
-
-    <div class="press-card-grid" *ngIf="cardItems.length > 0">
-      <article *ngFor="let item of cardItems; let i = index" class="press-news-card" (click)="openArticle(item)">
-        <div class="press-card-media">
-          <img [src]="getArticleImage(item, i + 1)" [alt]="item.title" (error)="onArticleImageError($event, item, i + 1)">
-          <span class="press-type-badge">{{ getTypeLabel(item) }}</span>
-        </div>
-        <div class="press-card-content">
-          <span class="press-accent-line"></span>
-          <h3>{{ item.title }}</h3>
-          <p>{{ plainText(item.summary || item.content) | slice:0:120 }}{{ plainText(item.summary || item.content).length > 120 ? '...' : '' }}</p>
-          <div class="press-meta">
-            <span>{{ item.discipline || 'FTN' }}</span>
-            <span>{{ item.publishedAt || item.createdAt | date:'dd MMM yyyy' }}</span>
-          </div>
-        </div>
-      </article>
-    </div>
-  </section>
-
-  <!-- Favorites / pinned: equal cards, no featured article -->
-  <section class="press-card-grid press-card-grid--equal" *ngIf="!loading && useEqualCardLayout && pagedItems.length > 0">
+  <!-- News Grid - Uniform 3 columns -->
+  <section class="press-card-grid press-card-grid--equal" *ngIf="!loading && pagedItems.length > 0">
     <article *ngFor="let item of pagedItems; let i = index" class="press-news-card" (click)="openArticle(item)">
       <div class="press-card-media">
         <img [src]="getArticleImage(item, i)" [alt]="item.title" (error)="onArticleImageError($event, item, i)">
         <span class="press-type-badge">{{ getTypeLabel(item) }}</span>
+        <!-- PDF badge for communiqués -->
+        <span *ngIf="item.type === 'COMMUNIQUE'" style="position:absolute;bottom:10px;left:10px;background:rgba(220,38,38,0.9);color:white;font-size:0.65rem;font-weight:900;padding:3px 8px;border-radius:6px;">PDF</span>
       </div>
       <div class="press-card-content">
         <span class="press-accent-line"></span>
@@ -111,25 +75,32 @@
           <span>{{ item.discipline || 'FTN' }}</span>
           <span>{{ item.publishedAt || item.createdAt | date:'dd MMM yyyy' }}</span>
         </div>
+        <!-- Uniform action button -->
+        <div style="display:flex;gap:8px;margin-top:auto;padding-top:10px;" (click)="$event.stopPropagation()">
+          <button (click)="openArticle(item)" class="press-card-action-btn">
+            {{ 'Lire la suite' }}
+          </button>
+        </div>
       </div>
     </article>
   </section>
 
-  <!-- Pagination Controls -->
-  <div *ngIf="!loading && totalPages > 1" style="display:flex; justify-content:center; align-items:center; gap:16px; margin-top:40px;">
-    <button (click)="prevPage()" [disabled]="currentPage === 1"
-            style="background:#f1f5f9; border:none; padding:10px 20px; border-radius:50px; font-weight:700; cursor:pointer; color:#475569;"
-            [ngStyle]="{'opacity': currentPage === 1 ? '0.5' : '1'}">
-      Précédent
-    </button>
-    <span style="font-weight:700; color:#1e293b;">
-      Page {{ currentPage }} sur {{ totalPages }}
-    </span>
-    <button (click)="nextPage()" [disabled]="currentPage === totalPages"
-            style="background:#1565C0; border:none; padding:10px 20px; border-radius:50px; font-weight:700; cursor:pointer; color:white;"
-            [ngStyle]="{'opacity': currentPage === totalPages ? '0.5' : '1'}">
-      Suivant
-    </button>
+  <!-- Pagination Controls - Same style as admin -->
+  <div *ngIf="!loading && totalPages > 1" class="admin-pagination press-pagination" style="margin-top:40px;">
+    <span class="admin-pagination__info">Page {{ currentPage }} sur {{ totalPages }}</span>
+    <nav class="admin-pagination__nav" aria-label="Pagination presse">
+      <ul class="pagination pagination-sm mb-0">
+        <li class="page-item" [class.disabled]="currentPage === 1">
+          <button class="page-link" (click)="prevPage()">Précédent</button>
+        </li>
+        <li class="page-item active">
+          <span class="page-link">{{ currentPage }}</span>
+        </li>
+        <li class="page-item" [class.disabled]="currentPage === totalPages">
+          <button class="page-link" (click)="nextPage()">Suivant</button>
+        </li>
+      </ul>
+    </nav>
   </div>
 
   <!-- ═══════ MODAL ═══════ -->
@@ -153,28 +124,64 @@
 
       <!-- ══ MEDIA selon le type ══ -->
 
+      <!-- COMMUNIQUE : affichage PDF + boutons spécifiques -->
+      <ng-container *ngIf="selectedItem.type === 'COMMUNIQUE'">
+
+        <!-- Bouton Résumé IA (lit le vrai contenu du PDF) -->
+        <div style="margin-bottom: 20px; display: flex; justify-content: flex-end;">
+          <button (click)="generateSummary()" [disabled]="generatingAiRecap"
+                  style="background: linear-gradient(135deg, #8b5cf6, #3b82f6); color: white; border: none; padding: 10px 20px; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.2);"
+                  [style.opacity]="generatingAiRecap ? '0.7' : '1'">
+            <span *ngIf="!generatingAiRecap">✨ Résumé IA du communiqué</span>
+            <span *ngIf="generatingAiRecap">Lecture du PDF en cours...</span>
+          </button>
+        </div>
+
+        <!-- IA Recap Box -->
+        <div *ngIf="aiRecap" style="background: #f8fafc; border-left: 4px solid #8b5cf6; padding: 20px; border-radius: 12px; margin-bottom: 24px; animation: fadeIn 0.4s ease-out;">
+          <div [innerHTML]="aiRecap"></div>
+        </div>
+
+        <!-- Résumé texte de l'article -->
+        <p *ngIf="selectedItem.summary" style="font-size:1.05rem;line-height:1.8;color:#334155;margin-bottom:20px;">{{ selectedItem.summary }}</p>
+
+        <!-- Boutons d'action communiqué -->
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px;">
+          <a [href]="getPdfUrl()" target="_blank"
+             style="display:inline-flex;align-items:center;gap:8px;background:#1565C0;color:white;padding:12px 24px;border-radius:12px;font-weight:700;text-decoration:none;">
+            <span class="material-symbols-outlined" style="font-size:1.1rem;">open_in_new</span>
+            Lire la suite (Document)
+          </a>
+          <button (click)="downloadCommunique()"
+                  style="display:inline-flex;align-items:center;gap:8px;background:#10b981;color:white;border:none;padding:12px 24px;border-radius:12px;font-weight:700;cursor:pointer;">
+            <span class="material-symbols-outlined" style="font-size:1.1rem;">download</span>
+            Télécharger le communiqué
+          </button>
+        </div>
+      </ng-container>
+
       <!-- VIDEO player YouTube embedé directement -->
-      <div *ngIf="selectedItem.type === 'VIDEO' || selectedItem.mediaUrl?.includes('yout') || selectedItem.linkUrl?.includes('yout')"
-           style="border-radius:16px;overflow:hidden;margin-bottom:24px;background:#000;">
+      <div *ngIf="selectedItem.type !== 'COMMUNIQUE' && (selectedItem.type === 'VIDEO' || selectedItem.mediaUrl?.includes('yout') || selectedItem.linkUrl?.includes('yout'))"
+           style="border-radius:16px;overflow:hidden;margin-bottom:24px;background:#000;max-width:65%;margin-left:auto;margin-right:auto;box-shadow:0 4px 12px rgba(0,0,0,0.15);">
         <iframe [src]="pressService.getEmbedUrl(selectedItem.mediaUrl || selectedItem.linkUrl || '') | safe"
                 frameborder="0" allowfullscreen
-                style="width:100%;height:420px;border:none;display:block;"></iframe>
+                style="width:100%;height:320px;border:none;display:block;"></iframe>
       </div>
 
-      <!-- PHOTO/IMAGE image en grand directement -->
-      <div *ngIf="selectedItem.type !== 'VIDEO' && !selectedItem.mediaUrl?.includes('yout') && !selectedItem.linkUrl?.includes('yout')"
-           style="border-radius:16px;overflow:hidden;margin-bottom:24px;max-height:480px;text-align:center;background:#f8fafc;">
+      <!-- PHOTO/IMAGE image taille moyenne -->
+      <div *ngIf="selectedItem.type !== 'COMMUNIQUE' && selectedItem.type !== 'VIDEO' && !selectedItem.mediaUrl?.includes('yout') && !selectedItem.linkUrl?.includes('yout')"
+           style="border-radius:16px;overflow:hidden;margin-bottom:24px;text-align:center;background:#f8fafc;padding:12px;">
         <img [src]="getArticleImage(selectedItem)" alt="Illustration" (error)="onArticleImageError($event, selectedItem)"
-             style="max-width:100%;max-height:480px;object-fit:contain;display:block;margin:0 auto;">
+             style="max-width:65%;max-height:280px;object-fit:contain;display:block;margin:0 auto;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
       </div>
 
-      <!-- ARTICLE / COMMUNIQUE / autres contenu texte + Lire la suite -->
-      <ng-container *ngIf="selectedItem.type !== 'VIDEO' && !selectedItem.mediaUrl?.includes('yout') && !selectedItem.linkUrl?.includes('yout')">
+      <!-- ARTICLE / autres : contenu texte + Lire la suite -->
+      <ng-container *ngIf="selectedItem.type !== 'COMMUNIQUE' && selectedItem.type !== 'VIDEO' && !selectedItem.mediaUrl?.includes('yout') && !selectedItem.linkUrl?.includes('yout')">
         
         <!-- IA Recap Action -->
         <div *ngIf="selectedItem.type !== 'PHOTO'" style="margin-bottom: 20px; display: flex; justify-content: flex-end;">
           <button (click)="generateSummary()" [disabled]="generatingAiRecap"
-                  style="background: linear-gradient(135deg, #8b5cf6, #3b82f6); color: white; border: none; padding: 10px 20px; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: transform 0.2s, opacity 0.2s; box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.2);"
+                  style="background: linear-gradient(135deg, #8b5cf6, #3b82f6); color: white; border: none; padding: 10px 20px; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.2);"
                   [style.opacity]="generatingAiRecap ? '0.7' : '1'">
             <span *ngIf="!generatingAiRecap">Obtenir un résumé IA</span>
             <span *ngIf="generatingAiRecap">Analyse en cours...</span>
@@ -182,7 +189,7 @@
         </div>
 
         <!-- IA Recap Box -->
-        <div *ngIf="aiRecap" style="background: #f8fafc; border-left: 4px solid #8b5cf6; padding: 20px; border-radius: 12px; margin-bottom: 24px; animation: fadeIn 0.4s ease-out; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+        <div *ngIf="aiRecap" style="background: #f8fafc; border-left: 4px solid #8b5cf6; padding: 20px; border-radius: 12px; margin-bottom: 24px; animation: fadeIn 0.4s ease-out;">
           <div [innerHTML]="aiRecap"></div>
         </div>
 
@@ -201,11 +208,11 @@
         </div>
       </ng-container>
 
-      <!-- Lien PDF / source externe -->
-      <div *ngIf="selectedItem.linkUrl && !selectedItem.linkUrl.includes('yout')" style="margin-bottom:24px;">
+      <!-- Lien source externe (non-communiqué, non-youtube) -->
+      <div *ngIf="selectedItem.type !== 'COMMUNIQUE' && selectedItem.linkUrl && !selectedItem.linkUrl.includes('yout')" style="margin-bottom:24px;">
         <a [href]="selectedItem.linkUrl" target="_blank"
            style="background:#f1f5f9;color:#1565C0;padding:10px 20px;border-radius:12px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:8px;border:1px solid #e2e8f0;">
-          Ouvrir le document / la source
+          Ouvrir la source
         </a>
       </div>
 
@@ -268,51 +275,76 @@
           </div>
         </div>
 
-        <!-- Comments -->
-        <h3 style="font-size:1.1rem;font-weight:800;color:#1e293b;margin-bottom:18px;display:flex;align-items:center;gap:8px;">
-          Commentaires
-          <span style="background:#e0f2fe;color:#0284c7;font-size:0.78rem;padding:2px 10px;border-radius:20px;font-weight:700;">{{ interactions?.comments?.length || 0 }}</span>
-        </h3>
+        <!-- Comments Section -->
+        <div style="background:#f8fafc;padding:20px;border-radius:14px;margin-top:20px;">
+          <h3 style="font-size:1.1rem;font-weight:800;color:#1e293b;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+            💬 Commentaires <span style="background:#e2e8f0;color:#475569;font-size:0.8rem;padding:2px 8px;border-radius:20px;">{{ comments.length }}</span>
+          </h3>
 
-        <!-- Add comment -->
-        <div style="display:flex;gap:12px;margin-bottom:22px;align-items:flex-start;">
-          <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#0284c7,#0ea5e9);color:white;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;font-size:0.85rem;">
-            Moi
+          <div *ngIf="replyingTo" style="background:#eff6ff;padding:8px 12px;border-radius:8px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;border-left:4px solid #1565C0;">
+            <span style="font-size:0.9rem;color:#1e293b;">En réponse à <strong>{{ replyingTo.userFirstName }}</strong> : <em>{{ replyingTo.text | slice:0:50 }}...</em></span>
+            <button (click)="cancelReply()" style="background:none;border:none;color:#ef4444;cursor:pointer;font-weight:600;">✕</button>
           </div>
-          <div style="flex-grow:1;display:flex;gap:8px;">
-            <input type="text" [(ngModel)]="newCommentText" (keyup.enter)="addComment()"
-                   placeholder="Écrire un commentaire..."
-                   [disabled]="!currentUserId"
-                   style="flex-grow:1;padding:12px 16px;border:2px solid #e2e8f0;border-radius:12px;outline:none;font-size:0.95rem;transition:border-color 0.2s;font-family:inherit;">
-            <button (click)="addComment()" [disabled]="!newCommentText.trim() || isSubmittingComment || !currentUserId"
-                    style="background:#0284c7;color:white;border:none;padding:0 20px;border-radius:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity 0.2s;"
-                    [style.opacity]="(!newCommentText.trim() || !currentUserId) ? '0.45' : '1'">
-              Envoyer
-            </button>
-          </div>
-        </div>
 
-        <!-- Comment list -->
-        <div style="display:flex;flex-direction:column;gap:12px;max-height:380px;overflow-y:auto;padding-right:4px;">
-          <div *ngFor="let comment of interactions?.comments"
-               style="display:flex;gap:12px;background:#f8fafc;padding:14px 16px;border-radius:14px;">
-            <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;font-size:1rem;text-transform:uppercase;">
-              {{ (comment.userName || '?')[0] }}
+          <!-- Formulaire Ajout -->
+          <div *ngIf="currentUserId" style="display:flex;gap:12px;margin-bottom:24px;">
+            <div style="width:40px;height:40px;border-radius:50%;background:#1565C0;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;">
+              Moi
             </div>
-            <div style="flex:1;">
-              <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:5px;">
-                <span style="font-weight:700;color:#1e293b;">{{ comment.userName }}</span>
-                <span style="font-size:0.78rem;color:#94a3b8;">{{ comment.createdAt | date:'dd MMM à HH:mm' }}</span>
+            <div style="flex:1;position:relative;">
+              <textarea [(ngModel)]="newCommentText" rows="2" placeholder="Ajouter un commentaire..."
+                        #commentInput
+                        style="width:100%;padding:12px 16px;border-radius:12px;border:1px solid #cbd5e1;resize:none;font-family:inherit;font-size:0.95rem;transition:all 0.2s;outline:none;"
+                        (focus)="commentInput.style.borderColor='#3b82f6'"
+                        (blur)="commentInput.style.borderColor='#cbd5e1'"></textarea>
+              <button (click)="postComment()" [disabled]="!newCommentText.trim() || isSubmittingComment"
+                      style="position:absolute;bottom:10px;right:10px;background:#1565C0;color:white;border:none;padding:6px 14px;border-radius:8px;font-weight:700;cursor:pointer;opacity:0.9;transition:all 0.2s;">
+                Envoyer
+              </button>
+            </div>
+          </div>
+
+          <!-- Liste des commentaires -->
+          <div *ngIf="comments.length > 0">
+            <div *ngFor="let comment of comments" style="margin-bottom:16px;">
+              <div style="display:flex;gap:12px;background:white;padding:16px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                <div style="width:40px;height:40px;border-radius:50%;background:#e2e8f0;color:#475569;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;text-transform:uppercase;">
+                  {{ comment.userFirstName ? comment.userFirstName.charAt(0) : 'U' }}
+                </div>
+                <div style="flex:1;">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                    <span style="font-weight:800;color:#1e293b;font-size:0.95rem;">{{ comment.userFirstName }} {{ comment.userLastName }}</span>
+                    <span style="font-size:0.8rem;color:#94a3b8;font-weight:600;">{{ comment.createdAt | date:'dd MMM yyyy HH:mm' }}</span>
+                  </div>
+                  <p style="margin:0;color:#334155;line-height:1.6;font-size:0.95rem;white-space:pre-wrap;">{{ comment.text }}</p>
+                  <button (click)="replyTo(comment)" style="background:none;border:none;color:#1565C0;font-size:0.85rem;padding:0;margin-top:8px;cursor:pointer;font-weight:600;">
+                    ↩ Répondre
+                  </button>
+                </div>
               </div>
-              <p style="margin:0;color:#334155;font-size:0.95rem;line-height:1.6;word-break:break-word;">{{ comment.text }}</p>
+
+              <div *ngIf="comment.replies && comment.replies.length > 0" style="margin-left:52px;margin-top:12px;display:flex;flex-direction:column;gap:12px;">
+                <div *ngFor="let reply of comment.replies" style="display:flex;gap:12px;background:#f8fafc;padding:12px;border-radius:12px;">
+                  <div style="width:32px;height:32px;border-radius:50%;background:#e2e8f0;color:#475569;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-size:0.8rem;text-transform:uppercase;">
+                    {{ reply.userFirstName ? reply.userFirstName.charAt(0) : 'U' }}
+                  </div>
+                  <div style="flex:1;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                      <span style="font-weight:700;color:#1e293b;font-size:0.9rem;">{{ reply.userFirstName }} {{ reply.userLastName }}</span>
+                      <span style="font-size:0.75rem;color:#94a3b8;">{{ reply.createdAt | date:'dd MMM yyyy HH:mm' }}</span>
+                    </div>
+                    <p style="margin:0;color:#334155;font-size:0.9rem;line-height:1.5;white-space:pre-wrap;">{{ reply.text }}</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div *ngIf="!interactions?.comments?.length"
-               style="text-align:center;color:#94a3b8;padding:28px 0;font-size:0.95rem;">
-            Soyez le premier à commenter !
+          <div *ngIf="comments.length === 0" style="text-align:center;color:#94a3b8;padding:20px;font-style:italic;">
+            Aucun commentaire pour le moment. Soyez le premier !
           </div>
         </div>
+
       </section>
 
     </div>

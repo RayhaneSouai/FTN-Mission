@@ -124,10 +124,19 @@ public class PressServiceImpl implements IPressService {
         if (item != null) {
             if (item.getStatus() == PressStatus.DELETED) {
                 System.out.println("DEBUG: Hard Delete de l'item " + id);
+                // Supprimer d'abord les entités liées (clés étrangères)
+                commentRepository.deleteAll(commentRepository.findByPressItemIdOrderByCreatedAtAsc(id));
+                reactionRepository.deleteAll(reactionRepository.findByPressItemId(id));
+                favoriteRepository.deleteAll(favoriteRepository.findByPressItemId(id));
+                pinRepository.deleteAll(pinRepository.findByPressItemId(id));
+                // Supprimer l'article
                 pressItemRepository.deleteById(id);
             } else {
                 System.out.println("DEBUG: Soft Delete (Corbeille) de l'item " + id);
                 pressItemRepository.updateStatus(id, PressStatus.DELETED.name());
+                // Remove favorites and pins when soft-deleted to keep swimmer view synced
+                favoriteRepository.deleteAll(favoriteRepository.findByPressItemId(id));
+                pinRepository.deleteAll(pinRepository.findByPressItemId(id));
             }
         } else {
             System.err.println("DEBUG: Item non trouvé pour ID: " + id);
@@ -187,8 +196,10 @@ public class PressServiceImpl implements IPressService {
 
     @Override
     public List<PressItem> getPopular(int limit) {
+        java.util.Set<Long> seenIds = new java.util.HashSet<>();
         return pressItemRepository.findAll().stream()
                 .filter(p -> p.getStatus() == PressStatus.PUBLISHED)
+                .filter(p -> seenIds.add(p.getIdPressItem()))
                 .sorted((p1, p2) -> Long.compare(p2.getViews() != null ? p2.getViews() : 0L, p1.getViews() != null ? p1.getViews() : 0L))
                 .limit(limit)
                 .collect(java.util.stream.Collectors.toList());
@@ -198,6 +209,7 @@ public class PressServiceImpl implements IPressService {
         return favoriteRepository.findAll().stream()
             .filter(f -> f.getUser().getId().equals(userId))
             .map(tn.federation.backend.entities.PressFavorite::getPressItem)
+            .filter(item -> item.getStatus() == tn.federation.backend.entities.PressStatus.PUBLISHED)
             .collect(Collectors.toList());
     }
 
@@ -206,6 +218,7 @@ public class PressServiceImpl implements IPressService {
         return pinRepository.findAll().stream()
             .filter(p -> p.getUser().getId().equals(userId))
             .map(tn.federation.backend.entities.PressPin::getPressItem)
+            .filter(item -> item.getStatus() == tn.federation.backend.entities.PressStatus.PUBLISHED)
             .collect(Collectors.toList());
     }
 
