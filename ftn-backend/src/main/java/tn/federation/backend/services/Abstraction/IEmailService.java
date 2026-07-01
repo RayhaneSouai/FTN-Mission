@@ -10,4 +10,38 @@ public interface IEmailService {
     void sendRegistrationDecision(String to, boolean approved);
 
     void sendAdminCreatedUserWelcome(String to, String firstName, String temporaryPassword, String setupToken);
+
+    void sendClubAdminErrorReportToAdmin(
+            String adminEmail,
+            String coachName,
+            String coachEmail,
+            String clubName,
+            String season,
+            String fieldLabels,
+            String description);
+
+    void sendSeasonValidationRequestToCoach(
+            String coachEmail,
+            String coachFirstName,
+            String clubName,
+            String season);
+
+    void sendLicensePendingValidationToCoach(
+            String coachEmail,
+            String coachFirstName,
+            String clubName,
+            String season,
+            String licenseNumber);
+
+    void sendSeasonValidationDecisionToAdmin(
+            String adminEmail,
+            String coachName,
+            String clubName,
+            String season,
+            boolean approved);
+
+    void sendSwimmerSeasonValidationRequest(
+            String email,
+            String swimmerName,
+            String season);
 }

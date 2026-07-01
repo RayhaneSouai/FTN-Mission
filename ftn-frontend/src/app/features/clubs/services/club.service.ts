@@ -14,6 +14,10 @@ export class ClubService {
     return this.http.get<Club[]>(this.apiUrl);
   }
 
+  getById(id: number): Observable<Club> {
+    return this.http.get<Club>(`${this.apiUrl}/${id}`);
+  }
+
   findByName(name: string): Observable<Club | null> {
     return this.http.get<Club | null>(this.apiUrl, { params: { name } });
   }
@@ -64,5 +68,34 @@ export class ClubService {
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  validateSeason(season: string, clubId?: number, isValidated: boolean = true): Observable<any> {
+    const params: any = { season, isValidated: isValidated.toString() };
+    if (clubId) {
+      params.clubId = clubId.toString();
+    }
+    return this.http.post<any>(`${this.apiUrl}/my-club/validate-season`, {}, { params });
+  }
+
+  getSeasonValidationStatus(season: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/my-club/season-validation`, { params: { season } });
+  }
+
+  reportAdminError(payload: {
+    clubId: number;
+    season: string;
+    fields: string[];
+    description?: string;
+  }): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/my-club/report-admin-error`, payload);
+  }
+
+  requestSeasonValidation(season: string): Observable<{ message: string; notifiedCount: number }> {
+    return this.http.post<{ message: string; notifiedCount: number }>(
+      `${this.apiUrl}/season-validation/request`,
+      {},
+      { params: { season } }
+    );
   }
 }

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { LicenseService } from '../services/license.service';
+import { ClubService } from '../../clubs/services/club.service';
 
 declare var bootstrap: any;
 
@@ -22,15 +23,32 @@ export class LicenseListComponent implements OnInit {
   deleteModalInstance: any;
   licenseToDeleteId: number | null = null;
 
+  // Season Generation properties
+  selectedStartYear: number = new Date().getFullYear();
+  availableYears: number[] = [];
+  generateSeasonModalInstance: any;
+
   // Pagination
   currentPage = 1;
   pageSize = 10;
   totalPages = 1;
 
-  constructor(private licenseService: LicenseService) {}
+  constructor(
+    private licenseService: LicenseService,
+    private clubService: ClubService
+  ) {}
 
   ngOnInit(): void {
     this.loadLicenses();
+    this.initAvailableYears();
+  }
+
+  initAvailableYears() {
+    const currentYear = new Date().getFullYear();
+    this.availableYears = [];
+    for (let i = currentYear - 3; i <= currentYear + 3; i++) {
+      this.availableYears.push(i);
+    }
   }
 
   // Helper method to get or create Bootstrap modals safely
@@ -94,36 +112,54 @@ export class LicenseListComponent implements OnInit {
     this.selectedLicenseId = null;
     this.viewOnly = false;
     this.modalTitle = 'Créer une Licence';
+    const modal = this.getModal('licenseFormModal');
+    if (modal) modal.show();
   }
 
   openEditModal(id: number) {
     this.selectedLicenseId = id;
     this.viewOnly = false;
     this.modalTitle = 'Modifier la Licence';
+    const modal = this.getModal('licenseFormModal');
+    if (modal) modal.show();
   }
 
   openViewModal(id: number) {
     this.selectedLicenseId = id;
     this.viewOnly = true;
     this.modalTitle = 'Détails de la Licence';
+    const modal = this.getModal('licenseFormModal');
+    if (modal) modal.show();
   }
 
   onFormSaved() {
     setTimeout(() => {
       const modalElement = document.getElementById('licenseFormModal');
       if (modalElement) {
-        const closeBtn = modalElement.querySelector('[data-bs-dismiss="modal"]') as HTMLElement;
-        if (closeBtn) closeBtn.click();
+        const modalInstance = this.getModal('licenseFormModal');
+        if (modalInstance) modalInstance.hide();
       }
       this.loadLicenses();
     }, 1000);
   }
 
+  openGenerateSeasonModal() {
+    this.selectedStartYear = new Date().getFullYear();
+    this.generateSeasonModalInstance = this.getModal('generateSeasonModal');
+    if (this.generateSeasonModalInstance) {
+      this.generateSeasonModalInstance.show();
+    }
+  }
+
   generateForSeason() {
+    const targetSeason = this.selectedStartYear + '-' + (this.selectedStartYear + 1);
     this.actionInProgress = true;
-    this.licenseService.generateLicenses(this.season).subscribe({
+    this.licenseService.generateLicenses(targetSeason).subscribe({
       next: (data) => {
-        this.success = `${data.length} licences générées pour la saison ${this.season}`;
+        this.success = `${data.length} licences générées pour la saison ${targetSeason}`;
+        if (this.generateSeasonModalInstance) {
+          this.generateSeasonModalInstance.hide();
+        }
         this.loadLicenses();
         this.actionInProgress = false;
         setTimeout(() => this.success = '', 5000);
@@ -132,6 +168,24 @@ export class LicenseListComponent implements OnInit {
         this.error = 'Erreur lors de la génération des licences';
         this.actionInProgress = false;
         console.error(err);
+      }
+    });
+  }
+
+  notifyCoachesForValidation() {
+    const rawSeason = this.season || `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`;
+    const targetSeason = rawSeason.includes('/') ? rawSeason : rawSeason.replace('-', '/');
+    this.actionInProgress = true;
+    this.clubService.requestSeasonValidation(targetSeason).subscribe({
+      next: (res) => {
+        this.success = res.message;
+        this.actionInProgress = false;
+        setTimeout(() => this.success = '', 6000);
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'Erreur lors de la notification des coaches';
+        this.actionInProgress = false;
+        setTimeout(() => this.error = '', 5000);
       }
     });
   }
@@ -147,7 +201,8 @@ export class LicenseListComponent implements OnInit {
     return this.licenses.filter(l => 
       (l.licenseNumber && l.licenseNumber.toLowerCase().includes(term)) ||
       (l.season && l.season.toLowerCase().includes(term)) ||
-      (l.clubId && l.clubId.toString().includes(term))
+      (l.club?.name && l.club.name.toLowerCase().includes(term)) ||
+      (l.club?.id && l.club.id.toString().includes(term))
     );
   }
 

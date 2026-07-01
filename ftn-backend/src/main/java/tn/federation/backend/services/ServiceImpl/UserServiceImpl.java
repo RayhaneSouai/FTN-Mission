@@ -96,6 +96,10 @@ public class UserServiceImpl implements IUserService {
             throw new IllegalArgumentException("Email déjà utilisé");
         }
 
+        if ((request.getRole() == Role.SWIMMER || request.getRole() == Role.COACH) && request.getClubId() == null) {
+            throw new IllegalArgumentException("Un nageur ou un coach doit obligatoirement être rattaché à un club.");
+        }
+
         String plainPassword = resolveAdminPassword(request.getPassword());
         User user = toEntityFromAdminRequest(request);
         user.setEmail(email);
@@ -106,6 +110,12 @@ public class UserServiceImpl implements IUserService {
         user.setMustChangePassword(true);
 
         User saved = userRepository.save(user);
+
+        if (saved.getRole() == Role.COACH && saved.getClub() != null) {
+            Club club = saved.getClub();
+            club.setCoach(saved);
+            clubRepository.save(club);
+        }
 
         String setupToken = passwordTokenService.createToken(
                 email,
@@ -202,6 +212,11 @@ public class UserServiceImpl implements IUserService {
     public UserDTO approveUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
+        
+        if ((user.getRole() == Role.SWIMMER || user.getRole() == Role.COACH) && user.getClub() == null) {
+            throw new IllegalArgumentException("Impossible d'approuver un utilisateur sans club associé.");
+        }
+
         user.setActive(true);
         user.setRegistrationStatus(RegistrationStatus.CONFIRMEE);
         User saved = userRepository.save(user);
@@ -243,9 +258,19 @@ public class UserServiceImpl implements IUserService {
         user.setDiscipline(convertToDiscipline(dto.getDiscipline()));
         user.setAnciennete(dto.getAnciennete());
 
+        Role targetRole = isAdmin ? dto.getRole() : user.getRole();
+
         if (dto.getClubId() != null) {
-            user.setClub(clubRepository.findById(dto.getClubId()).orElse(null));
+            Club club = clubRepository.findById(dto.getClubId()).orElse(null);
+            user.setClub(club);
+            if (user.getRole() == Role.COACH && club != null) {
+                club.setCoach(user);
+                clubRepository.save(club);
+            }
         } else if (dto.getClubName() == null) {
+            if (targetRole == Role.SWIMMER || targetRole == Role.COACH) {
+                throw new IllegalArgumentException("Un nageur ou un coach doit obligatoirement être rattaché à un club.");
+            }
             user.setClub(null);
         }
 
@@ -264,7 +289,19 @@ public class UserServiceImpl implements IUserService {
             }
         }
 
-        return mapToDTO(userRepository.save(user));
+        if ((user.getRole() == Role.SWIMMER || user.getRole() == Role.COACH) && user.getClub() == null) {
+            throw new IllegalArgumentException("Un nageur ou un coach doit obligatoirement être rattaché à un club.");
+        }
+
+        User saved = userRepository.save(user);
+
+        if (saved.getRole() == Role.COACH && saved.getClub() != null) {
+            Club club = saved.getClub();
+            club.setCoach(saved);
+            clubRepository.save(club);
+        }
+
+        return mapToDTO(saved);
     }
 
     private tn.federation.backend.entities.Gender convertToGender(String genderStr) {
@@ -333,7 +370,7 @@ public class UserServiceImpl implements IUserService {
         long participations = participationRepository.countBySwimmerId(swimmerId);
         long performances = performanceRepository.countBySwimmerId(swimmerId);
         long favorites = favoriteRepository.countByUserId(swimmerId);
-        boolean hasLicense = swimmer.getActive() != null && swimmer.getActive() && swimmer.getClub() != null;
+        boolean hasLicense = swimmer.getLicense() != null && "VALIDATED".equals(swimmer.getLicense().getValidationStatus());
 
         return tn.federation.backend.dto.SwimmerDashboardDTO.builder()
                 .totalParticipations(participations)
@@ -393,6 +430,12 @@ public class UserServiceImpl implements IUserService {
             dto.setClubManager(user.getClub().getManager());
             dto.setClubContact(user.getClub().getContact());
             dto.setClubAffiliationDate(user.getClub().getAffiliationDate());
+        }
+
+        if (user.getLicense() != null) {
+            dto.setLicenseId(user.getLicense().getId());
+            dto.setLicenseNumber(user.getLicense().getLicenseNumber());
+            dto.setLicenseValidationStatus(user.getLicense().getValidationStatus());
         }
 
         return dto;

@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tn.federation.backend.entities.Season;
 import tn.federation.backend.repositories.FormationProgramRepository;
 import tn.federation.backend.repositories.SeasonRepository;
+import tn.federation.backend.services.Abstraction.INotificationService;
 import tn.federation.backend.services.Abstraction.ISeasonService;
 
 import java.util.List;
@@ -14,10 +15,15 @@ public class SeasonServiceImpl implements ISeasonService {
 
     private final SeasonRepository seasonRepository;
     private final FormationProgramRepository programRepository;
+    private final INotificationService notificationService;
 
-    public SeasonServiceImpl(SeasonRepository seasonRepository, FormationProgramRepository programRepository) {
+    public SeasonServiceImpl(
+            SeasonRepository seasonRepository,
+            FormationProgramRepository programRepository,
+            INotificationService notificationService) {
         this.seasonRepository = seasonRepository;
         this.programRepository = programRepository;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -40,12 +46,17 @@ public class SeasonServiceImpl implements ISeasonService {
             throw new IllegalArgumentException("Cette saison existe déjà");
         }
         season.setLabel(season.getLabel().trim());
-        return seasonRepository.save(season);
+        Season saved = seasonRepository.save(season);
+        if (saved.isActive()) {
+            notificationService.requestSeasonValidationForAllCoaches(saved.getLabel());
+        }
+        return saved;
     }
 
     @Override
     public Season update(Long id, Season season) {
         Season existing = findById(id);
+        boolean wasActive = existing.isActive();
         if (season.getLabel() != null && !season.getLabel().isBlank()) {
             String label = season.getLabel().trim();
             if (!label.equals(existing.getLabel()) && seasonRepository.existsByLabel(label)) {
@@ -54,7 +65,13 @@ public class SeasonServiceImpl implements ISeasonService {
             existing.setLabel(label);
         }
         existing.setActive(season.isActive());
-        return seasonRepository.save(existing);
+        Season saved = seasonRepository.save(existing);
+
+        if (season.isActive() && !wasActive) {
+            notificationService.requestSeasonValidationForAllCoaches(saved.getLabel());
+        }
+
+        return saved;
     }
 
     @Override

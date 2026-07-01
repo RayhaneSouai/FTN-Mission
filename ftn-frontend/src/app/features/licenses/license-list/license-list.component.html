@@ -3,11 +3,7 @@
     title="Gestion des licences"
     subtitle="Visualisez et gérez les licences sportives pour chaque saison.">
     <div actions class="admin-toolbar-actions">
-      <div class="search-box season-search">
-        <i class="bi bi-calendar-range"></i>
-        <input type="text" class="form-control border-0 shadow-none admin-form-control" [(ngModel)]="season" placeholder="Saison (ex: 2026-2027)">
-      </div>
-      <button type="button" class="admin-btn admin-btn--secondary" (click)="generateForSeason()" [disabled]="actionInProgress">
+      <button type="button" class="admin-btn admin-btn--secondary" (click)="openGenerateSeasonModal()" [disabled]="actionInProgress">
         <i class="bi bi-magic" *ngIf="!actionInProgress"></i>
         <span class="spinner-border spinner-border-sm" *ngIf="actionInProgress"></span>
         Générer saison
@@ -67,18 +63,27 @@
               <th class="py-3">Saison</th>
               <th class="py-3">Période de validité</th>
               <th class="py-3">Club</th>
+              <th class="py-3">Nageur</th>
               <th class="text-center py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let license of paginatedLicenses">
+            <tr *ngFor="let license of paginatedLicenses" [class.opacity-50]="license.validationStatus !== 'VALIDATED'">
               <td class="ps-4">
                 <div class="d-flex align-items-center">
                   <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-2 me-3">
                     <i class="bi bi-card-checklist fs-5"></i>
                   </div>
                   <div>
-                    <div class="fw-bold text-dark">{{ license.licenseNumber }}</div>
+                    <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                      {{ license.licenseNumber }}
+                      <span *ngIf="license.validationStatus === 'PENDING'" class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">
+                        <i class="bi bi-clock-fill me-1"></i> En attente
+                      </span>
+                      <span *ngIf="license.validationStatus === 'REFUSED'" class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">
+                        <i class="bi bi-x-circle-fill me-1"></i> Refusée
+                      </span>
+                    </div>
                   </div>
                 </div>
               </td>
@@ -100,7 +105,16 @@
                   <span class="badge rounded-circle bg-secondary bg-opacity-10 text-secondary me-2 p-1" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
                     <i class="bi bi-building small"></i>
                   </span>
-                  <span class="fw-medium text-dark">Club #{{ license.clubId || 'N/A' }}</span>
+                  <span class="fw-medium text-dark">{{ license.club?.name || 'Indépendant' }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="d-flex align-items-center">
+                  <span class="badge rounded-circle bg-success bg-opacity-10 text-success me-2 p-1" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-person small"></i>
+                  </span>
+                  <span class="fw-medium text-dark" *ngIf="license.swimmer">{{ license.swimmer.firstName }} {{ license.swimmer.lastName }}</span>
+                  <span class="text-muted small" *ngIf="!license.swimmer">Non assigné</span>
                 </div>
               </td>
               <td class="text-center">
@@ -178,6 +192,50 @@
       <div class="d-flex justify-content-center gap-3 mt-4">
         <button class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Annuler</button>
         <button class="btn btn-danger rounded-pill px-4" (click)="executeDelete()">Supprimer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Generate Season Modal -->
+<div class="modal fade" id="generateSeasonModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4 p-4">
+      <div class="modal-header border-0 p-0 mb-3">
+        <h5 class="modal-title fw-bold fs-4">Générer une Saison</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <p class="text-muted">Sélectionnez l'année de début pour générer automatiquement les licences de la saison correspondante pour tous les clubs actifs.</p>
+        
+        <div class="mb-4">
+          <label class="form-label fw-bold">Année de début</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light"><i class="bi bi-calendar-event"></i></span>
+            <select class="form-select" [(ngModel)]="selectedStartYear">
+              <option *ngFor="let year of availableYears" [value]="year">{{ year }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bg-light p-3 rounded-3 mb-4 d-flex align-items-center justify-content-between">
+          <span class="fw-medium text-secondary">Saison à générer :</span>
+          <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill fw-bold">
+            {{ selectedStartYear }}-{{ +selectedStartYear + 1 }}
+          </span>
+        </div>
+
+        <div class="alert alert-info py-2 d-flex align-items-center mb-0">
+          <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+          <small>Les licences existantes pour cette saison ne seront pas dupliquées.</small>
+        </div>
+      </div>
+      <div class="modal-footer border-0 p-0 mt-4 d-flex justify-content-end gap-2">
+        <button class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal" [disabled]="actionInProgress">Annuler</button>
+        <button class="btn btn-primary rounded-pill px-4" (click)="generateForSeason()" [disabled]="actionInProgress">
+          <span class="spinner-border spinner-border-sm me-2" *ngIf="actionInProgress"></span>
+          Générer la Saison
+        </button>
       </div>
     </div>
   </div>

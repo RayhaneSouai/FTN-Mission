@@ -43,7 +43,7 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      const userStr = localStorage.getItem('user');
+      const userStr = sessionStorage.getItem('user');
       if (userStr) {
         const u = JSON.parse(userStr);
         this.adminFirstName = u.firstName ?? '';

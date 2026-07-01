@@ -63,21 +63,7 @@
           <span class="link-text" *ngIf="!isSidebarCollapsed">Formations</span>
         </a>
       </div>
-      <div class="nav-section nav-section--profile">
-        <span class="section-label" *ngIf="!isSidebarCollapsed">MON PROFIL</span>
-        <a routerLink="/admin/mon-profil" routerLinkActive="active" class="sidebar-link" title="Vue globale">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h8V3H3v10Z"/><path d="M13 21h8V11h-8v10Z"/><path d="M13 3v6h8V3h-8Z"/><path d="M3 21h8v-6H3v6Z"/></svg>
-          <span class="link-text" *ngIf="!isSidebarCollapsed">Vue globale</span>
-        </a>
-      </div>
     </nav>
-
-    <div class="sidebar-footer">
-      <button (click)="logout()" class="logout-link" title="Déconnexion">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        <span class="link-text" *ngIf="!isSidebarCollapsed">Déconnexion</span>
-      </button>
-    </div>
   </aside>
 
   <div class="admin-main">
@@ -114,8 +100,8 @@
             [class.admin-notif__bell--active]="showNotificationsDropdown"
             [attr.aria-expanded]="showNotificationsDropdown">
             <i class="bi bi-bell"></i>
-            <span class="admin-notif__badge" *ngIf="pendingUsers.length > 0">
-              {{ pendingUsers.length > 9 ? '9+' : pendingUsers.length }}
+            <span class="admin-notif__badge" *ngIf="totalNotificationCount > 0">
+              {{ totalNotificationCount > 9 ? '9+' : totalNotificationCount }}
             </span>
           </button>
 
@@ -123,82 +109,157 @@
             <div class="admin-notif__panel-head">
               <div>
                 <h2 class="admin-notif__panel-title">
-                  <i class="bi bi-person-check"></i>
-                  Inscriptions en attente
+                  <i class="bi bi-bell"></i>
+                  Notifications
                 </h2>
-                <p class="admin-notif__panel-sub">Validez ou refusez les nouvelles demandes</p>
+                <p class="admin-notif__panel-sub">Inscriptions et signalements coach</p>
               </div>
-              <span class="admin-notif__count" *ngIf="pendingUsers.length > 0">{{ pendingUsers.length }}</span>
+              <span class="admin-notif__count" *ngIf="totalNotificationCount > 0">{{ totalNotificationCount }}</span>
+            </div>
+
+            <div class="admin-notif__tabs">
+              <button type="button"
+                      class="admin-notif__tab"
+                      [class.admin-notif__tab--active]="notificationTab === 'registrations'"
+                      (click)="switchNotificationTab('registrations', $event)">
+                Inscriptions
+                <span class="admin-notif__tab-badge" *ngIf="pendingUsers.length > 0">{{ pendingUsers.length }}</span>
+              </button>
+              <button type="button"
+                      class="admin-notif__tab"
+                      [class.admin-notif__tab--active]="notificationTab === 'reports'"
+                      (click)="switchNotificationTab('reports', $event)">
+                Signalements
+                <span class="admin-notif__tab-badge" *ngIf="unreadAdminNotificationsCount > 0">{{ unreadAdminNotificationsCount }}</span>
+              </button>
             </div>
 
             <div class="admin-notif__panel-body">
-              <!-- Loading State -->
-              <div class="admin-notif__state" *ngIf="loadingNotifications">
-                <div class="spinner-border spinner-border-sm text-primary"></div>
-                <span>Chargement...</span>
-              </div>
+              <!-- Registrations tab -->
+              <ng-container *ngIf="notificationTab === 'registrations'">
+                <div class="admin-notif__state" *ngIf="loadingNotifications">
+                  <div class="spinner-border spinner-border-sm text-primary"></div>
+                  <span>Chargement...</span>
+                </div>
 
-              <!-- Error State -->
-              <div class="admin-notif__state admin-notif__state--error" *ngIf="notificationError">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-                <span>{{ notificationError }}</span>
-              </div>
+                <div class="admin-notif__state admin-notif__state--error" *ngIf="notificationError">
+                  <i class="bi bi-exclamation-triangle-fill"></i>
+                  <span>{{ notificationError }}</span>
+                </div>
 
-              <!-- Empty State -->
-              <div class="admin-notif__state" *ngIf="!loadingNotifications && !notificationError && pendingUsers.length === 0">
-                <i class="bi bi-bell-slash"></i>
-                <span>Aucune inscription en attente</span>
-              </div>
+                <div class="admin-notif__state" *ngIf="!loadingNotifications && !notificationError && pendingUsers.length === 0">
+                  <i class="bi bi-bell-slash"></i>
+                  <span>Aucune inscription en attente</span>
+                </div>
 
-              <!-- List of Notifications -->
-              <ul class="admin-notif__list" *ngIf="!loadingNotifications && !notificationError && pendingUsers.length > 0">
-                <li *ngFor="let pu of pendingUsers" class="admin-notif__item">
-                  <div class="admin-notif__item-main">
-                    <img
-                      [src]="'https://ui-avatars.com/api/?name=' + pu.firstName + '+' + pu.lastName + '&background=004da3&color=fff&size=64'"
-                      class="admin-notif__avatar"
-                      alt="">
-                    <div class="admin-notif__item-text">
-                      <p class="admin-notif__item-title">
-                        <strong>{{ pu.firstName }} {{ pu.lastName }}</strong>
-                      </p>
-                      <span class="admin-notif__role">{{ roleLabel(pu.role) }}</span>
-                      <span class="admin-notif__email">{{ pu.email }}</span>
-                      <span class="admin-notif__time" *ngIf="pu.createdAt">{{ relativeTime(pu.createdAt) }}</span>
+                <ul class="admin-notif__list" *ngIf="!loadingNotifications && !notificationError && pendingUsers.length > 0">
+                  <li *ngFor="let pu of pendingUsers" class="admin-notif__item">
+                    <div class="admin-notif__item-main">
+                      <img
+                        [src]="'https://ui-avatars.com/api/?name=' + pu.firstName + '+' + pu.lastName + '&background=004da3&color=fff&size=64'"
+                        class="admin-notif__avatar"
+                        alt="">
+                      <div class="admin-notif__item-text">
+                        <p class="admin-notif__item-title">
+                          <strong>{{ pu.firstName }} {{ pu.lastName }}</strong>
+                        </p>
+                        <span class="admin-notif__role">{{ roleLabel(pu.role) }}</span>
+                        <span class="admin-notif__email">{{ pu.email }}</span>
+                        <span class="admin-notif__time" *ngIf="pu.createdAt">{{ relativeTime(pu.createdAt) }}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div class="admin-notif__item-actions admin-row-actions">
-                    <button type="button" class="admin-action-label" (click)="approveUser(pu.id, $event)">
-                      <span class="material-symbols-outlined" aria-hidden="true">check</span>
-                      Accepter
-                    </button>
-                    <button type="button" class="admin-action-label" (click)="rejectUser(pu.id, $event)">
-                      <span class="material-symbols-outlined" aria-hidden="true">close</span>
-                      Refuser
-                    </button>
-                  </div>
-                </li>
-              </ul>
+                    <div class="admin-notif__item-actions admin-row-actions">
+                      <button type="button" class="admin-action-label" (click)="approveUser(pu.id, $event)">
+                        <span class="material-symbols-outlined" aria-hidden="true">check</span>
+                        Accepter
+                      </button>
+                      <button type="button" class="admin-action-label" (click)="rejectUser(pu.id, $event)">
+                        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                        Refuser
+                      </button>
+                    </div>
+                  </li>
+                </ul>
+              </ng-container>
+
+              <!-- Club reports tab -->
+              <ng-container *ngIf="notificationTab === 'reports'">
+                <div class="admin-notif__state" *ngIf="clubReportNotifications.length === 0">
+                  <i class="bi bi-shield-check"></i>
+                  <span>Aucun signalement de fiche club</span>
+                </div>
+
+                <ul class="admin-notif__list" *ngIf="clubReportNotifications.length > 0">
+                  <li *ngFor="let notif of clubReportNotifications"
+                      class="admin-notif__item"
+                      [class.admin-notif__item--unread]="!notif.read">
+                    <div class="admin-notif__item-main">
+                      <div class="admin-notif__icon admin-notif__icon--warning">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                      </div>
+                      <div class="admin-notif__item-text">
+                        <p class="admin-notif__item-title">
+                          <strong>{{ notif.clubName }}</strong>
+                          <span class="admin-notif__unread-dot" *ngIf="!notif.read"></span>
+                        </p>
+                        <span class="admin-notif__role">Par {{ notif.createdByName }} · Saison {{ notif.season }}</span>
+                        <span class="admin-notif__email">{{ parseReportFields(notif.payload) }}</span>
+                        <span class="admin-notif__time" *ngIf="notif.createdAt">{{ relativeTime(notif.createdAt) }}</span>
+                      </div>
+                    </div>
+                    <div class="admin-notif__item-actions admin-row-actions">
+                      <button type="button" class="admin-action-label" (click)="markNotificationRead(notif, $event)">
+                        <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+                        Voir le club
+                      </button>
+                    </div>
+                  </li>
+                </ul>
+              </ng-container>
             </div>
 
             <div class="admin-notif__panel-foot">
-              <a routerLink="/admin/utilisateurs" (click)="showNotificationsDropdown = false" class="admin-notif__view-all">
+              <a *ngIf="notificationTab === 'registrations'"
+                 routerLink="/admin/utilisateurs"
+                 (click)="showNotificationsDropdown = false"
+                 class="admin-notif__view-all">
                 Voir toutes les inscriptions
                 <i class="bi bi-arrow-right"></i>
               </a>
+              <button *ngIf="notificationTab === 'reports' && unreadAdminNotificationsCount > 0"
+                      type="button"
+                      class="admin-notif__view-all admin-notif__view-all--btn"
+                      (click)="markAllReportsRead($event)">
+                Tout marquer comme lu
+                <i class="bi bi-check2-all"></i>
+              </button>
             </div>
           </div>
         </div>
 
-        <!-- User Meta Profile -->
-        <a routerLink="/admin/mon-profil" class="user-meta" *ngIf="user">
-          <div class="user-details">
-            <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
-            <span class="user-role">Administrateur FTN</span>
+        <!-- User Meta Profile & Logout -->
+        <!-- User Meta Profile & Dropdown -->
+        <div class="admin-user-dropdown-container position-relative" (click)="$event.stopPropagation()" *ngIf="user">
+          <button type="button" class="user-meta text-start d-flex align-items-center gap-2" (click)="toggleUserDropdown($event)" style="cursor: pointer; background: #fff;">
+            <div class="user-details">
+              <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
+              <span class="user-role">Administrateur FTN</span>
+            </div>
+            <img [src]="'https://ui-avatars.com/api/?name=' + user.firstName + '+' + user.lastName + '&background=004da3&size=32&color=fff'"
+                 class="avatar shadow-sm" alt="Avatar">
+          </button>
+
+          <!-- Dropdown Menu -->
+          <div class="admin-user-dropdown__menu animate-fade-in" *ngIf="showUserDropdown">
+            <a routerLink="/admin/mon-profil" (click)="showUserDropdown = false" class="admin-user-dropdown__item text-decoration-none d-flex align-items-center">
+              <i class="bi bi-person me-2 text-primary"></i> Mon Profil
+            </a>
+            <hr class="my-1 border-light">
+            <button type="button" (click)="logout(); showUserDropdown = false" class="admin-user-dropdown__item border-0 bg-transparent text-start w-100 d-flex align-items-center">
+              <i class="bi bi-box-arrow-right me-2 text-muted"></i> Déconnexion
+            </button>
           </div>
-          <img [src]="'https://ui-avatars.com/api/?name=' + user.firstName + '+' + user.lastName + '&background=004da3&size=32&color=fff'"
-               class="avatar shadow-sm" alt="Avatar">
-        </a>
+        </div>
       </div>
     </header>
 

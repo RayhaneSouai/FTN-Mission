@@ -65,6 +65,49 @@ public class DataInitializer implements CommandLineRunner {
         userRepository.save(admin);
         System.out.println("✅ Compte ADMIN prêt (admin@ftn.tn / admin123)");
 
+        // ── COACH de test ────────────────────────────────────────
+        User coach = userRepository.findByEmail("coach.test@ftn.tn").orElse(null);
+        boolean newCoach = coach == null;
+        if (newCoach) {
+            coach = new User();
+            coach.setFirstName("Moez");
+            coach.setLastName("Gharbi");
+            coach.setEmail("coach.test@ftn.tn");
+            coach.setCreatedAt(LocalDateTime.now());
+            coach.setAnciennete(5);
+            System.out.println("✅ Création du compte COACH de test...");
+        }
+        if (newCoach || coach.getPasswordHash() == null || coach.getPasswordHash().isBlank()) {
+            coach.setPasswordHash(passwordEncoder.encode("coach123"));
+        }
+        coach.setRole(Role.COACH);
+        coach.setActive(true);
+        coach.setRegistrationStatus(RegistrationStatus.CONFIRMEE);
+        coach = userRepository.save(coach);
+        System.out.println("✅ Compte COACH prêt (coach.test@ftn.tn / coach123)");
+
+        // ── Club par défaut ────────────────────────────────────────
+        tn.federation.backend.entities.Club club = null;
+        for (tn.federation.backend.entities.Club c : clubRepository.findAll()) {
+            club = c;
+            break;
+        }
+        if (club == null) {
+            club = new tn.federation.backend.entities.Club();
+            club.setName("Club Sportif de Tunis");
+            club.setRegion("Tunis");
+            club.setAddress("Avenue Habib Bourguiba");
+            club.setContact("71 000 000");
+            club.setManager("Mohamed Ben Salah");
+            club.setCoach(coach);
+            club = clubRepository.save(club);
+            System.out.println("✅ Club par défaut créé avec succès!");
+        } else if (club.getCoach() == null) {
+            club.setCoach(coach);
+            club = clubRepository.save(club);
+            System.out.println("✅ Club par défaut associé au COACH!");
+        }
+
         // ── SWIMMER de test ────────────────────────────────────────
         User swimmer = userRepository.findByEmail(SWIMMER_EMAIL).orElse(null);
         boolean newSwimmer = swimmer == null;
@@ -87,6 +130,7 @@ public class DataInitializer implements CommandLineRunner {
         swimmer.setRole(Role.SWIMMER);
         swimmer.setActive(true);
         swimmer.setRegistrationStatus(RegistrationStatus.CONFIRMEE);
+        swimmer.setClub(club);
         userRepository.save(swimmer);
         System.out.println("✅ Compte SWIMMER prêt (nageur@ftn.tn / nageur123)");
 
@@ -107,20 +151,9 @@ public class DataInitializer implements CommandLineRunner {
         nouveauSwimmer.setPasswordHash(passwordEncoder.encode("azerty123"));
         nouveauSwimmer.setRole(Role.SWIMMER);
         nouveauSwimmer.setActive(true);
+        nouveauSwimmer.setClub(club);
         userRepository.save(nouveauSwimmer);
         System.out.println("✅ Nouveau Compte SWIMMER prêt (nouveau.nageur@ftn.tn / azerty123)");
-
-        // ── Club par défaut ────────────────────────────────────────
-        if (clubRepository.count() == 0) {
-            tn.federation.backend.entities.Club club = new tn.federation.backend.entities.Club();
-            club.setName("Club Sportif de Tunis");
-            club.setRegion("Tunis");
-            club.setAddress("Avenue Habib Bourguiba");
-            club.setContact("71 000 000");
-            club.setManager("Mohamed Ben Salah");
-            clubRepository.save(club);
-            System.out.println("✅ Club par défaut créé avec succès!");
-        }
         // ── Articles & Vidéos par défaut ────────────────────────────────
         if (pressItemRepository.count() == 0) {
             System.out.println("✅ Initialisation des articles de presse par défaut...");

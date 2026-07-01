@@ -9,7 +9,7 @@ export class SwimmerService {
   constructor(private http: HttpClient) {}
 
   private getHeaders(): HttpHeaders {
-    const token = typeof localStorage !== 'undefined' ? localStorage.getItem('token') : '';
+    const token = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('token') : '';
     return new HttpHeaders({ Authorization: `Bearer ${token}` });
   }
 
