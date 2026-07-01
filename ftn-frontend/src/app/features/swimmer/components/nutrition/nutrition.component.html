@@ -1,0 +1,435 @@
+<div class="dashboard-container">
+
+  <!-- ─── Header ─────────────────────────────────────── -->
+  <header class="dashboard-header">
+    <div class="header-titles">
+      <h1 class="welcome-text">Nutrition <span class="accent">Personnalisée</span> 🥗</h1>
+      <p class="subtitle">Calculé sur mesure selon votre profil métabolique</p>
+    </div>
+    <div class="header-actions">
+      <input type="date" [(ngModel)]="selectedDate" (change)="onDateChange($event)" style="padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; color: #4f46e5; background: #eef2ff;">
+    </div>
+  </header>
+
+  <!-- ─── 4 Macro Rings ─────────────────────────────── -->
+  <div class="macro-bar">
+    <div *ngFor="let m of [
+      {label:'Calories', pct:getCaloriePct(), val:getTotalCalories(), target:targetMacros.calories, unit:'kcal', stroke:'#d97706', track:'#fef3c7'},
+      {label:'Protéines', pct:getProteinPct(), val:getTotalProtein(), target:targetMacros.protein, unit:'g', stroke:'#3b82f6', track:'#dbeafe'},
+      {label:'Glucides', pct:getCarbPct(), val:getTotalCarbs(), target:targetMacros.carbs, unit:'g', stroke:'#10b981', track:'#d1fae5'},
+      {label:'Lipides', pct:getFatPct(), val:getTotalFat(), target:targetMacros.fat, unit:'g', stroke:'#ef4444', track:'#fee2e2'}
+    ]" class="macro-ring">
+      <div style="position:relative;display:inline-block;">
+        <svg viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="15.9" fill="none" [attr.stroke]="m.track" stroke-width="3"/>
+          <circle cx="18" cy="18" r="15.9" fill="none" [attr.stroke]="m.stroke" stroke-width="3"
+            stroke-linecap="round"
+            [attr.stroke-dasharray]="m.pct + ' ' + (100 - m.pct)"
+            stroke-dashoffset="0"/>
+        </svg>
+        <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:0.82rem;font-weight:800;color:#1e293b;">{{m.pct}}%</span>
+      </div>
+      <div class="macro-ring-label">{{m.label}}</div>
+      <div class="macro-ring-val">{{m.val}} / {{m.target}} {{m.unit}}</div>
+    </div>
+  </div>
+
+  <!-- ─── Banner objectif ───────────────────────────── -->
+  <div *ngIf="getRemainingCalories() > 0" class="banner info">
+    <span>🎯</span>
+    <span>Encore <strong>{{getRemainingCalories()}} kcal</strong> et <strong>{{getRemainingProtein()}}g de protéines</strong> pour atteindre votre objectif.</span>
+  </div>
+  <div *ngIf="getRemainingCalories() === 0 && getTotalCalories() > 0" class="banner success">
+    <span>🏆</span>
+    <strong>Objectif calorique atteint ! Excellent travail.</strong>
+  </div>
+
+  <!-- ─── Hydratation ───────────────────────────────── -->
+  <div class="water-card">
+    <div class="water-header">
+      <h3>💧 Hydratation ({{waterTarget}} ml recommandés)</h3>
+      <span>{{waterConsumed}} / {{waterTarget}} ml</span>
+    </div>
+    <div class="water-bar-track"><div class="water-bar-fill" [style.width]="getWaterPct()+'%'"></div></div>
+    <div class="water-btns">
+      <button class="water-btn" (click)="addWater(250)">+250 ml</button>
+      <button class="water-btn" (click)="addWater(500)">+500 ml</button>
+      <button class="water-btn" (click)="addWater(750)">+750 ml</button>
+      <button class="water-btn" (click)="addWater(1000)">+1 L</button>
+    </div>
+  </div>
+
+  <!-- ─── Tabs ─────────────────────────────────────── -->
+  <nav class="tab-nav">
+    <button class="tab-btn" [class.active]="activeTab==='goal'" (click)="activeTab='goal'">🎯 Objectif</button>
+    <button class="tab-btn" [class.active]="activeTab==='proposals'" (click)="activeTab='proposals'">💡 Recommandations</button>
+    <button class="tab-btn" [class.active]="activeTab==='saisie'" (click)="activeTab='saisie'">✏️ Ajouter</button>
+    <button class="tab-btn" [class.active]="activeTab==='journal'" (click)="activeTab='journal'">📋 Journal ({{foodEntries.length}})</button>
+  </nav>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- ONGLET : OBJECTIF                                 -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div *ngIf="activeTab==='goal'">
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Mon profil</h2>
+        <p>Ces données alimentent la formule Mifflin-St Jeor et les calculs d'hydratation ACSM/EFSA.</p>
+      </div>
+      <div class="card-body">
+
+        <!-- Profil physique -->
+        <div class="profile-grid">
+          <div class="field-group">
+            <label>Poids (kg)</label>
+            <input type="number" [(ngModel)]="profile.weight" (ngModelChange)="onProfileChange()" min="30" max="200">
+          </div>
+          <div class="field-group">
+            <label>Taille (cm)</label>
+            <input type="number" [(ngModel)]="profile.height" (ngModelChange)="onProfileChange()" min="120" max="220">
+          </div>
+          <div class="field-group">
+            <label>Âge (ans)</label>
+            <input type="number" [(ngModel)]="profile.age" (ngModelChange)="onProfileChange()" min="10" max="80">
+          </div>
+          <div class="field-group">
+            <label>Sexe</label>
+            <select [(ngModel)]="profile.gender" (ngModelChange)="onProfileChange()">
+              <option value="male">Homme</option>
+              <option value="female">Femme</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label>Séance (min)</label>
+            <input type="number" [(ngModel)]="profile.trainingMinutes" (ngModelChange)="onProfileChange()" min="0" max="300">
+          </div>
+          <div class="field-group">
+            <label>Intensité (MET)</label>
+            <select [(ngModel)]="profile.trainingIntensity" (ngModelChange)="onProfileChange()">
+              <option [value]="4">Légère (4)</option>
+              <option [value]="6">Modérée (6)</option>
+              <option [value]="8">Intense (8)</option>
+              <option [value]="10">Très intense (10)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Sélecteur d'objectif -->
+        <p style="font-size:0.8rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px;">Objectif</p>
+        <div class="goal-grid">
+          <button class="goal-card" [class.selected]="selectedGoal==='WEIGHT_LOSS'" (click)="selectGoal('WEIGHT_LOSS')">
+            <div class="icon">📉</div>
+            <div class="name">Perte de poids</div>
+            <div class="desc">Déficit calorique maîtrisé</div>
+          </button>
+          <button class="goal-card" [class.selected]="selectedGoal==='MAINTENANCE'" (click)="selectGoal('MAINTENANCE')">
+            <div class="icon">⚖️</div>
+            <div class="name">Maintien</div>
+            <div class="desc">Équilibre et santé</div>
+          </button>
+          <button class="goal-card" [class.selected]="selectedGoal==='PERFORMANCE'" (click)="selectGoal('PERFORMANCE')">
+            <div class="icon">⚡</div>
+            <div class="name">Performance</div>
+            <div class="desc">Haute teneur en glucides</div>
+          </button>
+          <button class="goal-card" [class.selected]="selectedGoal==='MUSCLE_GAIN'" (click)="selectGoal('MUSCLE_GAIN')">
+            <div class="icon">💪</div>
+            <div class="name">Prise de masse</div>
+            <div class="desc">Surplus & protéines élevées</div>
+          </button>
+        </div>
+
+        <!-- Objectifs calculés en direct -->
+        <div class="targets-row">
+          <div class="target-chip">
+            <div class="tc-val" style="color:#d97706;">{{ targetMacros.calories }}</div>
+            <div class="tc-label">kcal / jour</div>
+          </div>
+          <div class="target-chip">
+            <div class="tc-val" style="color:#3b82f6;">{{ targetMacros.protein }}g</div>
+            <div class="tc-label">Protéines</div>
+          </div>
+          <div class="target-chip">
+            <div class="tc-val" style="color:#10b981;">{{ targetMacros.carbs }}g</div>
+            <div class="tc-label">Glucides</div>
+          </div>
+          <div class="target-chip">
+            <div class="tc-val" style="color:#ef4444;">{{ targetMacros.fat }}g</div>
+            <div class="tc-label">Lipides</div>
+          </div>
+          <div class="target-chip">
+            <div class="tc-val" style="color:#0ea5e9;">{{ waterTarget }} ml</div>
+            <div class="tc-label">Hydratation</div>
+          </div>
+        </div>
+
+        <div class="targets-summary">
+          <span>Métabolisme de base (BMR) : <strong>{{ getBMR() }} kcal</strong></span>
+          <span>·</span>
+          <span>Séance : <strong>+{{ getSessionKcal() }} kcal</strong></span>
+          <span>·</span>
+          <span>Objectif <strong>{{ getGoalLabel() }}</strong></span>
+        </div>
+
+        <div class="goal-rec-box">
+          💡 {{ getGoalRecommendation() }}
+        </div>
+
+        <!-- Boutons d'action -->
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:15px;">
+          <button class="btn-primary-lg" (click)="saveProfile()">Enregistrer et appliquer</button>
+          <button class="btn-primary-lg" style="background:#003a80;" (click)="saveProfile(); activeTab='proposals'">
+            Voir les recommandations →
+          </button>
+          <button class="btn-primary-lg" style="background:#0ea5e9;" (click)="getAiAdvice()">
+            <span *ngIf="!isLoadingAi">💡 Conseil IA personnalisé</span>
+            <span *ngIf="isLoadingAi">Génération en cours...</span>
+          </button>
+        </div>
+        
+        <!-- Modal Conseil IA -->
+        <div class="ai-modal-overlay" *ngIf="aiRecommendation" (click)="aiRecommendation = null">
+          <div class="ai-modal-content" (click)="$event.stopPropagation()">
+            <div class="ai-modal-header">
+              <h3>💡 Conseil IA personnalisé</h3>
+              <button class="ai-close-btn" (click)="aiRecommendation = null">×</button>
+            </div>
+            <div class="ai-modal-body" [innerHTML]="aiRecommendation"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- ONGLET : RECOMMANDATIONS (Spoonacular)            -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div *ngIf="activeTab==='proposals'">
+    <div class="card">
+      <div class="card-header">
+        <h2>Recommandations adaptées à votre objectif</h2>
+        <p>Recettes générées par Spoonacular selon vos macros ({{targetMacros.calories}} kcal, {{targetMacros.protein}}g protéines)</p>
+      </div>
+      <div class="card-body">
+
+        <!-- Contextes -->
+        <div class="ctx-pills">
+          <button *ngFor="let key of mealContextKeys" class="ctx-pill"
+            [style.background]="selectedContext === key ? getContextInfo(key).color : 'white'"
+            [style.color]="selectedContext === key ? 'white' : '#475569'"
+            [style.borderColor]="getContextInfo(key).color"
+            (click)="selectContext(key)">
+            {{getContextInfo(key).icon}} {{getContextInfo(key).label}}
+          </button>
+        </div>
+
+        <!-- Filtre cuisine -->
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap;">
+          <label style="font-size:0.8rem;font-weight:600;color:#64748b;">Cuisine :</label>
+          <select class="cuisine-select" [(ngModel)]="selectedCuisine" (change)="selectedContext && fetchDynamicProposals(selectedContext)">
+            <option *ngFor="let c of cuisines" [value]="c.value">{{c.label}}</option>
+          </select>
+        </div>
+
+        <!-- Loading -->
+        <div *ngIf="isLoadingProposals" class="loading-state">
+          <div class="spin">🔄</div>
+          <p style="margin-top:8px;">Recherche Spoonacular...</p>
+        </div>
+
+        <!-- Recipe cards -->
+        <div *ngIf="!isLoadingProposals" class="recipe-grid">
+          <div *ngFor="let r of filteredProposals" class="recipe-card">
+            <div class="recipe-img">
+              <img *ngIf="r.image" [src]="r.image" [alt]="r.name">
+              <div *ngIf="!r.image" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2.5rem;">🍽️</div>
+              <span class="badge-api">Spoonacular</span>
+            </div>
+            <div class="recipe-body">
+              <div class="recipe-name">{{r.name}}</div>
+              <div class="macro-chips">
+                <span class="mc kcal">{{r.calories}} kcal</span>
+                <span class="mc prot">{{r.protein}}g prot.</span>
+                <span class="mc gluc">{{r.carbs}}g gluc.</span>
+                <span class="mc lip">{{r.fat}}g lip.</span>
+              </div>
+            </div>
+            <div class="recipe-actions">
+              <a *ngIf="r.recipeUrl"
+                 [href]="r.recipeUrl"
+                 target="_blank" class="btn-outline">Voir la recette →</a>
+              <button class="btn-primary" (click)="useMealProposal(r)">Utiliser ✓</button>
+            </div>
+          </div>
+
+          <div *ngIf="filteredProposals.length === 0 && !isLoadingProposals" class="empty-state" style="grid-column:1/-1">
+            Sélectionnez un contexte pour voir les recommandations.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- ONGLET : AJOUTER UN REPAS                         -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div *ngIf="activeTab==='saisie'">
+    <div class="card">
+      <div class="card-header">
+        <h2>Ajouter un repas</h2>
+        <p>Recherche locale + 365 000 recettes Spoonacular</p>
+      </div>
+      <div class="card-body">
+
+        <!-- Type repas + cuisine -->
+        <div class="form-row">
+          <select class="form-select" [(ngModel)]="newFood.mealType">
+            <option value="BREAKFAST">🌅 Petit-déjeuner</option>
+            <option value="LUNCH">☀️ Déjeuner</option>
+            <option value="SNACK">⚡ Collation</option>
+            <option value="DINNER">🌙 Dîner</option>
+          </select>
+          <select class="cuisine-select" [(ngModel)]="selectedCuisine" (change)="onCuisineChange()">
+            <option *ngFor="let c of cuisines" [value]="c.value">{{c.label}}</option>
+          </select>
+        </div>
+
+        <!-- Mode pills -->
+        <div class="mode-pills">
+          <button class="mode-pill" [class.active]="inputMode==='search'" (click)="inputMode='search'">🔍 Rechercher</button>
+          <button class="mode-pill" [class.active]="inputMode==='scan'" (click)="inputMode='scan'">📷 Code-barres</button>
+          <button class="mode-pill"
+            [class.listening]="isListening"
+            (click)="inputMode='voice'; startVoiceRecognition()">
+            🎤 {{isListening ? 'Écoute...' : 'Vocal'}}
+          </button>
+        </div>
+
+        <!-- Search -->
+        <div *ngIf="inputMode==='search' || inputMode==='voice'" class="search-wrapper">
+          <input type="text" class="search-input" [class.listening]="isListening"
+            [(ngModel)]="foodSearchQuery"
+            (input)="onFoodSearchInput()"
+            [placeholder]="isListening ? '🎤 Parlez maintenant...' : 'Rechercher un aliment ou une recette...'">
+          <span *ngIf="isSearching" class="search-loading">⏳</span>
+
+          <div *ngIf="showSearchDropdown" class="search-dropdown">
+            <div *ngFor="let f of unifiedResults" class="search-item" (click)="selectFoodFromResults(f)">
+              <div class="search-item-meta">
+                <img *ngIf="f.image" [src]="f.image" class="search-item-img">
+                <div *ngIf="!f.image" class="search-item-icon">🍽️</div>
+                <div>
+                  <div class="search-item-name">{{f.name}}</div>
+                  <span *ngIf="f.source==='local'" class="badge-local">LOCAL</span>
+                  <span *ngIf="f.source!=='local'" class="badge-spoon">SPOONACULAR</span>
+                </div>
+              </div>
+              <span class="kcal-badge">{{f.calories}} kcal</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scan -->
+        <div *ngIf="inputMode==='scan'">
+          <div class="scan-row">
+            <input type="text" class="scan-input" [(ngModel)]="barcodeInput" placeholder="Code-barres (ex: 3017620422003)">
+            <button class="scan-btn" (click)="scanBarcode()" [disabled]="isScanning || !barcodeInput">
+              {{isScanning ? '...' : 'Chercher'}}
+            </button>
+          </div>
+          <div *ngIf="scanError" class="alert error">{{scanError}}</div>
+        </div>
+
+        <div *ngIf="allergyAlert" class="alert warn">{{allergyAlert}}</div>
+
+        <!-- Macros calculées automatiquement -->
+        <p style="font-size:0.75rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:8px;">
+          Valeurs nutritionnelles (calculées automatiquement)
+        </p>
+        <div class="macro-display">
+          <div class="macro-display-box">
+            <div class="macro-display-val">{{ newFood.calories || 0 }}</div>
+            <div class="macro-display-label">Calories</div>
+          </div>
+          <div class="macro-display-box">
+            <div class="macro-display-val">{{ newFood.protein || 0 }}</div>
+            <div class="macro-display-label">Protéines g</div>
+          </div>
+          <div class="macro-display-box">
+            <div class="macro-display-val">{{ newFood.carbs || 0 }}</div>
+            <div class="macro-display-label">Glucides g</div>
+          </div>
+          <div class="macro-display-box">
+            <div class="macro-display-val">{{ newFood.fat || 0 }}</div>
+            <div class="macro-display-label">Lipides g</div>
+          </div>
+        </div>
+
+        <!-- Nom + Ajouter -->
+        <div class="form-row" style="margin-bottom:0;">
+          <input type="text" class="search-input" style="flex:1;"
+            [(ngModel)]="newFood.foodName"
+            (ngModelChange)="onMealNameChange()"
+            placeholder="Nom du repas">
+          <button class="btn-primary-lg" (click)="addFood()" [disabled]="!newFood.foodName">+ Ajouter</button>
+        </div>
+        <p *ngIf="newFood.foodName && !newFood.calories" style="font-size:0.78rem;color:#92400e;margin-top:8px;">
+          ⚠️ Aucune correspondance trouvée — essayez un autre nom ou sélectionnez dans la liste.
+        </p>
+
+        <!-- Allergènes -->
+        <div>
+          <p style="font-size:0.75rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-top:20px;margin-bottom:8px;">Mes intolérances</p>
+          <div class="allergy-row">
+            <button class="allergy-chip" [class.active]="myAllergies.gluten" (click)="toggleAllergy('gluten')">Gluten</button>
+            <button class="allergy-chip" [class.active]="myAllergies.milk"   (click)="toggleAllergy('milk')">Lait</button>
+            <button class="allergy-chip" [class.active]="myAllergies.peanuts"(click)="toggleAllergy('peanuts')">Arachides</button>
+            <button class="allergy-chip" [class.active]="myAllergies.eggs"   (click)="toggleAllergy('eggs')">Œufs</button>
+            <button class="allergy-chip" [class.active]="myAllergies.nuts"   (click)="toggleAllergy('nuts')">Noix</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- ONGLET : JOURNAL                                  -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div *ngIf="activeTab==='journal'">
+    <div class="journal-card">
+      <div class="journal-header">
+        <h3>📋 Repas du {{selectedDate}}</h3>
+        <span style="font-size:0.82rem;color:#64748b;">{{foodEntries.length}} entrée(s)</span>
+      </div>
+
+      <div *ngIf="foodEntries.length === 0" class="empty-state">
+        Aucun repas enregistré pour ce jour.
+      </div>
+
+      <div *ngFor="let e of foodEntries" class="journal-item">
+        <div>
+          <div class="journal-item-name">{{e.foodName}}</div>
+          <div class="journal-item-type">{{e.mealType}}</div>
+        </div>
+        <div class="macro-chips" style="flex:1; justify-content:flex-end;">
+          <span *ngIf="e.waterMl" class="mc gluc">💧 {{e.waterMl}} ml</span>
+          <span *ngIf="!e.waterMl" class="mc kcal">{{e.calories}} kcal</span>
+          <span *ngIf="!e.waterMl" class="mc prot">{{e.protein}}g p.</span>
+        </div>
+        <button style="background:none; border:none; color:#ef4444; font-size:1.2rem; cursor:pointer; padding:0 5px;" (click)="deleteFood(e.id)" title="Supprimer">×</button>
+      </div>
+
+      <div *ngIf="foodEntries.length > 0" class="journal-footer">
+        <span class="journal-total">Total : <strong>{{getTotalCalories()}} kcal</strong></span>
+        <span class="journal-total">Protéines : <strong>{{getTotalProtein()}}g</strong></span>
+        <span class="journal-total">Glucides : <strong>{{getTotalCarbs()}}g</strong></span>
+        <span class="journal-total">Lipides : <strong>{{getTotalFat()}}g</strong></span>
+        <span class="journal-total">Eau : <strong>{{waterConsumed}} ml</strong></span>
+      </div>
+    </div>
+  </div>
+
+</div>

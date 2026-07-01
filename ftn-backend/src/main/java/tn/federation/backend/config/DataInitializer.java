@@ -154,6 +154,7 @@ public class DataInitializer implements CommandLineRunner {
         nouveauSwimmer.setClub(club);
         userRepository.save(nouveauSwimmer);
         System.out.println("✅ Nouveau Compte SWIMMER prêt (nouveau.nageur@ftn.tn / azerty123)");
+
         // ── Articles & Vidéos par défaut ────────────────────────────────
         if (pressItemRepository.count() == 0) {
             System.out.println("✅ Initialisation des articles de presse par défaut...");

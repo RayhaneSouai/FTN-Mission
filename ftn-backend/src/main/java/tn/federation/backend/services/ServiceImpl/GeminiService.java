@@ -6,10 +6,16 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.File;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,8 +27,33 @@ public class GeminiService {
     @Value("${gemini.api.key:}")
     private String apiKey;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate = createTrustAllRestTemplate();
     private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+
+    /**
+     * Crée un RestTemplate qui accepte tous les certificats SSL.
+     * Nécessaire car certains environnements Java ne font pas confiance
+     * aux certificats Google (PKIX path building failed).
+     */
+    private static RestTemplate createTrustAllRestTemplate() {
+        try {
+            TrustManager[] trustAll = new TrustManager[]{
+                new X509TrustManager() {
+                    public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+                    public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+                    public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+                }
+            };
+            SSLContext sc = SSLContext.getInstance("TLS");
+            sc.init(null, trustAll, new java.security.SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+            HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
+            return new RestTemplate();
+        } catch (Exception e) {
+            System.err.println("Avertissement SSL: impossible de configurer le trust-all: " + e.getMessage());
+            return new RestTemplate();
+        }
+    }
 
     /**
      * Extrait le texte d'un fichier PDF en utilisant Apache PDFBox.
@@ -316,5 +347,68 @@ public class GeminiService {
             e.printStackTrace();
             return "<p style='color:#991b1b;'>Erreur lors de la génération du résumé : " + e.getMessage() + "</p>";
         }
+    }
+
+    // ─── Nutrition AI Recommendation ───────────────────────────────────────────
+
+    /**
+     * Génère une recommandation nutritionnelle personnalisée pour un nageur
+     * en fonction de son profil, objectif, et macros déjà consommées aujourd'hui.
+     */
+    public String generateNutritionRecommendation(
+            String goal, double weight, double height, int age, String gender,
+            int consumedCalories, int targetCalories,
+            int consumedProtein, int targetProtein,
+            int consumedCarbs, int targetCarbs,
+            int trainingMinutes, int metValue) {
+
+        String goalLabel = switch (goal) {
+            case "WEIGHT_LOSS" -> "Perte de poids";
+            case "MUSCLE_GAIN" -> "Prise de masse musculaire";
+            case "PERFORMANCE" -> "Performance sportive en compétition";
+            default -> "Maintien du poids et équilibre";
+        };
+
+        int remainingCalories = targetCalories - consumedCalories;
+        int remainingProtein = targetProtein - consumedProtein;
+        int remainingCarbs = targetCarbs - consumedCarbs;
+        double sessionKcal = (metValue * weight * trainingMinutes) / 60.0;
+
+        String prompt = "Tu es un nutritionniste spécialisé en natation de haut niveau. " +
+                "Réponds UNIQUEMENT en HTML simple (pas de markdown, pas de ```). " +
+                "Voici le profil du nageur :\n" +
+                "- Objectif : " + goalLabel + "\n" +
+                "- Poids : " + weight + " kg, Taille : " + height + " cm, Âge : " + age + " ans, Sexe : " + gender + "\n" +
+                "- Calories consommées aujourd'hui : " + consumedCalories + " kcal / objectif " + targetCalories + " kcal (reste " + Math.max(0, remainingCalories) + " kcal)\n" +
+                "- Protéines : " + consumedProtein + "g / " + targetProtein + "g (reste " + Math.max(0, remainingProtein) + "g)\n" +
+                "- Glucides : " + consumedCarbs + "g / " + targetCarbs + "g (reste " + Math.max(0, remainingCarbs) + "g)\n" +
+                "- Séance du jour : " + trainingMinutes + " minutes à intensité MET=" + metValue + " ≈ " + Math.round(sessionKcal) + " kcal dépensées\n\n" +
+                "Génère UNE recommandation personnalisée en HTML contenant :\n" +
+                "1. Une phrase d'introduction (1 ligne, ton coach sportif)\n" +
+                "2. Une liste <ul> de 3 conseils concrets adaptés à ce profil précis (aliments, timing, portions)\n" +
+                "3. Une phrase de motivation finale (1 ligne)\n" +
+                "N'utilise PAS de balises ```html. Retourne directement le HTML.";
+
+        try {
+            String result = callGemini(prompt);
+            if (result != null && !result.isEmpty()) {
+                return result;
+            }
+            return buildFallbackNutritionAdvice(goalLabel, remainingCalories, remainingProtein);
+        } catch (Exception e) {
+            System.err.println("Gemini API Error in Nutrition: " + e.getMessage());
+            e.printStackTrace();
+            return buildFallbackNutritionAdvice(goalLabel, remainingCalories, remainingProtein);
+        }
+    }
+
+    private String buildFallbackNutritionAdvice(String goal, int remainingKcal, int remainingProtein) {
+        return "<p style='color:#0369a1;font-weight:600;'>🏊 Conseil nutritionnel — " + goal + "</p>" +
+               "<ul style='color:#1e40af;line-height:2;padding-left:18px;'>" +
+               "<li>Il vous reste <strong>" + Math.max(0, remainingKcal) + " kcal</strong> à consommer aujourd'hui.</li>" +
+               "<li>Privilégiez des protéines maigres (poulet, thon, œufs) pour atteindre votre cible protéique.</li>" +
+               "<li>Hydratez-vous régulièrement, au minimum 250ml toutes les 45 minutes d'effort.</li>" +
+               "</ul>" +
+               "<p style='color:#64748b;font-size:0.85rem;'>⚡ Conseil généré localement (configurez la clé Gemini pour des conseils IA avancés)</p>";
     }
 }

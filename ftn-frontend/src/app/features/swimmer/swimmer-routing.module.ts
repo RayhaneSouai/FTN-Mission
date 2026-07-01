@@ -4,8 +4,10 @@ import { SwimmerLayoutComponent } from './layout/swimmer-layout.component';
 import { SwimmerDashboardComponent } from './components/dashboard/swimmer-dashboard.component';
 import { SwimmerPerformancesComponent } from './components/performances/swimmer-performances.component';
 import { SwimmerCompetitionsComponent } from './components/competitions/swimmer-competitions.component';
-import { SwimmerActualitesComponent } from './components/actualites/swimmer-actualites.component';
 import { SwimmerClubComponent } from './components/club/swimmer-club.component';
+import { NutritionComponent } from './components/nutrition/nutrition.component';
+import { PressVisitorComponent } from '../press/components/press-visitor/press-visitor.component';
+
 
 const routes: Routes = [
   {
@@ -16,8 +18,10 @@ const routes: Routes = [
       { path: 'dashboard', component: SwimmerDashboardComponent },
       { path: 'performances', component: SwimmerPerformancesComponent },
       { path: 'competitions', component: SwimmerCompetitionsComponent },
-      { path: 'actualites', component: SwimmerActualitesComponent },
+      { path: 'actualites', component: PressVisitorComponent },
       { path: 'mon-club', component: SwimmerClubComponent },
+      { path: 'nutrition', component: NutritionComponent },
+
       { 
         path: 'mon-profil', 
         loadChildren: () => import('../profile/profile.module').then(m => m.ProfileModule) 
