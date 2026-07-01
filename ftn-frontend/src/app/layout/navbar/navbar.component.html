@@ -31,8 +31,8 @@
       <div class="navbar-user">
         <a *ngIf="!isLoggedIn" href="javascript:void(0)" (click)="handleConnexion()" class="btn btn-primary rounded-pill px-4 fw-bold">Connexion</a>
         
-        <!-- Coach Notifications -->
-        <div class="navbar-notif" *ngIf="isLoggedIn && isCoach" (click)="$event.stopPropagation()">
+        <!-- Coach and Swimmer Notifications -->
+        <div class="navbar-notif" *ngIf="isLoggedIn && (isCoach || isSwimmer)" (click)="$event.stopPropagation()">
           <button
             type="button"
             class="navbar-notif__bell"

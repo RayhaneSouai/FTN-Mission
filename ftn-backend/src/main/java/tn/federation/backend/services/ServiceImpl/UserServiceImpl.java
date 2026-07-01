@@ -96,8 +96,8 @@ public class UserServiceImpl implements IUserService {
             throw new IllegalArgumentException("Email déjà utilisé");
         }
 
-        if ((request.getRole() == Role.SWIMMER || request.getRole() == Role.COACH) && request.getClubId() == null) {
-            throw new IllegalArgumentException("Un nageur ou un coach doit obligatoirement être rattaché à un club.");
+        if (request.getRole() == Role.COACH && request.getClubId() == null) {
+            throw new IllegalArgumentException("Un coach doit obligatoirement être rattaché à un club.");
         }
 
         String plainPassword = resolveAdminPassword(request.getPassword());
@@ -213,8 +213,8 @@ public class UserServiceImpl implements IUserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
         
-        if ((user.getRole() == Role.SWIMMER || user.getRole() == Role.COACH) && user.getClub() == null) {
-            throw new IllegalArgumentException("Impossible d'approuver un utilisateur sans club associé.");
+        if (user.getRole() == Role.COACH && user.getClub() == null) {
+            throw new IllegalArgumentException("Impossible d'approuver un coach sans club associé.");
         }
 
         user.setActive(true);
@@ -268,8 +268,8 @@ public class UserServiceImpl implements IUserService {
                 clubRepository.save(club);
             }
         } else if (dto.getClubName() == null) {
-            if (targetRole == Role.SWIMMER || targetRole == Role.COACH) {
-                throw new IllegalArgumentException("Un nageur ou un coach doit obligatoirement être rattaché à un club.");
+            if (targetRole == Role.COACH) {
+                throw new IllegalArgumentException("Un coach doit obligatoirement être rattaché à un club.");
             }
             user.setClub(null);
         }
@@ -289,8 +289,8 @@ public class UserServiceImpl implements IUserService {
             }
         }
 
-        if ((user.getRole() == Role.SWIMMER || user.getRole() == Role.COACH) && user.getClub() == null) {
-            throw new IllegalArgumentException("Un nageur ou un coach doit obligatoirement être rattaché à un club.");
+        if (user.getRole() == Role.COACH && user.getClub() == null) {
+            throw new IllegalArgumentException("Un coach doit obligatoirement être rattaché à un club.");
         }
 
         User saved = userRepository.save(user);
@@ -370,7 +370,7 @@ public class UserServiceImpl implements IUserService {
         long participations = participationRepository.countBySwimmerId(swimmerId);
         long performances = performanceRepository.countBySwimmerId(swimmerId);
         long favorites = favoriteRepository.countByUserId(swimmerId);
-        boolean hasLicense = swimmer.getLicense() != null && "VALIDATED".equals(swimmer.getLicense().getValidationStatus());
+        boolean hasLicense = swimmer.getLicense() != null && tn.federation.backend.entities.LicenseStatus.VALIDATED.equals(swimmer.getLicense().getValidationStatus());
 
         return tn.federation.backend.dto.SwimmerDashboardDTO.builder()
                 .totalParticipations(participations)
@@ -435,7 +435,7 @@ public class UserServiceImpl implements IUserService {
         if (user.getLicense() != null) {
             dto.setLicenseId(user.getLicense().getId());
             dto.setLicenseNumber(user.getLicense().getLicenseNumber());
-            dto.setLicenseValidationStatus(user.getLicense().getValidationStatus());
+            dto.setLicenseValidationStatus(user.getLicense().getValidationStatus().name());
         }
 
         return dto;

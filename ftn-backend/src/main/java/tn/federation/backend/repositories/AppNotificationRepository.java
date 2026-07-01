@@ -21,5 +21,7 @@ public interface AppNotificationRepository extends JpaRepository<AppNotification
 
     List<AppNotification> findByTargetUserIdOrderByCreatedAtDesc(Long targetUserId);
 
+    void deleteByLicenseId(Long licenseId);
+
     long countByTargetUserIdAndReadFalse(Long targetUserId);
 }

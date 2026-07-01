@@ -58,16 +58,17 @@ public class AuthServiceImpl implements IAuthService {
     }
 
     public AuthResponseDTO login(LoginRequestDTO request) {
+        String normalizedEmail = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+                    new UsernamePasswordAuthenticationToken(normalizedEmail, request.getPassword()));
         } catch (AuthenticationException ex) {
             throw new IllegalArgumentException("Email ou mot de passe incorrect");
         }
 
-        User user = userRepository.findByEmail(request.getEmail())
+        User user = userRepository.findByEmail(normalizedEmail)
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "Utilisateur introuvable avec email: " + request.getEmail()));
+                        "Utilisateur introuvable avec email: " + normalizedEmail));
 
         if (Boolean.TRUE.equals(user.getMustChangePassword())) {
             throw new IllegalArgumentException(

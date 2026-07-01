@@ -24,6 +24,7 @@ public class EmailServiceImpl implements IEmailService {
     }
 
     @Override
+    @org.springframework.scheduling.annotation.Async
     public void sendPasswordReset(String to, String token) {
         String link = buildResetLink(token, false);
         String body = "<p style=\"margin:0 0 12px;\">Bonjour,</p>"
@@ -36,6 +37,7 @@ public class EmailServiceImpl implements IEmailService {
     }
 
     @Override
+    @org.springframework.scheduling.annotation.Async
     public void sendAdminCreatedUserWelcome(String to, String firstName, String temporaryPassword, String setupToken) {
         String setupLink = buildResetLink(setupToken, true);
         String body = "<p style=\"margin:0 0 12px;\">Bonjour <strong>" + escape(firstName) + "</strong>,</p>"
@@ -52,6 +54,7 @@ public class EmailServiceImpl implements IEmailService {
     }
 
     @Override
+    @org.springframework.scheduling.annotation.Async
     public void sendRegistrationPendingAdmin(User user) {
         String adminEmail = "admin@ftn.tn";
         String body = "<p>Un nouvel utilisateur s'est inscrit et attend votre approbation.</p>"
@@ -63,6 +66,7 @@ public class EmailServiceImpl implements IEmailService {
     }
 
     @Override
+    @org.springframework.scheduling.annotation.Async
     public void sendRegistrationDecision(String to, boolean approved) {
         String status = approved ? "approuvée" : "refusée";
         String body = "<p>Votre demande d'inscription a été <strong>" + status + "</strong>.</p>";
@@ -77,11 +81,13 @@ public class EmailServiceImpl implements IEmailService {
     }
 
     @Override
+    @org.springframework.scheduling.annotation.Async
     public void sendPasswordResetLink(String to, String token) {
         sendPasswordReset(to, token);
     }
 
     @Override
+    @org.springframework.scheduling.annotation.Async
     public void sendPasswordChangedNotification(String to) {
         String body = "<p style=\"margin:0 0 12px;\">Bonjour,</p>"
                 + "<p style=\"margin:0 0 12px;\">Le mot de passe de votre compte FTN a été modifié avec succès.</p>"
@@ -91,6 +97,7 @@ public class EmailServiceImpl implements IEmailService {
     }
 
     @Override
+    @org.springframework.scheduling.annotation.Async
     public void sendClubAdminErrorReportToAdmin(
             String adminEmail,
             String coachName,
@@ -117,6 +124,7 @@ public class EmailServiceImpl implements IEmailService {
     }
 
     @Override
+    @org.springframework.scheduling.annotation.Async
     public void sendSeasonValidationRequestToCoach(
             String coachEmail,
             String coachFirstName,
@@ -139,6 +147,7 @@ public class EmailServiceImpl implements IEmailService {
     }
 
     @Override
+    @org.springframework.scheduling.annotation.Async
     public void sendLicensePendingValidationToCoach(
             String coachEmail,
             String coachFirstName,
@@ -160,6 +169,7 @@ public class EmailServiceImpl implements IEmailService {
     }
 
     @Override
+    @org.springframework.scheduling.annotation.Async
     public void sendSeasonValidationDecisionToAdmin(
             String adminEmail,
             String coachName,
@@ -179,6 +189,7 @@ public class EmailServiceImpl implements IEmailService {
     }
 
     @Override
+    @org.springframework.scheduling.annotation.Async
     public void sendSwimmerSeasonValidationRequest(
             String email,
             String swimmerName,

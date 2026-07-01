@@ -83,8 +83,12 @@ public class LicenseServiceImpl implements ILicenseService {
 
         License saved = licenseRepository.save(license);
 
-        if ("PENDING".equals(saved.getValidationStatus()) && saved.getClub() != null) {
-            notificationService.notifyCoachOfPendingLicense(saved);
+        if (tn.federation.backend.entities.LicenseStatus.PENDING.equals(saved.getValidationStatus())) {
+            if (saved.getClub() != null) {
+                notificationService.notifyCoachOfPendingLicense(saved);
+            } else if (saved.getSwimmer() != null) {
+                notificationService.notifySwimmerOfPendingLicense(saved);
+            }
         }
 
         return saved;
@@ -124,19 +128,36 @@ public class LicenseServiceImpl implements ILicenseService {
 
         License saved = licenseRepository.save(existingLicense);
 
-        if ("PENDING".equals(saved.getValidationStatus()) && saved.getClub() != null) {
-            notificationService.notifyCoachOfPendingLicense(saved);
+        if (tn.federation.backend.entities.LicenseStatus.PENDING.equals(saved.getValidationStatus())) {
+            if (saved.getClub() != null) {
+                notificationService.notifyCoachOfPendingLicense(saved);
+            } else if (saved.getSwimmer() != null) {
+                notificationService.notifySwimmerOfPendingLicense(saved);
+            }
         }
 
         return saved;
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public void deleteLicense(Long id) {
-        if (!licenseRepository.existsById(id)) {
-            throw new IllegalArgumentException("Licence introuvable avec id: " + id);
+        License license = licenseRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Licence introuvable avec id: " + id));
+
+        if (tn.federation.backend.entities.LicenseStatus.VALIDATED.equals(license.getValidationStatus())) {
+            throw new IllegalArgumentException("Impossible de supprimer une licence VALIDATED.");
         }
-        licenseRepository.deleteById(id);
+
+        notificationService.deleteNotificationsByLicenseId(id);
+
+        // Break bidirectional relationship
+        if (license.getSwimmer() != null) {
+            license.getSwimmer().setLicense(null);
+            license.setSwimmer(null);
+        }
+
+        licenseRepository.delete(license);
     }
 
     @Override
@@ -152,23 +173,22 @@ public class LicenseServiceImpl implements ILicenseService {
                         .toList();
 
                 for (User swimmer : swimmers) {
-                    boolean hasLicense = licenseRepository.findAll().stream()
-                            .anyMatch(l -> l.getSwimmer() != null && 
-                                           l.getSwimmer().getId().equals(swimmer.getId()) && 
-                                           normalizedSeason.equals(l.getSeason()));
-                    
-                    if (!hasLicense) {
-                        License l = new License();
+                    License l = swimmer.getLicense();
+                    if (l == null) {
+                        l = new License();
                         String regionPart = (club.getRegion() != null && !club.getRegion().isEmpty()) ? club.getRegion().toUpperCase() : "GEN";
                         l.setLicenseNumber("LIC-" + regionPart + "-" + club.getId() + "-" + normalizedSeason + "-" + UUID.randomUUID().toString().substring(0, 8));
-                        l.setSeason(normalizedSeason);
-                        l.setIssueDate(LocalDate.now());
-                        l.setExpiryDate(LocalDate.now().plusMonths(12));
-                        l.setClub(club);
                         l.setSwimmer(swimmer);
-                        l.setValidationStatus("VALIDATED");
-                        newLicenses.add(l);
+                    } else if (normalizedSeason.equals(l.getSeason()) && tn.federation.backend.entities.LicenseStatus.VALIDATED.equals(l.getValidationStatus())) {
+                        continue; // Already validated for this season
                     }
+                    
+                    l.setSeason(normalizedSeason);
+                    l.setIssueDate(LocalDate.now());
+                    l.setExpiryDate(LocalDate.now().plusMonths(12));
+                    l.setClub(club);
+                    l.setValidationStatus(tn.federation.backend.entities.LicenseStatus.VALIDATED);
+                    newLicenses.add(l);
                 }
             }
         }

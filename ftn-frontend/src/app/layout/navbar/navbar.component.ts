@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../features/auth/services/auth.service';
 import { ClubService } from '../../features/clubs/services/club.service';
 import { NotificationService } from '../../shared/services/notification.service';
+import { WebSocketService, AppNotificationDTO } from '../../core/services/websocket.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-navbar',
@@ -26,8 +28,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private clubService: ClubService,
     private notificationService: NotificationService,
+    private webSocketService: WebSocketService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
+
+  private wsSubscription?: Subscription;
 
   ngOnInit(): void {
     this.authService.currentUser$.subscribe(user => {
@@ -35,11 +40,24 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.isLoggedIn = !!user;
       if (isPlatformBrowser(this.platformId)) {
         this.isAdmin = sessionStorage.getItem('isAdmin') === 'true';
-        if (this.isCoach) {
+        if (this.isCoach || this.isSwimmer) {
           this.loadNotifications();
-          this.startPolling();
+          this.webSocketService.connect();
+          if (!this.wsSubscription) {
+            this.wsSubscription = this.webSocketService.notifications$.subscribe(notification => {
+              if (notification) {
+                this.notifications.unshift({
+                  id: notification.id,
+                  title: notification.title,
+                  description: notification.message,
+                  type: 'warning',
+                  time: notification.createdAt
+                });
+              }
+            });
+          }
         } else {
-          this.stopPolling();
+          this.webSocketService.disconnect();
           this.notifications = [];
         }
       }
@@ -48,29 +66,18 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.stopPolling();
+    if (this.wsSubscription) {
+      this.wsSubscription.unsubscribe();
+    }
+    this.webSocketService.disconnect();
   }
 
   get isCoach(): boolean {
     return this.user?.role === 'COACH' || this.user?.role === 'ENTRAINEUR';
   }
 
-  startPolling(): void {
-    this.stopPolling();
-    if (isPlatformBrowser(this.platformId)) {
-      this.pollingIntervalId = setInterval(() => this.loadNotifications(), 15000);
-    }
-  }
-
-  stopPolling(): void {
-    if (this.pollingIntervalId) {
-      clearInterval(this.pollingIntervalId);
-      this.pollingIntervalId = null;
-    }
-  }
-
   loadNotifications(): void {
-    if (!this.isCoach) return;
+    if (!this.isCoach && !this.isSwimmer) return;
     this.notificationService.getMyNotifications().subscribe({
       next: (res: any[]) => {
         this.notifications = (res || [])

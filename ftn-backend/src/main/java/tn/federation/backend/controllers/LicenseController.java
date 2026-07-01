@@ -8,9 +8,11 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import java.util.stream.Collectors;
 import tn.federation.backend.entities.User;
 import tn.federation.backend.entities.License;
 import tn.federation.backend.repositories.UserRepository;
@@ -97,6 +99,21 @@ public class LicenseController {
         return ResponseEntity.ok(licenseService.findByLicenseNumber(licenseNumber));
     }
 
+    @GetMapping("/my-licenses")
+    public ResponseEntity<List<License>> getMyLicenses(Authentication authentication) {
+        String email = authentication.getName();
+        User swimmer = userRepository.findByEmail(email).orElse(null);
+        if (swimmer == null) {
+            return ResponseEntity.status(401).build();
+        }
+        
+        List<License> licenses = licenseRepository.findAll().stream()
+                .filter(l -> l.getSwimmer() != null && l.getSwimmer().getId().equals(swimmer.getId()))
+                .collect(Collectors.toList());
+                
+        return ResponseEntity.ok(licenses);
+    }
+
     @GetMapping("/my-license")
     @PreAuthorize("hasRole('SWIMMER')")
     @Operation(summary = "Récupérer la licence du nageur connecté", description = "Récupère la licence pour une saison spécifique du nageur connecté")
@@ -131,25 +148,64 @@ public class LicenseController {
         
         String normalizedSeason = season.replace('/', '-').trim();
         
-        License license = licenseRepository.findBySeason(normalizedSeason).stream()
-                .filter(l -> l.getSwimmer() != null && l.getSwimmer().getId().equals(swimmer.getId()))
-                .findFirst()
-                .orElseGet(() -> {
-                    License l = new License();
-                    l.setSwimmer(swimmer);
-                    l.setSeason(normalizedSeason);
-                    l.setIssueDate(LocalDate.now());
-                    l.setExpiryDate(LocalDate.now().plusMonths(12));
-                    String regionPart = "IND";
-                    l.setLicenseNumber("LIC-" + regionPart + "-IND-" + normalizedSeason + "-" + UUID.randomUUID().toString().substring(0, 8));
-                    return l;
-                });
+        License license = swimmer.getLicense();
+        if (license == null) {
+            license = new License();
+            license.setSwimmer(swimmer);
+            String regionPart = "IND";
+            license.setLicenseNumber("LIC-" + regionPart + "-IND-" + normalizedSeason + "-" + UUID.randomUUID().toString().substring(0, 8));
+        }
+        license.setSeason(normalizedSeason);
+        license.setIssueDate(LocalDate.now());
+        license.setExpiryDate(LocalDate.now().plusMonths(12));
         
-        license.setValidationStatus(isValidated ? "VALIDATED" : "REFUSED");
+        license.setValidationStatus(isValidated ? tn.federation.backend.entities.LicenseStatus.VALIDATED : tn.federation.backend.entities.LicenseStatus.REJECTED);
         License saved = licenseRepository.save(license);
         
         notificationService.notifyAdminOfIndependentSwimmerValidationDecision(swimmer, normalizedSeason, isValidated);
         
+        return ResponseEntity.ok(saved);
+    }
+
+    @PutMapping("/{id}/decision")
+    @PreAuthorize("hasRole('COACH') or hasRole('SWIMMER')")
+    @Operation(summary = "Valider ou refuser une licence", description = "Permet au coach (pour ses nageurs) ou au nageur indépendant de valider/refuser une licence PENDING")
+    public ResponseEntity<License> validateOrRefuseLicense(
+            @PathVariable Long id,
+            @RequestParam boolean approved,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        
+        User user = userRepository.findByEmail(currentUser.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
+
+        License license = licenseRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Licence introuvable avec id: " + id));
+
+        if (!tn.federation.backend.entities.LicenseStatus.PENDING.equals(license.getValidationStatus())) {
+            throw new IllegalArgumentException("La licence n'est pas en attente de validation.");
+        }
+
+        // Check permissions
+        if (user.getRole() == tn.federation.backend.entities.Role.COACH) {
+            if (license.getClub() == null || !license.getClub().getId().equals(user.getClub().getId())) {
+                throw new IllegalArgumentException("Cette licence ne correspond pas à votre club.");
+            }
+        } else if (user.getRole() == tn.federation.backend.entities.Role.SWIMMER) {
+            if (license.getSwimmer() == null || !license.getSwimmer().getId().equals(user.getId())) {
+                throw new IllegalArgumentException("Cette licence ne vous correspond pas.");
+            }
+        }
+
+        license.setValidationStatus(approved ? tn.federation.backend.entities.LicenseStatus.VALIDATED : tn.federation.backend.entities.LicenseStatus.REJECTED);
+        License saved = licenseRepository.save(license);
+
+        // Notifier l'admin
+        if (user.getRole() == tn.federation.backend.entities.Role.COACH) {
+            notificationService.notifyAdminOfSeasonValidationDecision(user, license.getClub(), license.getSeason(), approved);
+        } else if (user.getRole() == tn.federation.backend.entities.Role.SWIMMER) {
+            notificationService.notifyAdminOfIndependentSwimmerValidationDecision(user, license.getSeason(), approved);
+        }
+
         return ResponseEntity.ok(saved);
     }
 }

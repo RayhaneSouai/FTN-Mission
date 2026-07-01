@@ -112,7 +112,7 @@
                   <i class="bi bi-bell"></i>
                   Notifications
                 </h2>
-                <p class="admin-notif__panel-sub">Inscriptions et signalements coach</p>
+                <p class="admin-notif__panel-sub">Inscriptions, alertes et validations</p>
               </div>
               <span class="admin-notif__count" *ngIf="totalNotificationCount > 0">{{ totalNotificationCount }}</span>
             </div>
@@ -129,7 +129,7 @@
                       class="admin-notif__tab"
                       [class.admin-notif__tab--active]="notificationTab === 'reports'"
                       (click)="switchNotificationTab('reports', $event)">
-                Signalements
+                Alertes
                 <span class="admin-notif__tab-badge" *ngIf="unreadAdminNotificationsCount > 0">{{ unreadAdminNotificationsCount }}</span>
               </button>
             </div>
@@ -186,7 +186,7 @@
               <ng-container *ngIf="notificationTab === 'reports'">
                 <div class="admin-notif__state" *ngIf="clubReportNotifications.length === 0">
                   <i class="bi bi-shield-check"></i>
-                  <span>Aucun signalement de fiche club</span>
+                  <span>Aucune alerte ou signalement</span>
                 </div>
 
                 <ul class="admin-notif__list" *ngIf="clubReportNotifications.length > 0">
@@ -194,23 +194,24 @@
                       class="admin-notif__item"
                       [class.admin-notif__item--unread]="!notif.read">
                     <div class="admin-notif__item-main">
-                      <div class="admin-notif__icon admin-notif__icon--warning">
-                        <i class="bi bi-exclamation-triangle-fill"></i>
+                      <div class="admin-notif__icon" [ngClass]="notif.type === 'CLUB_ADMIN_ERROR' ? 'admin-notif__icon--warning' : 'admin-notif__icon--info'">
+                        <i class="bi" [ngClass]="notif.type === 'CLUB_ADMIN_ERROR' ? 'bi-exclamation-triangle-fill' : 'bi-info-circle-fill'"></i>
                       </div>
                       <div class="admin-notif__item-text">
                         <p class="admin-notif__item-title">
-                          <strong>{{ notif.clubName }}</strong>
+                          <strong>{{ notif.type === 'CLUB_ADMIN_ERROR' ? notif.clubName : notif.title }}</strong>
                           <span class="admin-notif__unread-dot" *ngIf="!notif.read"></span>
                         </p>
-                        <span class="admin-notif__role">Par {{ notif.createdByName }} · Saison {{ notif.season }}</span>
-                        <span class="admin-notif__email">{{ parseReportFields(notif.payload) }}</span>
+                        <span class="admin-notif__role" *ngIf="notif.type === 'CLUB_ADMIN_ERROR'">Par {{ notif.createdByName }} · Saison {{ notif.season }}</span>
+                        <span class="admin-notif__email" *ngIf="notif.type === 'CLUB_ADMIN_ERROR'">{{ parseReportFields(notif.payload) }}</span>
+                        <span class="admin-notif__email" *ngIf="notif.type === 'SEASON_VALIDATION_REQUEST'">{{ notif.message }}</span>
                         <span class="admin-notif__time" *ngIf="notif.createdAt">{{ relativeTime(notif.createdAt) }}</span>
                       </div>
                     </div>
                     <div class="admin-notif__item-actions admin-row-actions">
                       <button type="button" class="admin-action-label" (click)="markNotificationRead(notif, $event)">
                         <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
-                        Voir le club
+                        Marquer comme lu
                       </button>
                     </div>
                   </li>

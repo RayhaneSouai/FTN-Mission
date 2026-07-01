@@ -25,12 +25,13 @@ export class ProfilePageComponent implements OnInit {
 
   // Swimmer License (Individual specific)
   isSwimmer = false;
-  myLicense: any = null;
+  myLicenses: any[] = [];
   myLicenseLoading = false;
+  selectedSwimmerLicenseForDetail: any = null;
 
   // Club season validation (Coach/Manager specific)
   isCoach = false;
-  currentSeason = '2025/2026';
+  currentSeason = '2026/2027';
   clubValidations: any[] = [];
   clubValidationLoading = false;
 
@@ -88,7 +89,7 @@ export class ProfilePageComponent implements OnInit {
               this.checkClubValidation();
             }
             if (this.isSwimmer && !data.clubId) {
-              this.loadMyLicense();
+              this.loadMyLicenses();
             }
           },
           error: (err) => {
@@ -238,9 +239,45 @@ export class ProfilePageComponent implements OnInit {
     });
   }
 
+  pendingLicenses: any[] = [];
+  pendingLicensesLoading = false;
+
   openValidationDetail(validation: any) {
     this.selectedValidationForDetail = validation;
     this.isDeclarationChecked = false;
+    this.loadPendingLicensesForClub(validation.clubId);
+  }
+
+  loadPendingLicensesForClub(clubId: number) {
+    this.pendingLicensesLoading = true;
+    this.licenseService.getAllLicenses().subscribe({
+      next: (licenses: any[]) => {
+        this.pendingLicenses = licenses.filter(l => 
+          l.club && l.club.id === clubId && l.validationStatus === 'PENDING' && l.season === this.currentSeason
+        );
+        this.pendingLicensesLoading = false;
+      },
+      error: (err) => {
+        console.error('Erreur chargement licences', err);
+        this.pendingLicensesLoading = false;
+      }
+    });
+  }
+
+  validatePendingLicense(licenseId: number, approved: boolean) {
+    this.licenseService.makeDecision(licenseId, approved).subscribe({
+      next: () => {
+        this.success = 'Licence traitée avec succès';
+        setTimeout(() => this.success = '', 3000);
+        if (this.selectedValidationForDetail) {
+          this.loadPendingLicensesForClub(this.selectedValidationForDetail.clubId);
+        }
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'Erreur lors du traitement de la licence';
+        setTimeout(() => this.error = '', 5000);
+      }
+    });
   }
 
   closeValidationDetail() {
@@ -324,32 +361,44 @@ export class ProfilePageComponent implements OnInit {
     return (valNum / totalNum) * 100;
   }
 
-  loadMyLicense() {
+  loadMyLicenses() {
     this.myLicenseLoading = true;
-    this.licenseService.getMyLicense(this.currentSeason).subscribe({
+    this.licenseService.getMyLicenses().subscribe({
       next: (data) => {
-        this.myLicense = data;
+        this.myLicenses = data || [];
         this.myLicenseLoading = false;
       },
       error: (err) => {
-        console.error('Erreur lors du chargement de la licence', err);
+        console.error('Erreur lors du chargement des licences', err);
         this.myLicenseLoading = false;
       }
     });
   }
 
-  validateMyIndependentLicense(isValidated: boolean) {
+  openSwimmerLicenseDetail(license: any) {
+    this.selectedSwimmerLicenseForDetail = license;
+    this.isDeclarationChecked = false;
+  }
+
+  closeSwimmerLicenseDetail() {
+    this.selectedSwimmerLicenseForDetail = null;
+    this.isDeclarationChecked = false;
+  }
+
+  validateMyIndependentLicense(licenseId: number, isValidated: boolean) {
     this.clubValidationLoading = true;
     this.error = '';
     this.success = '';
-    this.licenseService.validateMyLicense(this.currentSeason, isValidated).subscribe({
+    
+    this.licenseService.makeDecision(licenseId, isValidated).subscribe({
       next: (res) => {
         this.success = isValidated 
-          ? `Votre licence pour la saison ${this.currentSeason} a été validée avec succès !`
-          : `Le renouvellement a été refusé.`;
+          ? `Votre licence a été validée avec succès !`
+          : `La licence a été refusée.`;
         this.clubValidationLoading = false;
         this.isDeclarationChecked = false;
-        this.loadMyLicense();
+        this.selectedSwimmerLicenseForDetail = null;
+        this.loadMyLicenses();
         setTimeout(() => this.success = '', 5000);
       },
       error: (err) => {

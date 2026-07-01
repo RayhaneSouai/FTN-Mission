@@ -14,6 +14,8 @@ import { filter } from 'rxjs/operators';
 import { UserService } from '../../features/users/services/user.service';
 import { AdminToastService } from '../../shared/admin-ui/services/admin-toast.service';
 import { NotificationService, AppNotification } from '../../shared/services/notification.service';
+import { WebSocketService } from '../../core/services/websocket.service';
+import { Subscription } from 'rxjs';
 import { AdminBreadcrumbItem } from '../../shared/admin-ui/components/admin-breadcrumb/admin-breadcrumb.component';
 
 @Component({
@@ -46,9 +48,12 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
     private router: Router,
     private userService: UserService,
     private notificationService: NotificationService,
+    private webSocketService: WebSocketService,
     private toast: AdminToastService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
+
+  private wsSubscription?: Subscription;
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -58,7 +63,14 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
         this.user = JSON.parse(userStr);
         this.loadPendingRegistrations();
         this.loadAdminNotifications();
-        this.startPolling();
+        this.webSocketService.connect();
+        if (!this.wsSubscription) {
+          this.wsSubscription = this.webSocketService.notifications$.subscribe(notification => {
+            if (notification && (notification.type === 'CLUB_ADMIN_ERROR' || notification.type === 'SEASON_VALIDATION_REQUEST')) {
+              this.adminNotifications.unshift(notification as any);
+            }
+          });
+        }
         this.updateBreadcrumbs();
         this.router.events
           .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
@@ -124,22 +136,10 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.stopPolling();
-  }
-
-  startPolling(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      this.pollingIntervalId = setInterval(() => {
-        this.loadPendingRegistrations();
-        this.loadAdminNotifications();
-      }, 15000);
+    if (this.wsSubscription) {
+      this.wsSubscription.unsubscribe();
     }
-  }
-
-  stopPolling(): void {
-    if (this.pollingIntervalId) {
-      clearInterval(this.pollingIntervalId);
-    }
+    this.webSocketService.disconnect();
   }
 
   loadPendingRegistrations(): void {
@@ -160,7 +160,7 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
   loadAdminNotifications(): void {
     this.notificationService.getAdminNotifications().subscribe({
       next: (items) => {
-        this.adminNotifications = items.filter(n => n.type === 'CLUB_ADMIN_ERROR');
+        this.adminNotifications = items.filter(n => n.type === 'CLUB_ADMIN_ERROR' || n.type === 'SEASON_VALIDATION_REQUEST');
       },
       error: () => {
         this.adminNotifications = [];
@@ -177,7 +177,7 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
   }
 
   get clubReportNotifications(): AppNotification[] {
-    return this.adminNotifications.filter(n => n.type === 'CLUB_ADMIN_ERROR');
+    return this.adminNotifications.filter(n => n.type === 'CLUB_ADMIN_ERROR' || n.type === 'SEASON_VALIDATION_REQUEST');
   }
 
   switchNotificationTab(tab: 'registrations' | 'reports', event: Event): void {

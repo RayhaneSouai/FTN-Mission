@@ -2,5 +2,7 @@ package tn.federation.backend.entities;
 
 public enum NotificationType {
     CLUB_ADMIN_ERROR,
-    SEASON_VALIDATION_REQUEST
+    SEASON_VALIDATION_REQUEST,
+    LICENSE_VALIDATION_REQUEST,
+    LICENSE_VALIDATION_DECISION
 }

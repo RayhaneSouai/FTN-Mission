@@ -30,6 +30,7 @@ public class License {
     @JoinColumn(name = "swimmer_id", unique = true)
     private User swimmer;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "validation_status", nullable = false, length = 20)
-    private String validationStatus = "PENDING";
+    private LicenseStatus validationStatus = LicenseStatus.PENDING;
 }

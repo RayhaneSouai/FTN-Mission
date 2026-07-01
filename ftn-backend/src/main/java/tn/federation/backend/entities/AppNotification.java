@@ -42,6 +42,9 @@ public class AppNotification {
     @Column(length = 20)
     private String season;
 
+    @Column(name = "license_id")
+    private Long licenseId;
+
     @Column(name = "created_by_user_id")
     private Long createdByUserId;
 

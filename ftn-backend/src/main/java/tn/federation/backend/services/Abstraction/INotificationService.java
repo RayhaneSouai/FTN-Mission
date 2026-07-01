@@ -22,6 +22,10 @@ public interface INotificationService {
 
     void notifyCoachOfPendingLicense(License license);
 
+    void notifySwimmerOfPendingLicense(License license);
+
+    void deleteNotificationsByLicenseId(Long licenseId);
+
     void notifyAdminOfSeasonValidationDecision(User coach, Club club, String season, boolean approved);
 
     void notifyAdminOfIndependentSwimmerValidationDecision(User swimmer, String season, boolean approved);

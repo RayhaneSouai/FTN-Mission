@@ -19,6 +19,7 @@ public class AppNotificationDTO {
     private String season;
     private String createdByName;
     private String payload;
+    private Long licenseId;
     private boolean read;
     private LocalDateTime createdAt;
 
@@ -33,6 +34,7 @@ public class AppNotificationDTO {
         dto.setSeason(n.getSeason());
         dto.setCreatedByName(n.getCreatedByName());
         dto.setPayload(n.getPayload());
+        dto.setLicenseId(n.getLicenseId());
         dto.setRead(n.isRead());
         dto.setCreatedAt(n.getCreatedAt());
         return dto;

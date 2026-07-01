@@ -168,70 +168,189 @@
       </div>
 
       <ng-container *ngIf="!myLicenseLoading">
-        <div class="admin-profile-grid" style="grid-template-columns: 1fr 1fr; gap: 24px;">
-          <app-admin-panel title="Dossier de licence individuelle" subtitle="Détails de la licence officielle enregistrée auprès de la fédération">
-            <div class="p-3 bg-light rounded-3 mb-4">
-              <div class="row align-items-center">
-                <div class="col-auto">
-                  <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
-                    <i class="bi bi-card-checklist fs-2"></i>
+      <app-admin-panel *ngIf="myLicenses.length === 0">
+        <app-admin-empty-state
+          icon="bi-card-checklist"
+          title="Aucune licence trouvée"
+          message="L'administration n'a pas encore initié de demande de licence.">
+        </app-admin-empty-state>
+      </app-admin-panel>
+
+      <app-admin-panel
+        *ngIf="myLicenses.length > 0"
+        title="Mes licences sportives"
+        subtitle="Consultez et validez vos licences par saison"
+        [noPadding]="true">
+          <div class="admin-table-card coach-clubs-table">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th class="ps-4">Numéro de licence</th>
+                    <th class="text-center">Saison</th>
+                    <th class="text-center">Statut</th>
+                    <th class="text-end pe-4">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let license of myLicenses" class="coach-club-row">
+                    <td class="ps-4">
+                      <div class="coach-club-cell">
+                        <div class="coach-club-cell__icon">
+                          <i class="bi bi-person-badge"></i>
+                        </div>
+                        <div>
+                          <strong class="coach-club-cell__name">{{ license.licenseNumber || 'Création en attente' }}</strong>
+                          <span class="coach-club-cell__id">Valable du {{ license.issueDate | date:'dd MMM yyyy' }} au {{ license.expiryDate | date:'dd MMM yyyy' }}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="text-center">
+                      <span class="coach-season-tag">{{ license.season }}</span>
+                    </td>
+                    <td class="text-center">
+                      <span class="coach-status"
+                            [class.coach-status--validated]="license.validationStatus === 'VALIDATED'"
+                            [class.coach-status--refused]="license.validationStatus === 'REJECTED'"
+                            [class.coach-status--pending]="license.validationStatus === 'PENDING'">
+                        <i class="bi"
+                           [class.bi-check-circle-fill]="license.validationStatus === 'VALIDATED'"
+                           [class.bi-x-circle-fill]="license.validationStatus === 'REJECTED'"
+                           [class.bi-clock-fill]="license.validationStatus === 'PENDING'"></i>
+                        {{ license.validationStatus === 'VALIDATED' ? 'Validée' : license.validationStatus === 'REJECTED' ? 'Refusée' : 'En attente' }}
+                      </span>
+                    </td>
+                    <td class="text-end pe-4">
+                      <button type="button" class="admin-btn admin-btn--ghost" (click)="openSwimmerLicenseDetail(license)">
+                        <i class="bi bi-folder2-open"></i>
+                        Vérifier &amp; valider
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+      </app-admin-panel>
+
+      <!-- ── Detail modal ── -->
+      <div class="coach-modal-backdrop" *ngIf="selectedSwimmerLicenseForDetail" (click)="closeSwimmerLicenseDetail()">
+        <div class="coach-modal coach-modal--xl" (click)="$event.stopPropagation()">
+          <div class="coach-modal__header">
+            <div class="coach-modal__header-main">
+              <div class="coach-modal__club-icon">
+                <i class="bi bi-person-badge"></i>
+              </div>
+              <div>
+                <h3 class="coach-modal__title">{{ selectedSwimmerLicenseForDetail.licenseNumber || 'Licence en attente' }}</h3>
+                <p class="coach-modal__subtitle">Dossier sportif — Saison {{ selectedSwimmerLicenseForDetail.season }}</p>
+              </div>
+            </div>
+            <button type="button" class="coach-modal__close" (click)="closeSwimmerLicenseDetail()" aria-label="Fermer">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+
+          <div class="coach-modal__body">
+            <div class="coach-detail-grid">
+              <div class="coach-detail-panel">
+                <h4 class="coach-detail-panel__title">
+                  <i class="bi bi-file-earmark-text"></i>
+                  Informations sur la licence
+                </h4>
+                <dl class="coach-detail-list">
+                  <div class="coach-detail-list__row">
+                    <dt>Saison</dt>
+                    <dd>{{ selectedSwimmerLicenseForDetail.season }}</dd>
                   </div>
-                </div>
-                <div class="col">
-                  <h4 class="fw-bold text-dark mb-1">
-                    {{ myLicense ? myLicense.licenseNumber : 'Création en attente' }}
-                  </h4>
-                  <p class="text-muted mb-0 small">
-                    Saison sportive : <strong>{{ currentSeason }}</strong>
-                  </p>
-                </div>
+                  <div class="coach-detail-list__row">
+                    <dt>Date d'émission</dt>
+                    <dd>{{ selectedSwimmerLicenseForDetail.issueDate | date:'dd MMM yyyy' }}</dd>
+                  </div>
+                  <div class="coach-detail-list__row">
+                    <dt>Date d'expiration</dt>
+                    <dd>{{ selectedSwimmerLicenseForDetail.expiryDate | date:'dd MMM yyyy' }}</dd>
+                  </div>
+                  <div class="coach-detail-list__row">
+                    <dt>Statut de validation</dt>
+                    <dd>
+                      <span class="badge"
+                            [class.bg-success]="selectedSwimmerLicenseForDetail.validationStatus === 'VALIDATED'"
+                            [class.bg-danger]="selectedSwimmerLicenseForDetail.validationStatus === 'REJECTED'"
+                            [class.bg-warning]="selectedSwimmerLicenseForDetail.validationStatus === 'PENDING'">
+                        {{ selectedSwimmerLicenseForDetail.validationStatus === 'VALIDATED' ? 'Validée' : selectedSwimmerLicenseForDetail.validationStatus === 'REJECTED' ? 'Refusée' : 'En attente' }}
+                      </span>
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+
+              <div class="coach-detail-panel">
+                 <h4 class="coach-detail-panel__title">
+                  <i class="bi bi-person-check"></i>
+                  Nageur Indépendant
+                </h4>
+                <p class="text-muted small mb-4">
+                  En tant que licencié individuel sans club (nageur indépendant), vous devez confirmer que vos informations de profil sont exactes et à jour. Cette déclaration fait office de demande de validation et sera transmise à l'administration fédérale pour approbation.
+                </p>
               </div>
             </div>
 
-            <div class="mb-3 d-flex justify-content-between border-bottom pb-2">
-              <span class="text-muted">Statut de validation :</span>
-              <span *ngIf="myLicense" class="badge"
-                    [class.bg-success]="myLicense.validationStatus === 'VALIDATED'"
-                    [class.bg-danger]="myLicense.validationStatus === 'REFUSED'"
-                    [class.bg-warning]="myLicense.validationStatus === 'PENDING'">
-                {{ myLicense.validationStatus === 'VALIDATED' ? 'Validée' : myLicense.validationStatus === 'REFUSED' ? 'Refusée' : 'En attente' }}
-              </span>
-              <span *ngIf="!myLicense" class="badge bg-secondary">Non initiée</span>
-            </div>
-
-            <div class="mb-3 d-flex justify-content-between border-bottom pb-2">
-              <span class="text-muted">Date d'émission :</span>
-              <span class="fw-medium text-dark">{{ myLicense ? (myLicense.issueDate | date:'dd MMM yyyy') : 'N/A' }}</span>
-            </div>
-
-            <div class="mb-3 d-flex justify-content-between border-bottom pb-2">
-              <span class="text-muted">Date d'expiration :</span>
-              <span class="fw-medium text-dark">{{ myLicense ? (myLicense.expiryDate | date:'dd MMM yyyy') : 'N/A' }}</span>
-            </div>
-          </app-admin-panel>
-
-          <app-admin-panel title="Validation de la saison" subtitle="Confirmez l'exactitude de vos données pour renouveler votre licence">
-            <p class="text-muted small mb-4">
-              En tant que licencié individuel sans club (nageur indépendant), vous devez confirmer que vos informations de profil sont exactes et à jour. Cette déclaration fait office de demande de validation et sera transmise à l'administration fédérale pour approbation.
-            </p>
-
-            <div class="form-check mb-4 bg-light p-3 rounded-3 border">
-              <input class="form-check-input ms-0 me-3" type="checkbox" id="swimmerDeclaration" [(ngModel)]="isDeclarationChecked">
-              <label class="form-check-label text-dark fw-medium small" for="swimmerDeclaration" style="cursor: pointer;">
-                Je déclare sur l'honneur que mes informations personnelles, médicales et de niveau de natation renseignées sur mon profil sont exactes et conformes aux règlements de la FTN.
+            <div class="coach-declaration">
+              <label class="coach-declaration__box" [class.coach-declaration__box--disabled]="selectedSwimmerLicenseForDetail.validationStatus === 'VALIDATED'">
+                <input type="checkbox"
+                       [(ngModel)]="isDeclarationChecked"
+                       [disabled]="selectedSwimmerLicenseForDetail.validationStatus === 'VALIDATED'">
+                <span class="coach-declaration__text">
+                  Je déclare sur l'honneur que mes informations personnelles, médicales et de niveau de natation renseignées sur mon profil sont exactes et conformes aux règlements de la FTN.
+                </span>
               </label>
             </div>
 
-            <div class="d-flex gap-3">
-              <button type="button" class="admin-btn admin-btn--primary w-100 py-3"
-                      [disabled]="!isDeclarationChecked || clubValidationLoading"
-                      (click)="validateMyIndependentLicense(true)">
-                <i class="bi bi-shield-check me-2"></i>
-                Valider & Renouveler ma saison
-              </button>
+            <div class="coach-actions-bar">
+              <div class="coach-actions-bar__status">
+                <span class="coach-section-label">Statut de la licence</span>
+                <div class="coach-actions-bar__status-row">
+                  <span class="coach-status coach-status--lg"
+                        [class.coach-status--validated]="selectedSwimmerLicenseForDetail.validationStatus === 'VALIDATED'"
+                        [class.coach-status--refused]="selectedSwimmerLicenseForDetail.validationStatus === 'REJECTED'"
+                        [class.coach-status--pending]="selectedSwimmerLicenseForDetail.validationStatus === 'PENDING'">
+                    <i class="bi"
+                       [class.bi-check-circle-fill]="selectedSwimmerLicenseForDetail.validationStatus === 'VALIDATED'"
+                       [class.bi-x-circle-fill]="selectedSwimmerLicenseForDetail.validationStatus === 'REJECTED'"
+                       [class.bi-clock-fill]="selectedSwimmerLicenseForDetail.validationStatus === 'PENDING'"></i>
+                    {{ selectedSwimmerLicenseForDetail.validationStatus === 'VALIDATED' ? 'Licence validée' : selectedSwimmerLicenseForDetail.validationStatus === 'REJECTED' ? 'Refusée' : 'En attente de signature' }}
+                  </span>
+                </div>
+              </div>
+              <div class="coach-actions-bar__buttons">
+                <button type="button"
+                        class="admin-btn coach-btn--danger"
+                        [class.coach-btn--danger-active]="selectedSwimmerLicenseForDetail.validationStatus === 'REJECTED'"
+                        (click)="validateMyIndependentLicense(selectedSwimmerLicenseForDetail.id, false)"
+                        [disabled]="clubValidationLoading || selectedSwimmerLicenseForDetail.validationStatus === 'VALIDATED'">
+                  <i class="bi bi-x-circle"></i>
+                  Refuser
+                </button>
+                <button type="button"
+                        class="admin-btn admin-btn--primary"
+                        (click)="validateMyIndependentLicense(selectedSwimmerLicenseForDetail.id, true)"
+                        [disabled]="clubValidationLoading || (!isDeclarationChecked && selectedSwimmerLicenseForDetail.validationStatus !== 'VALIDATED')">
+                  <span *ngIf="clubValidationLoading" class="spinner-border spinner-border-sm"></span>
+                  <i class="bi bi-check-circle-fill" *ngIf="!clubValidationLoading"></i>
+                  {{ selectedSwimmerLicenseForDetail.validationStatus === 'VALIDATED' ? 'Validé' : 'Confirmer et valider' }}
+                </button>
+              </div>
             </div>
-          </app-admin-panel>
+          </div>
+
+          <div class="coach-modal__footer">
+            <button type="button" class="admin-btn admin-btn--secondary" (click)="closeSwimmerLicenseDetail()">
+              Fermer le dossier
+            </button>
+          </div>
         </div>
+      </div>
       </ng-container>
     </div>
 
@@ -478,6 +597,56 @@
                       </li>
                     </ul>
                   </div>
+                </div>
+              </div>
+
+              <!-- Pending Licenses Section -->
+              <div class="coach-detail-panel mt-4 mb-4" *ngIf="pendingLicenses.length > 0 || pendingLicensesLoading" style="width: 100%;">
+                <h4 class="coach-detail-panel__title d-flex justify-content-between align-items-center">
+                  <span>
+                    <i class="bi bi-person-lines-fill"></i>
+                    Licences individuelles en attente
+                  </span>
+                  <span class="badge bg-warning rounded-pill" *ngIf="pendingLicenses.length > 0">{{ pendingLicenses.length }}</span>
+                </h4>
+                
+                <div *ngIf="pendingLicensesLoading" class="text-center py-3">
+                  <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                </div>
+
+                <div *ngIf="!pendingLicensesLoading && pendingLicenses.length > 0" class="table-responsive mt-3">
+                  <table class="table table-sm align-middle mb-0" style="background: white; border-radius: 8px; overflow: hidden;">
+                    <thead class="table-light">
+                      <tr>
+                        <th class="ps-3">Nageur</th>
+                        <th>Numéro Licence</th>
+                        <th class="text-end pe-3">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let license of pendingLicenses">
+                        <td class="ps-3">
+                          <div class="d-flex align-items-center">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; font-size: 14px;">
+                              {{ license.swimmer?.firstName?.charAt(0) }}{{ license.swimmer?.lastName?.charAt(0) }}
+                            </div>
+                            <strong>{{ license.swimmer?.firstName }} {{ license.swimmer?.lastName }}</strong>
+                          </div>
+                        </td>
+                        <td>
+                          <span class="text-muted small">{{ license.licenseNumber }}</span>
+                        </td>
+                        <td class="text-end pe-3">
+                          <button class="btn btn-sm btn-outline-danger me-2" (click)="validatePendingLicense(license.id, false)" title="Refuser">
+                            <i class="bi bi-x-lg"></i>
+                          </button>
+                          <button class="btn btn-sm btn-outline-success" (click)="validatePendingLicense(license.id, true)" title="Valider">
+                            <i class="bi bi-check-lg"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
