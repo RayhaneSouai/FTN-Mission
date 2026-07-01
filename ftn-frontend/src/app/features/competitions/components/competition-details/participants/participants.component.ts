@@ -32,7 +32,7 @@ export class ParticipantsComponent implements OnInit {
 
   isAdmin = computed(() => {
     try {
-      return localStorage.getItem('isAdmin') === 'true';
+      return sessionStorage.getItem('isAdmin') === 'true';
     } catch {
       return false;
     }

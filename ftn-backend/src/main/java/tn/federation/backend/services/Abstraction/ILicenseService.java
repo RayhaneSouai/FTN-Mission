@@ -10,4 +10,5 @@ public interface ILicenseService {
     License updateLicense(Long id, License license);
     void deleteLicense(Long id);
     List<License> generateLicensesForSeason(String season);
+    License findByLicenseNumber(String licenseNumber);
 }

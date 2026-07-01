@@ -262,9 +262,9 @@ export class PressVisitorComponent implements OnInit {
   }
 
   private getCurrentUserId(): number | null {
-    if (typeof localStorage !== 'undefined') {
+    if (typeof sessionStorage !== 'undefined') {
       try {
-        const u = localStorage.getItem('user');
+        const u = sessionStorage.getItem('user');
         if (u) {
           const user = JSON.parse(u);
           const userId = user.id || user.idUser || user.id_user;

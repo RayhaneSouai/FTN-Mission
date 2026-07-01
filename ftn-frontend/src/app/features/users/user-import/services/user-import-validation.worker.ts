@@ -105,12 +105,14 @@ function validateIdentity(row: MappedUserRow, issues: RowValidationIssue[]): voi
 }
 
 function validateEmail(row: MappedUserRow, email: string, issues: RowValidationIssue[]): void {
-  if (!(row.mapped.email ?? '').trim()) {
+  const rawEmail = (row.mapped.email ?? '').trim();
+  if (!rawEmail) {
     issues.push({ field: 'email', severity: 'error', message: 'Email obligatoire' });
     return;
   }
-  if (!EMAIL_PATTERN.test(email)) {
-    issues.push({ field: 'email', severity: 'error', message: 'Format d\'email invalide' });
+  const cleaned = rawEmail.replace(/;+$/g, '').toLowerCase();
+  if (!EMAIL_PATTERN.test(cleaned)) {
+    issues.push({ field: 'email', severity: 'error', message: "Format d'email invalide" });
   }
 }
 

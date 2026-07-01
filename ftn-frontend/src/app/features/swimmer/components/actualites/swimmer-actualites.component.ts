@@ -197,13 +197,13 @@ export class SwimmerActualitesComponent implements OnInit {
   }
 
   private getCurrentUserId(): number | null {
-    if (typeof localStorage !== 'undefined') {
-      const userStr = localStorage.getItem('user');
+    if (typeof sessionStorage !== 'undefined') {
+      const userStr = sessionStorage.getItem('user');
       if (userStr) {
         try {
           const user = JSON.parse(userStr);
           const userId = user.id || user.idUser || user.id_user;
-          if (!userId) console.warn('User found in localStorage but no ID field:', user);
+          if (!userId) console.warn('User found in sessionStorage but no ID field:', user);
           return userId || null;
         } catch (e) {
           return null;

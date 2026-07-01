@@ -13,7 +13,7 @@ export class RolePermissionService {
       return null;
     }
     try {
-      const raw = localStorage.getItem('user');
+      const raw = sessionStorage.getItem('user');
       if (!raw) {
         return null;
       }
@@ -27,7 +27,7 @@ export class RolePermissionService {
     if (!isPlatformBrowser(this.platformId)) {
       return false;
     }
-    if (localStorage.getItem('isAdmin') === 'true') {
+    if (sessionStorage.getItem('isAdmin') === 'true') {
       return true;
     }
     const r = this.parseUser()?.role;

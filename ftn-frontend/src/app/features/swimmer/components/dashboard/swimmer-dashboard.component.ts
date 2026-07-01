@@ -18,7 +18,7 @@ export class SwimmerDashboardComponent implements OnInit {
   constructor(private swimmerService: SwimmerService) {}
 
   ngOnInit() {
-    const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
+    const stored = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('user') : null;
     if (stored) this.user = JSON.parse(stored);
     this.loadData();
   }
@@ -28,7 +28,7 @@ export class SwimmerDashboardComponent implements OnInit {
   loadData() {
     this.loading = true;
     
-    // Fallback: If getProfile doesn't exist on athlete/profile, we'll use user from localStorage
+    // Fallback: If getProfile doesn't exist on athlete/profile, we'll use user from sessionStorage
     this.profile = this.user; 
 
     // We fetch the new dashboard stats API

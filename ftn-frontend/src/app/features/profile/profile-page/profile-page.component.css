@@ -1,76 +1,24 @@
-.admin-security-block {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  border-radius: var(--admin-radius-md);
-  background: var(--admin-surface-muted);
-  border: 1px solid var(--admin-border-light);
-  margin-bottom: 1.25rem;
-}
-
-.admin-security-block__icon {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--admin-radius-md);
-  background: var(--admin-primary-light);
-  color: var(--admin-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.35rem;
-  flex-shrink: 0;
-}
-
-.admin-security-block__title {
-  margin: 0 0 0.25rem;
-  font-size: 1rem;
-  font-weight: 700;
-}
-
-.admin-security-block__text {
-  margin: 0;
-  font-size: 0.85rem;
-  color: var(--admin-text-muted);
-  max-width: 420px;
-}
-
-.admin-security-tips {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.admin-security-tips li {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  color: var(--admin-text-muted);
-}
-
-.admin-security-tips i {
-  color: var(--admin-success);
+.admin-page {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .admin-profile-tabs {
   display: flex;
   gap: 0.5rem;
-  border-bottom: 1px solid var(--admin-border-light);
+  border-bottom: 2px solid var(--admin-border-light);
   padding-bottom: 0.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .admin-profile-tab {
   background: none;
   border: none;
-  padding: 0.55rem 1.1rem;
+  padding: 0.75rem 1.5rem;
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   color: var(--admin-text-muted);
   cursor: pointer;
   border-radius: var(--admin-radius-md);
@@ -88,4 +36,867 @@
 .admin-profile-tab.active {
   background: var(--admin-primary-light);
   color: var(--admin-primary);
+  box-shadow: 0 2px 4px rgba(0, 58, 128, 0.08);
 }
+
+.avatar-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.status-indicator {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: var(--admin-shadow-sm);
+}
+
+.status-active {
+  background-color: var(--admin-success);
+}
+
+.status-inactive {
+  background-color: var(--admin-danger);
+}
+
+.admin-security-block {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  border-radius: var(--admin-radius-lg);
+  background: var(--admin-surface-muted);
+  border: 1px solid var(--admin-border-light);
+  margin-bottom: 1.5rem;
+}
+
+.admin-security-block__icon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-primary-light);
+  color: var(--admin-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.admin-security-block__title {
+  margin: 0 0 0.35rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--admin-text);
+}
+
+.admin-security-block__text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--admin-text-muted);
+}
+
+.admin-security-tips {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.admin-security-tips li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--admin-text-muted);
+}
+
+.admin-security-tips i {
+  color: var(--admin-success);
+  font-size: 1rem;
+}
+
+.fade-in {
+  animation: fadeIn 0.35s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Coach Season Validation (aligned with admin design system) ─── */
+.coach-validation {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.coach-validation-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.5rem 1.75rem;
+  border-radius: var(--admin-radius-xl);
+  background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-primary-hover) 55%, #1565c0 100%);
+  color: #fff;
+  box-shadow: var(--admin-shadow-md);
+  overflow: hidden;
+  position: relative;
+}
+
+.coach-validation-hero::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -5%;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.coach-validation-hero__content {
+  position: relative;
+  z-index: 1;
+}
+
+.coach-validation-hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  margin-bottom: 0.75rem;
+}
+
+.coach-validation-hero__title {
+  margin: 0 0 0.35rem;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.coach-validation-hero__subtitle {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.82);
+  max-width: 540px;
+  line-height: 1.55;
+}
+
+.coach-validation-hero__icon {
+  position: relative;
+  z-index: 1;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--admin-radius-lg);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  flex-shrink: 0;
+}
+
+/* Club table */
+.coach-clubs-table {
+  border: none;
+  box-shadow: none;
+}
+
+.coach-clubs-table thead th {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--admin-text-muted);
+  border-bottom: 1px solid var(--admin-border-light);
+  padding: 0.85rem 0.5rem;
+  background: var(--admin-surface-muted);
+}
+
+.coach-club-row {
+  transition: background var(--admin-transition);
+}
+
+.coach-club-row:hover {
+  background: var(--admin-primary-light);
+}
+
+.coach-club-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.coach-club-cell__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-primary-light);
+  color: var(--admin-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.coach-club-cell__name {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--admin-text);
+}
+
+.coach-club-cell__id {
+  font-size: 0.75rem;
+  color: var(--admin-text-subtle);
+}
+
+.coach-season-tag {
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: ui-monospace, monospace;
+  background: var(--admin-surface-muted);
+  color: var(--admin-text-muted);
+  border: 1px solid var(--admin-border-light);
+}
+
+/* Status badges */
+.coach-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.coach-status--lg {
+  font-size: 0.85rem;
+  padding: 0.45rem 1rem;
+}
+
+.coach-status--validated {
+  background: var(--admin-success-bg);
+  color: var(--admin-success);
+  border: 1px solid #bbf7d0;
+}
+
+.coach-status--refused {
+  background: var(--admin-danger-bg);
+  color: var(--admin-danger);
+  border: 1px solid #fecaca;
+}
+
+.coach-status--pending {
+  background: var(--admin-warning-bg);
+  color: var(--admin-warning);
+  border: 1px solid #fde68a;
+}
+
+/* Modals */
+.coach-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1055;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  overflow-y: auto;
+}
+
+.coach-modal-backdrop--nested {
+  z-index: 1100;
+}
+
+.coach-modal {
+  width: 100%;
+  max-width: 480px;
+  background: var(--admin-surface);
+  border-radius: var(--admin-radius-xl);
+  box-shadow: var(--admin-shadow-lg);
+  border: 1px solid var(--admin-border-light);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 2.5rem);
+  animation: coachModalIn 0.25s ease-out;
+}
+
+.coach-modal--xl {
+  max-width: 960px;
+}
+
+.coach-modal--sm {
+  max-width: 480px;
+}
+
+@keyframes coachModalIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.coach-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-primary-hover) 100%);
+  color: #fff;
+  border-radius: var(--admin-radius-xl) var(--admin-radius-xl) 0 0;
+}
+
+.coach-modal__header--light {
+  background: var(--admin-surface);
+  color: var(--admin-text);
+  border-bottom: 1px solid var(--admin-border-light);
+}
+
+.coach-modal__header--danger {
+  background: linear-gradient(135deg, #b91c1c 0%, var(--admin-danger) 100%);
+}
+
+.coach-modal__header-main {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.coach-modal__club-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--admin-radius-md);
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+.coach-modal__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.coach-modal__title--dark {
+  color: var(--admin-text);
+}
+
+.coach-modal__title-icon--warning {
+  color: var(--admin-warning);
+}
+
+.coach-modal__subtitle {
+  margin: 0.15rem 0 0;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.coach-modal__close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: var(--admin-radius-md);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--admin-transition);
+  flex-shrink: 0;
+}
+
+.coach-modal__close:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.coach-modal__close--dark {
+  background: var(--admin-surface-muted);
+  color: var(--admin-text-muted);
+}
+
+.coach-modal__close--dark:hover {
+  background: var(--admin-border-light);
+}
+
+.coach-modal__body {
+  padding: 1.25rem 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.coach-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--admin-border-light);
+  background: var(--admin-surface-muted);
+  border-radius: 0 0 var(--admin-radius-xl) var(--admin-radius-xl);
+}
+
+.coach-modal__intro {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: var(--admin-text-muted);
+}
+
+.coach-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 1rem;
+  color: var(--admin-text-muted);
+  font-size: 0.9rem;
+}
+
+/* Stat cards (admin-stat-card pattern) */
+.coach-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.coach-stat-card {
+  background: var(--admin-surface);
+  border-radius: var(--admin-radius-lg);
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--admin-border-light);
+  box-shadow: var(--admin-shadow-sm);
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--admin-transition), box-shadow var(--admin-transition);
+}
+
+.coach-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--admin-border);
+}
+
+.coach-stat-card--blue::before { background: #3b82f6; }
+.coach-stat-card--azure::before { background: #06b6d4; }
+.coach-stat-card--orange::before { background: #f59e0b; }
+
+.coach-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--admin-shadow-md);
+}
+
+.coach-stat-card__main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.coach-stat-card__label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--admin-text-muted);
+}
+
+.coach-stat-card__value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--admin-text);
+  margin-top: 0.15rem;
+  line-height: 1.1;
+}
+
+.coach-stat-card__detail {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--admin-text-subtle);
+}
+
+.coach-stat-card__detail .bi-check-circle-fill {
+  color: var(--admin-success);
+}
+
+.coach-stat-card__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--admin-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.coach-stat-card--blue .coach-stat-card__icon { background: #eff6ff; color: #3b82f6; }
+.coach-stat-card--azure .coach-stat-card__icon { background: #ecfeff; color: #0891b2; }
+.coach-stat-card--orange .coach-stat-card__icon { background: #fffbeb; color: #d97706; }
+
+/* Detail panels */
+.coach-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.coach-detail-panel {
+  background: var(--admin-surface-muted);
+  border: 1px solid var(--admin-border-light);
+  border-radius: var(--admin-radius-lg);
+  padding: 1.15rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.coach-detail-panel__title {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--admin-text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.coach-detail-panel__title i {
+  color: var(--admin-primary);
+}
+
+.coach-detail-panel__action {
+  width: 100%;
+  justify-content: center;
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+.coach-detail-list {
+  margin: 0;
+  flex: 1;
+}
+
+.coach-detail-list__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--admin-border-light);
+}
+
+.coach-detail-list__row:last-child {
+  border-bottom: none;
+}
+
+.coach-detail-list__row dt {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--admin-text-muted);
+  font-weight: 500;
+}
+
+.coach-detail-list__row dd {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  text-align: right;
+  max-width: 55%;
+}
+
+.coach-section-label {
+  margin: 0 0 0.75rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--admin-text-muted);
+}
+
+.coach-distribution {
+  margin-bottom: 1.25rem;
+}
+
+.coach-distribution__empty {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--admin-text-subtle);
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+.coach-distribution__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.coach-distribution__head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  margin-bottom: 0.35rem;
+}
+
+.coach-distribution__head span:first-child {
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.coach-distribution__head span:last-child {
+  color: var(--admin-text-muted);
+  font-family: ui-monospace, monospace;
+  font-weight: 600;
+}
+
+.coach-distribution__bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--admin-border-light);
+  overflow: hidden;
+}
+
+.coach-distribution__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--admin-primary);
+  transition: width 0.4s ease;
+}
+
+.coach-compliance__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.coach-compliance__list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.82rem;
+  color: var(--admin-text-muted);
+}
+
+.coach-compliance__list li i {
+  color: var(--admin-success);
+  margin-right: 0.35rem;
+}
+
+.coach-compliance__tag {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.coach-compliance__tag--ok {
+  background: var(--admin-success-bg);
+  color: var(--admin-success);
+}
+
+.coach-compliance__tag--ko {
+  background: var(--admin-danger-bg);
+  color: var(--admin-danger);
+}
+
+.coach-compliance__tag--warn {
+  background: var(--admin-warning-bg);
+  color: var(--admin-warning);
+}
+
+/* Declaration */
+.coach-declaration {
+  margin-bottom: 1.25rem;
+}
+
+.coach-declaration__box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1rem 1.15rem;
+  border-radius: var(--admin-radius-lg);
+  background: var(--admin-primary-light);
+  border: 1px solid rgba(0, 58, 128, 0.12);
+  cursor: pointer;
+  transition: border-color var(--admin-transition);
+}
+
+.coach-declaration__box:hover:not(.coach-declaration__box--disabled) {
+  border-color: rgba(0, 58, 128, 0.25);
+}
+
+.coach-declaration__box--disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.coach-declaration__box input[type="checkbox"] {
+  margin-top: 0.15rem;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--admin-primary);
+  flex-shrink: 0;
+}
+
+.coach-declaration__text {
+  font-size: 0.82rem;
+  color: var(--admin-text-muted);
+  line-height: 1.55;
+}
+
+/* Actions bar */
+.coach-actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--admin-border-light);
+}
+
+.coach-actions-bar__status-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: 0.35rem;
+}
+
+.coach-actions-bar__date {
+  font-size: 0.78rem;
+  color: var(--admin-text-subtle);
+  font-family: ui-monospace, monospace;
+}
+
+.coach-actions-bar__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.coach-btn--danger {
+  background: var(--admin-surface);
+  border: 1px solid #fecaca;
+  color: var(--admin-danger);
+}
+
+.coach-btn--danger:hover:not(:disabled) {
+  background: var(--admin-danger-bg);
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
+.coach-btn--danger-active {
+  background: var(--admin-danger) !important;
+  border-color: var(--admin-danger) !important;
+  color: #fff !important;
+}
+
+/* Checkbox list in modals */
+.coach-checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.coach-checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--admin-radius-md);
+  border: 1px solid var(--admin-border-light);
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--admin-text);
+  transition: background var(--admin-transition), border-color var(--admin-transition);
+}
+
+.coach-checkbox-item:hover {
+  background: var(--admin-surface-muted);
+  border-color: var(--admin-border);
+}
+
+.coach-checkbox-item input {
+  accent-color: var(--admin-primary);
+}
+
+@media (max-width: 768px) {
+  .coach-validation-hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .coach-validation-hero__icon {
+    display: none;
+  }
+
+  .coach-stats-row {
+    grid-template-columns: 1fr;
+  }
+
+  .coach-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .coach-actions-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .coach-actions-bar__buttons {
+    flex-direction: column;
+  }
+
+  .coach-actions-bar__buttons .admin-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+

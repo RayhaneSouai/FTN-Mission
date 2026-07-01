@@ -10,7 +10,7 @@ import java.time.LocalDate;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
+@ToString(exclude = {"club", "swimmer"})
 @Entity
 public class License {
     @Id
@@ -22,8 +22,14 @@ public class License {
     private LocalDate issueDate;
     private LocalDate expiryDate;
 
-    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "club_id")
-    Club club;
+    private Club club;
+
+    @OneToOne
+    @JoinColumn(name = "swimmer_id", unique = true)
+    private User swimmer;
+
+    @Column(name = "validation_status", nullable = false, length = 20)
+    private String validationStatus = "PENDING";
 }

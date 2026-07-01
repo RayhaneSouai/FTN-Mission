@@ -13,6 +13,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { UserService } from '../../features/users/services/user.service';
 import { AdminToastService } from '../../shared/admin-ui/services/admin-toast.service';
+import { NotificationService, AppNotification } from '../../shared/services/notification.service';
 import { AdminBreadcrumbItem } from '../../shared/admin-ui/components/admin-breadcrumb/admin-breadcrumb.component';
 
 @Component({
@@ -30,7 +31,10 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
   showScrollTop = false;
 
   pendingUsers: any[] = [];
+  adminNotifications: AppNotification[] = [];
+  notificationTab: 'registrations' | 'reports' = 'registrations';
   showNotificationsDropdown = false;
+  showUserDropdown = false;
   loadingNotifications = false;
   notificationError = '';
   private pollingIntervalId: ReturnType<typeof setInterval> | null = null;
@@ -41,17 +45,19 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private userService: UserService,
+    private notificationService: NotificationService,
     private toast: AdminToastService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      this.compactMode = localStorage.getItem('adminCompactMode') === '1';
-      const userStr = localStorage.getItem('user');
+      this.compactMode = sessionStorage.getItem('adminCompactMode') === '1';
+      const userStr = sessionStorage.getItem('user');
       if (userStr) {
         this.user = JSON.parse(userStr);
         this.loadPendingRegistrations();
+        this.loadAdminNotifications();
         this.startPolling();
         this.updateBreadcrumbs();
         this.router.events
@@ -123,7 +129,10 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
 
   startPolling(): void {
     if (isPlatformBrowser(this.platformId)) {
-      this.pollingIntervalId = setInterval(() => this.loadPendingRegistrations(), 15000);
+      this.pollingIntervalId = setInterval(() => {
+        this.loadPendingRegistrations();
+        this.loadAdminNotifications();
+      }, 15000);
     }
   }
 
@@ -148,22 +157,96 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
     });
   }
 
+  loadAdminNotifications(): void {
+    this.notificationService.getAdminNotifications().subscribe({
+      next: (items) => {
+        this.adminNotifications = items.filter(n => n.type === 'CLUB_ADMIN_ERROR');
+      },
+      error: () => {
+        this.adminNotifications = [];
+      }
+    });
+  }
+
+  get unreadAdminNotificationsCount(): number {
+    return this.adminNotifications.filter(n => !n.read).length;
+  }
+
+  get totalNotificationCount(): number {
+    return this.pendingUsers.length + this.unreadAdminNotificationsCount;
+  }
+
+  get clubReportNotifications(): AppNotification[] {
+    return this.adminNotifications.filter(n => n.type === 'CLUB_ADMIN_ERROR');
+  }
+
+  switchNotificationTab(tab: 'registrations' | 'reports', event: Event): void {
+    event.stopPropagation();
+    this.notificationTab = tab;
+  }
+
+  markNotificationRead(notification: AppNotification, event: Event): void {
+    event.stopPropagation();
+    if (!notification.read) {
+      this.notificationService.markAsRead(notification.id).subscribe({
+        next: () => {
+          notification.read = true;
+        }
+      });
+    }
+    this.showNotificationsDropdown = false;
+    this.router.navigate(['/admin/clubs']);
+  }
+
+  markAllReportsRead(event: Event): void {
+    event.stopPropagation();
+    this.notificationService.markAllAdminAsRead().subscribe({
+      next: () => {
+        this.adminNotifications.forEach(n => n.read = true);
+        this.toast.success('Notifications marquées comme lues');
+      }
+    });
+  }
+
+  parseReportFields(payload?: string): string {
+    if (!payload) return '';
+    const match = payload.match(/fields=([^|]*)/);
+    if (!match?.[1]) return '';
+    const labels: Record<string, string> = {
+      manager: 'Manager',
+      contact: 'Contact',
+      address: 'Adresse',
+      region: 'Région',
+      affiliationDate: 'Date affiliation'
+    };
+    return match[1].split(',').map(f => labels[f] || f).join(', ');
+  }
+
   toggleNotificationsDropdown(event: Event): void {
     event.stopPropagation();
     this.showNotificationsDropdown = !this.showNotificationsDropdown;
     if (this.showNotificationsDropdown) {
       this.loadPendingRegistrations();
+      this.loadAdminNotifications();
     }
+  }
+
+  toggleUserDropdown(event: Event): void {
+    event.stopPropagation();
+    this.showUserDropdown = !this.showUserDropdown;
+    this.showNotificationsDropdown = false;
   }
 
   @HostListener('document:click')
   onDocumentClick(): void {
     this.showNotificationsDropdown = false;
+    this.showUserDropdown = false;
   }
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
     this.showNotificationsDropdown = false;
+    this.showUserDropdown = false;
     if (this.showRejectModal) {
       this.closeRejectModal();
     }
@@ -269,7 +352,7 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
   toggleCompactMode(): void {
     this.compactMode = !this.compactMode;
     if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem('adminCompactMode', this.compactMode ? '1' : '0');
+      sessionStorage.setItem('adminCompactMode', this.compactMode ? '1' : '0');
     }
     this.toast.show(
       this.compactMode ? 'Mode compact activé' : 'Mode confort activé',
@@ -289,7 +372,7 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
 
   logout(): void {
     if (isPlatformBrowser(this.platformId)) {
-      localStorage.clear();
+      sessionStorage.clear();
       this.router.navigate(['/auth/login']);
     }
   }

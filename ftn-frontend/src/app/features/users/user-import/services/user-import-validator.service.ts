@@ -210,15 +210,19 @@ export class UserImportValidatorService {
     }
   }
 
-  private validateEmail(row: MappedUserRow, email: string, issues: RowValidationIssue[]): void {
-    if (!(row.mapped.email ?? '').trim()) {
-      issues.push({ field: 'email', severity: 'error', message: 'Email obligatoire' });
-      return;
-    }
-    if (!EMAIL_PATTERN.test(email)) {
-      issues.push({ field: 'email', severity: 'error', message: 'Format d\'email invalide' });
-    }
+  
+private validateEmail(row: MappedUserRow, email: string, issues: RowValidationIssue[]): void {
+  const rawEmail = (row.mapped.email ?? '').trim();
+  if (!rawEmail) {
+    issues.push({ field: 'email', severity: 'error', message: 'Email obligatoire' });
+    return;
   }
+  // Remove trailing semicolons that may appear from CSV parsing and standardize case
+  const cleaned = rawEmail.replace(/;+$/g, '').toLowerCase();
+  if (!EMAIL_PATTERN.test(cleaned)) {
+    issues.push({ field: 'email', severity: 'error', message: "Format d'email invalide" });
+  }
+}
 
   private validateRole(row: MappedUserRow, issues: RowValidationIssue[]): void {
     const raw = (row.mapped.role ?? '').trim();

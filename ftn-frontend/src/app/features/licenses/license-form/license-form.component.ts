@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { LicenseService } from '../services/license.service';
 import { ClubService } from '../../clubs/services/club.service';
+import { UserService } from '../../users/services/user.service';
 
 @Component({
   selector: 'app-license-form',
@@ -21,21 +22,26 @@ export class LicenseFormComponent implements OnInit, OnChanges {
     season: new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString(),
     issueDate: new Date().toISOString().substring(0, 10),
     expiryDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().substring(0, 10),
-    clubId: null
+    club: { id: null },
+    swimmer: { id: null }
   };
   
   clubs: any[] = [];
+  swimmers: any[] = [];
+  filteredSwimmers: any[] = [];
   
   error = '';
   success = '';
 
   constructor(
     private licenseService: LicenseService,
-    private clubService: ClubService
+    private clubService: ClubService,
+    private userService: UserService
   ) { }
 
   ngOnInit(): void {
     this.loadClubs();
+    this.loadSwimmers();
     if (this.licenseId) {
       this.initForm();
     }
@@ -65,8 +71,32 @@ export class LicenseFormComponent implements OnInit, OnChanges {
       season: new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString(),
       issueDate: new Date().toISOString().substring(0, 10),
       expiryDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().substring(0, 10),
-      clubId: null
+      club: { id: null },
+      swimmer: { id: null }
     };
+    this.filteredSwimmers = [];
+  }
+
+  loadSwimmers() {
+    this.userService.getAllUsers().subscribe({
+      next: (data: any[]) => {
+        this.swimmers = data.filter(u => u.role === 'SWIMMER');
+        this.filterSwimmersByClub();
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement des nageurs', err);
+      }
+    });
+  }
+
+  filterSwimmersByClub() {
+    const clubId = this.licenseData.club?.id;
+    if (clubId) {
+      this.filteredSwimmers = this.swimmers.filter(s => s.clubId === clubId);
+    } else {
+      // Independent swimmers can also have a license (clubId == null)
+      this.filteredSwimmers = this.swimmers.filter(s => !s.clubId);
+    }
   }
 
   loadLicense(id: number) {
@@ -74,12 +104,19 @@ export class LicenseFormComponent implements OnInit, OnChanges {
     this.licenseService.getLicenseById(id).subscribe({
       next: (data) => {
         this.licenseData = data;
+        if (!this.licenseData.club) {
+          this.licenseData.club = { id: null };
+        }
+        if (!this.licenseData.swimmer) {
+          this.licenseData.swimmer = { id: null };
+        }
         if (this.licenseData.issueDate) {
           this.licenseData.issueDate = new Date(this.licenseData.issueDate).toISOString().substring(0, 10);
         }
         if (this.licenseData.expiryDate) {
           this.licenseData.expiryDate = new Date(this.licenseData.expiryDate).toISOString().substring(0, 10);
         }
+        this.filterSwimmersByClub();
         this.loading = false;
       },
       error: (err) => {
@@ -97,12 +134,17 @@ export class LicenseFormComponent implements OnInit, OnChanges {
     this.error = '';
     
     if (!this.licenseData.season?.trim() || 
-        !this.licenseData.clubId || 
+        !this.licenseData.swimmer?.id || 
         !this.licenseData.issueDate || 
         !this.licenseData.expiryDate) {
-      this.error = 'Tous les champs sont obligatoires.';
+      this.error = 'La saison, le nageur, la date d\'émission et la date d\'expiration sont obligatoires.';
       this.loading = false;
       return;
+    }
+
+    const selectedSwimmer = this.swimmers.find(s => s.id === this.licenseData.swimmer.id);
+    if (selectedSwimmer) {
+      this.licenseData.club = { id: selectedSwimmer.clubId || null };
     }
     
     if (this.isEditMode && this.licenseId) {

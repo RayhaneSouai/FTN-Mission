@@ -434,10 +434,21 @@ export class UserListComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.users.filter(u => {
       const matchRole = this.selectedRole === 'ALL' || u.role === this.selectedRole;
       const term = this.searchTerm.toLowerCase().trim();
-      const matchSearch = !term || 
-        (u.firstName ?? '').toLowerCase().includes(term) || 
-        (u.lastName ?? '').toLowerCase().includes(term) || 
-        (u.email ?? '').toLowerCase().includes(term);
+      if (!term) return matchRole;
+
+      const firstName = (u.firstName ?? '').toLowerCase();
+      const lastName = (u.lastName ?? '').toLowerCase();
+      const email = (u.email ?? '').toLowerCase();
+      const fullName1 = `${firstName} ${lastName}`;
+      const fullName2 = `${lastName} ${firstName}`;
+
+      const matchSearch =
+        firstName.includes(term) ||
+        lastName.includes(term) ||
+        email.includes(term) ||
+        fullName1.includes(term) ||
+        fullName2.includes(term);
+
       return matchRole && matchSearch;
     });
   }
