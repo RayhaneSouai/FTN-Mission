@@ -1,0 +1,55 @@
+<div class="assistant-container">
+  <div class="assistant-header">
+    <div class="header-icon">🏊</div>
+    <div>
+      <h2>Assistant Compétitions</h2>
+      <p>Posez vos questions sur les compétitions, la participation, les résultats...</p>
+    </div>
+  </div>
+
+  <div class="chat-area">
+    <div class="messages-list">
+      @for (msg of messages(); track $index) {
+        <div class="message" [class.user]="msg.isUser" [class.bot]="!msg.isUser">
+          <div class="message-avatar">
+            @if (msg.isUser) { <span>👤</span> } @else { <span>🤖</span> }
+          </div>
+          <div class="message-bubble">
+            <p [innerText]="msg.text"></p>
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (showSuggestions()) {
+      <div class="suggestions-section">
+        <p class="suggestions-label">Questions fréquentes :</p>
+        <div class="suggestions-grid">
+          @for (s of suggestions; track s) {
+            <button class="suggestion-card" (click)="selectSuggestion(s)">
+              <span class="card-icon">💡</span>
+              <span class="card-text">{{ s }}</span>
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="input-area">
+    <input
+      type="text"
+      [(ngModel)]="userInput"
+      (keyup.enter)="send()"
+      placeholder="Tapez votre question ici..."
+      class="chat-input"
+    />
+    <button class="send-btn" (click)="send()" [disabled]="!userInput.trim()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13" />
+        <polygon points="22 2 15 22 11 13 2 9 22 2" />
+      </svg>
+    </button>
+  </div>
+</div>

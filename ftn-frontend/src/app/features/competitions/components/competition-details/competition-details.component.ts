@@ -19,7 +19,7 @@ export class CompetitionDetailsComponent implements OnInit, OnDestroy {
   private readonly toast = inject(ToastService);
   protected readonly state = inject(CompetitionStateService);
 
-  readonly isAdmin = computed(() => localStorage.getItem('isAdmin') === 'true');
+  readonly isAdmin = computed(() => typeof localStorage !== 'undefined' && localStorage.getItem('isAdmin') === 'true');
   readonly archiving = signal(false);
   readonly showArchiveConfirm = signal(false);
 

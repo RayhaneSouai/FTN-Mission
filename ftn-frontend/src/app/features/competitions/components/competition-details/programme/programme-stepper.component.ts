@@ -42,11 +42,15 @@ export class ProgrammeStepperComponent implements OnInit {
   deleteTargetLabel = signal('');
 
   readonly presets = PROGRAM_ITEM_PRESETS;
-  readonly allCategories = Object.values(Categorie);
+  readonly allCategories = Object.values(Categorie).filter(c => c !== Categorie.JUNIORS && c !== Categorie.SENIORS);
   readonly categorieLabels = CATEGORIE_LABELS;
 
-  /** All system categories available for selection in the dropdown */
+  /** Only categories allowed by the competition are selectable */
   allowedCategories = computed(() => {
+    const comp = this.state.selectedCompetition();
+    if (comp?.allowedCategories && comp.allowedCategories.length > 0) {
+      return comp.allowedCategories;
+    }
     return this.allCategories;
   });
 
@@ -84,6 +88,10 @@ export class ProgrammeStepperComponent implements OnInit {
   ngOnInit(): void {
     if (this.inputCompetitionId) {
       this.competitionId.set(this.inputCompetitionId);
+      // Ensure competition is loaded in state so allowedCategories computed works
+      if (!this.state.selectedCompetition() || this.state.selectedCompetition()!.id !== this.inputCompetitionId) {
+        this.state.loadCompetitionById(this.inputCompetitionId);
+      }
       this.loadStatus();
     } else {
       const comp = this.state.selectedCompetition();

@@ -79,7 +79,7 @@ public class CompetitionServiceImpl implements ICompetitionService {
 
     @Override
     public List<Competition> getAllCompetitions() {
-        return (List<Competition>) competitionRepository.findAll();
+        return competitionRepository.findAll();
     }
 
     @Override
