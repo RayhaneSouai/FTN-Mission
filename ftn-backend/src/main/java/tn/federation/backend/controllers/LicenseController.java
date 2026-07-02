@@ -63,8 +63,19 @@ public class LicenseController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Créer une nouvelle licence", description = "Ajoute une nouvelle licence au système")
-    public ResponseEntity<License> createLicense(@Valid @RequestBody License license) {
+    @Operation(summary = "Créer une nouvelle licence", description = "Ajoute une nouvelle licence au système, ou plusieurs licences si seul un club est sélectionné")
+    public ResponseEntity<?> createLicense(@Valid @RequestBody License license) {
+        boolean hasClub = license.getClub() != null && license.getClub().getId() != null;
+        boolean hasSwimmer = license.getSwimmer() != null && license.getSwimmer().getId() != null;
+
+        if (!hasClub && !hasSwimmer) {
+            throw new IllegalArgumentException("Un club ou un nageur doit être sélectionné.");
+        }
+
+        if (hasClub && !hasSwimmer) {
+            return ResponseEntity.ok(licenseService.createLicensesForClub(license));
+        }
+
         return ResponseEntity.ok(licenseService.createLicense(license));
     }
 

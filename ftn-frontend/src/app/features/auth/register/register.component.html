@@ -59,9 +59,9 @@
             </div>
 
             <div class="form-floating mb-3">
-              <input type="password" class="form-control" id="password" name="password" placeholder="Mot de passe" [(ngModel)]="userData.password" #password="ngModel" [ngClass]="{'is-invalid': password.invalid && (password.dirty || password.touched)}" required minlength="6" autocomplete="new-password">
+              <input type="password" class="form-control" id="password" name="password" placeholder="Mot de passe" [(ngModel)]="userData.password" #password="ngModel" [ngClass]="{'is-invalid': passwordFieldInvalid(password)}" required autocomplete="new-password">
               <label for="password"><i class="bi bi-lock me-2"></i>Mot de passe</label>
-              <div class="invalid-feedback">Le mot de passe doit faire au moins 6 caractères</div>
+              <div class="invalid-feedback d-block" *ngIf="passwordFieldError(password) as msg">{{ msg }}</div>
             </div>
 
             <div class="form-floating mb-4">

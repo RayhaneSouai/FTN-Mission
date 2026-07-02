@@ -120,6 +120,7 @@ public class AuthServiceImpl implements IAuthService {
         user.setBirthDate(request.getBirthDate());
         user.setGender(parseGender(request.getGender()));
         user.setNiveau(parseNiveau(request.getNiveau()));
+        tn.federation.backend.utils.AgeCategoryUtil.validateNiveauAge(user.getNiveau(), user.getBirthDate());
         user.setDiscipline(parseDiscipline(request.getDiscipline()));
         user.setAnciennete(request.getAnciennete());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));

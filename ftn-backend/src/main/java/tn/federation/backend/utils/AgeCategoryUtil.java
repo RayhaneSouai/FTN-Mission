@@ -15,6 +15,24 @@ public final class AgeCategoryUtil {
     private AgeCategoryUtil() {
     }
 
+    public static void validateNiveauAge(tn.federation.backend.entities.Niveau niveau, java.time.LocalDate birthDate) {
+        if (niveau == null || birthDate == null) return;
+        int age = java.time.Period.between(birthDate, java.time.LocalDate.now()).getYears();
+        boolean valid = false;
+        switch (niveau) {
+            case POUSSIN: valid = age <= 11; break;
+            case BENJAMIN: valid = age >= 12 && age <= 13; break;
+            case MINIME: valid = age >= 14 && age <= 15; break;
+            case CADET: valid = age >= 16 && age <= 17; break;
+            case JUNIOR: valid = age >= 18 && age <= 19; break;
+            case SENIOR: valid = age >= 20 && age <= 24; break;
+            case MASTER: valid = age >= 25; break;
+        }
+        if (!valid) {
+            throw new IllegalArgumentException("Le niveau " + niveau + " ne correspond pas à la date de naissance (âge actuel : " + age + " ans).");
+        }
+    }
+
     /**
      * Determines the strict FTN age category based on swimmer's age at competition
      * start.

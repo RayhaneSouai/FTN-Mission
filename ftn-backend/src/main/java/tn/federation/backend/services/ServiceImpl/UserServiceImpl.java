@@ -255,6 +255,7 @@ public class UserServiceImpl implements IUserService {
         user.setBirthDate(dto.getBirthDate());
         user.setGender(convertToGender(dto.getGender()));
         user.setNiveau(convertToNiveau(dto.getNiveau()));
+        tn.federation.backend.utils.AgeCategoryUtil.validateNiveauAge(user.getNiveau(), user.getBirthDate());
         user.setDiscipline(convertToDiscipline(dto.getDiscipline()));
         user.setAnciennete(dto.getAnciennete());
 
@@ -449,6 +450,7 @@ public class UserServiceImpl implements IUserService {
         user.setBirthDate(request.getBirthDate());
         user.setGender(convertToGender(request.getGender()));
         user.setNiveau(convertToNiveau(request.getNiveau()));
+        tn.federation.backend.utils.AgeCategoryUtil.validateNiveauAge(user.getNiveau(), user.getBirthDate());
         user.setDiscipline(convertToDiscipline(request.getDiscipline()));
         user.setAnciennete(request.getAnciennete());
         if (request.getClubId() != null) {

@@ -196,14 +196,13 @@
                 </button>
               </div>
 
-              <!-- Success / Expired Result -->
-              <div class="result-box success-result animate-fade-in" *ngIf="searchResult && !isSearching" [class.expired-result]="!isLicenseActive(searchResult)">
-                <div [class]="isLicenseActive(searchResult) ? 'result-icon-success' : 'result-icon-expired'">
-                  <i class="bi" [ngClass]="isLicenseActive(searchResult) ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'"></i>
+              <!-- Result -->
+              <div class="result-box animate-fade-in" *ngIf="searchResult && !isSearching" [ngClass]="getResultBoxClass(searchResult)">
+                <div [ngClass]="getResultIconClass(searchResult)">
+                  <i class="bi" [ngClass]="getResultIcon(searchResult)"></i>
                 </div>
                 <div class="result-details">
-                  <div class="result-status-badge active-badge" *ngIf="isLicenseActive(searchResult)">LICENCE ACTIVE</div>
-                  <div class="result-status-badge expired-badge" *ngIf="!isLicenseActive(searchResult)">LICENCE EXPIRÉE</div>
+                  <div class="result-status-badge" [ngClass]="getStatusBadgeClass(searchResult)">{{ getStatusLabel(searchResult) }}</div>
                   <h4 class="swimmer-name">{{ searchResult.club?.name || 'Club Affilié' }}</h4>
                   <div class="detail-row">
                     <span class="detail-label">Numéro :</span>
