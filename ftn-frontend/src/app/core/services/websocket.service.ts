@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Client } from '@stomp/stompjs';
+import { Client, IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AuthService } from '../../features/auth/services/auth.service';
@@ -47,11 +47,11 @@ export class WebSocketService {
       if (currentUser) {
         const role = currentUser.role;
         if (role === 'ADMIN') {
-          this.client.subscribe('/topic/notifications/role/ADMIN', (message) => {
+          this.client.subscribe('/topic/notifications/role/ADMIN', (message: IMessage) => {
             this.notificationsSubject.next(JSON.parse(message.body));
           });
         } else {
-          this.client.subscribe('/topic/notifications/' + currentUser.id, (message) => {
+          this.client.subscribe('/topic/notifications/' + currentUser.id, (message: IMessage) => {
             this.notificationsSubject.next(JSON.parse(message.body));
           });
         }

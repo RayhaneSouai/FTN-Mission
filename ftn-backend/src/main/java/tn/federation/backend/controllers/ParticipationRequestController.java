@@ -157,8 +157,8 @@ public class ParticipationRequestController {
                                                                 "Une licence est obligatoire pour participer à cette compétition. Vous n'avez aucune licence enregistrée.",
                                                                 "status", 400));
                         }
-                        if (!"VALIDATED".equals(license.getValidationStatus())) {
-                                String statusMsg = "PENDING".equals(license.getValidationStatus())
+                        if (!LicenseStatus.VALIDATED.equals(license.getValidationStatus())) {
+                                String statusMsg = LicenseStatus.PENDING.equals(license.getValidationStatus())
                                                 ? "Votre licence est en attente de validation."
                                                 : "Votre licence a été refusée.";
                                 return ResponseEntity.badRequest()
