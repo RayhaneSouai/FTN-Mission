@@ -178,9 +178,11 @@ public class DistributionServiceImpl implements IDistributionService {
 
     // ─── Private Helpers ───
 
-    private boolean isSwimmerEligibleForSeries(User swimmer, Categorie seriesCategory, Gender seriesGender, Competition competition) {
+    private boolean isSwimmerEligibleForSeries(User swimmer, Categorie seriesCategory, Gender seriesGender,
+            Competition competition) {
         // Gender filter: if series has a gender restriction, swimmer must match
-        if (seriesGender != null && swimmer.getGender() != seriesGender) {
+        // If swimmer has no gender set, allow them (data may be incomplete)
+        if (seriesGender != null && swimmer.getGender() != null && swimmer.getGender() != seriesGender) {
             return false;
         }
 

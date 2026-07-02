@@ -76,9 +76,15 @@ function dateRangeValidator(control: AbstractControl): ValidationErrors | null {
                   <a [routerLink]="['/admin/competitions', comp.id, 'programme']" class="admin-action-icon" title="Programme" aria-label="Programme">
                     <span class="material-symbols-outlined" aria-hidden="true">list_alt</span>
                   </a>
-                  <a [routerLink]="['/admin/competitions', comp.id, 'distribution']" class="admin-action-icon" title="Répartition" aria-label="Répartition">
-                    <span class="material-symbols-outlined" aria-hidden="true">account_tree</span>
-                  </a>
+                  @if (comp.programmeStatus === 'APPROVED') {
+                    <a [routerLink]="['/admin/competitions', comp.id, 'distribution']" class="admin-action-icon" title="Répartition" aria-label="Répartition">
+                      <span class="material-symbols-outlined" aria-hidden="true">account_tree</span>
+                    </a>
+                  } @else {
+                    <span class="admin-action-icon admin-action-icon--disabled" title="Programme non approuvé" aria-label="Répartition désactivée">
+                      <span class="material-symbols-outlined" aria-hidden="true">account_tree</span>
+                    </span>
+                  }
                   @if (comp.programmeStatus !== 'APPROVED') {
                     <button class="admin-action-icon" (click)="openEdit(comp)" title="Modifier" aria-label="Modifier">
                       <span class="material-symbols-outlined" aria-hidden="true">edit</span>
@@ -233,12 +239,6 @@ function dateRangeValidator(control: AbstractControl): ValidationErrors | null {
             @if (form.hasError('deadlineAfterStart')) {
               <div class="form-error">La date limite d'inscription doit être strictement antérieure à la date de début.</div>
             }
-            <div class="form-row">
-              <div class="form-group">
-                <label>Épreuves max / nageur</label>
-                <input type="number" formControlName="maxEvents" min="1" placeholder="Illimité" />
-              </div>
-            </div>
             <div class="form-group">
               <label>Conditions supplémentaires (texte libre)</label>
               <textarea formControlName="customConditions" rows="3" placeholder="Ex: Doit être membre de l'équipe nationale, qualification régionale requise..."></textarea>
@@ -349,6 +349,9 @@ function dateRangeValidator(control: AbstractControl): ValidationErrors | null {
     .admin-action-icon--archive {
       color: #1565C0; border-color: #bbdefb;
       &:hover { background: #e3f2fd; border-color: #90caf9; color: #0d47a1; }
+    }
+    .admin-action-icon--disabled {
+      opacity: 0.4; cursor: not-allowed; pointer-events: none;
     }
     .admin-action-icon--archived {
       color: #2e7d32; border-color: #c8e6c9; background: #f1f8f3; cursor: not-allowed; opacity: 0.7;
@@ -469,7 +472,7 @@ export class AdminCompetitionsComponent implements OnInit {
 
   readonly disciplines = Object.entries(DISCIPLINE_LABELS).map(([value, label]) => ({ value, label }));
   readonly regions = Object.entries(REGION_LABELS).map(([value, label]) => ({ value, label }));
-  readonly categories = Object.values(Categorie);
+  readonly categories = Object.values(Categorie).filter((c) => c !== Categorie.JUNIORS && c !== Categorie.SENIORS);
 
   private readonly REGION_PISCINES: Record<string, Piscine[]> = {
     [Region.GRAND_TUNIS]: [Piscine.RADES_OLYMPIQUE, Piscine.MENZAH_OLYMPIQUE, Piscine.BELVEDERE, Piscine.EZZAHRA_OLYMPIQUE, Piscine.LA_MARSA_MUNICIPALE, Piscine.BEN_AROUS],

@@ -9,6 +9,7 @@ import tn.federation.backend.dto.ParticipationResponseDTO;
 import tn.federation.backend.entities.*;
 import tn.federation.backend.entities.ParticipationRequestStatus;
 import tn.federation.backend.repositories.CompetitionRepository;
+import tn.federation.backend.repositories.LicenseRepository;
 import tn.federation.backend.repositories.ParticipationAuditRepository;
 import tn.federation.backend.repositories.ParticipationRepository;
 import tn.federation.backend.repositories.PerformanceRepository;
@@ -41,6 +42,9 @@ public class ParticipationRequestController {
 
         @Autowired
         private PerformanceRepository performanceRepository;
+
+        @Autowired
+        private LicenseRepository licenseRepository;
 
         @Autowired
         private ParticipationAuditRepository auditRepository;
@@ -144,12 +148,36 @@ public class ParticipationRequestController {
                                                         "status", 400));
                 }
 
-                // ─── Automatic Approval Logic ───
-                String rejectionReason = null;
-                ParticipationRequestStatus autoStatus = ParticipationRequestStatus.APPROVED;
+                // ─── License Check ───
+                if (Boolean.TRUE.equals(competition.getLicenseRequired())) {
+                        License license = swimmer.getLicense();
+                        if (license == null || license.getId() == null) {
+                                return ResponseEntity.badRequest()
+                                                .body(Map.of("message",
+                                                                "Une licence est obligatoire pour participer à cette compétition. Vous n'avez aucune licence enregistrée.",
+                                                                "status", 400));
+                        }
+                        if (!"VALIDATED".equals(license.getValidationStatus())) {
+                                String statusMsg = "PENDING".equals(license.getValidationStatus())
+                                                ? "Votre licence est en attente de validation."
+                                                : "Votre licence a été refusée.";
+                                return ResponseEntity.badRequest()
+                                                .body(Map.of("message",
+                                                                statusMsg + " Une licence validée est requise pour cette compétition.",
+                                                                "status", 400));
+                        }
+                        if (license.getExpiryDate() != null && license.getExpiryDate().isBefore(LocalDate.now())) {
+                                return ResponseEntity.badRequest()
+                                                .body(Map.of("message",
+                                                                "Votre licence est expirée (date d'expiration : "
+                                                                                + license.getExpiryDate()
+                                                                                + "). Veuillez renouveler votre licence.",
+                                                                "status", 400));
+                        }
+                }
 
-                // Check minima if required
-                if (competition.getHasMinimas() != null && competition.getHasMinimas()
+                // ─── Minimas Check ───
+                if (Boolean.TRUE.equals(competition.getHasMinimas())
                                 && competition.getMinimaTime() != null) {
                         List<Performance> personalRecords = performanceRepository
                                         .findPersonalRecordsBySwimmer(swimmer.getId());
@@ -158,22 +186,48 @@ public class ParticipationRequestController {
                                         .filter(t -> t != null)
                                         .min(Double::compareTo);
 
+                        String rejectionReason = null;
                         if (bestTime.isEmpty()) {
-                                autoStatus = ParticipationRequestStatus.REJECTED;
                                 rejectionReason = "Aucune performance enregistrée. Un temps homologué est requis pour cette compétition.";
                         } else if (bestTime.get() > competition.getMinimaTime()) {
-                                autoStatus = ParticipationRequestStatus.REJECTED;
                                 rejectionReason = "Votre meilleur temps (" + bestTime.get()
                                                 + "s) ne satisfait pas le minima requis ("
                                                 + competition.getMinimaTime() + "s).";
                         }
+
+                        if (rejectionReason != null) {
+                                // Create participation with REJECTED status
+                                Participation rejected = new Participation();
+                                rejected.setSwimmer(swimmer);
+                                rejected.setCompetition(competition);
+                                rejected.setStatus(ParticipationRequestStatus.REJECTED);
+                                rejected.setRejectionReason(rejectionReason);
+                                rejected.setRegisteredAt(LocalDateTime.now());
+                                Participation savedRejected = participationRepository.save(rejected);
+
+                                // Audit
+                                ParticipationAudit auditRejected = new ParticipationAudit();
+                                auditRejected.setSwimmerId(swimmer.getId());
+                                auditRejected.setSwimmerName(swimmer.getFirstName() + " " + swimmer.getLastName());
+                                auditRejected.setCompetitionId(competition.getId());
+                                auditRejected.setCompetitionName(competition.getName());
+                                auditRejected.setDecision(ParticipationRequestStatus.REJECTED);
+                                auditRejected.setReason(rejectionReason);
+                                auditRejected.setDecidedAt(LocalDateTime.now());
+                                auditRepository.save(auditRejected);
+
+                                return ResponseEntity.status(HttpStatus.CREATED).body(toDTO(savedRejected));
+                        }
                 }
 
+                // ─── Create Participation (APPROVED) ───
+
+                // ─── Create Participation (APPROVED) ───
                 Participation participation = new Participation();
                 participation.setSwimmer(swimmer);
                 participation.setCompetition(competition);
-                participation.setStatus(autoStatus);
-                participation.setRejectionReason(rejectionReason);
+                participation.setStatus(ParticipationRequestStatus.APPROVED);
+                participation.setRejectionReason(null);
                 participation.setRegisteredAt(LocalDateTime.now());
 
                 Participation saved = participationRepository.save(participation);
@@ -184,8 +238,8 @@ public class ParticipationRequestController {
                 audit.setSwimmerName(swimmer.getFirstName() + " " + swimmer.getLastName());
                 audit.setCompetitionId(competition.getId());
                 audit.setCompetitionName(competition.getName());
-                audit.setDecision(autoStatus);
-                audit.setReason(rejectionReason);
+                audit.setDecision(ParticipationRequestStatus.APPROVED);
+                audit.setReason(null);
                 audit.setDecidedAt(LocalDateTime.now());
                 auditRepository.save(audit);
 
