@@ -2,6 +2,7 @@ package tn.federation.backend.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import tn.federation.backend.entities.PartnershipType;
 
@@ -31,6 +32,22 @@ public class PartnershipRequestDTO {
     private String message;
 
     private PartnershipType typePartenariat;
+
+    // === NEW Advanced Fields ===
+    @Size(max = 2000, message = "La proposition ne doit pas dépasser 2000 caractères")
+    private String proposition;
+
+    @Size(max = 1500, message = "La valeur ajoutée ne doit pas dépasser 1500 caractères")
+    private String addedValue;
+
+    @PositiveOrZero(message = "Le budget proposé doit être positif")
+    private Double proposedBudget;
+
+    private Long targetCompetitionId;
+
+    private String targetClub;
+
+    // === Getters & Setters (Existing + New) ===
 
     public String getNomEntreprise() {
         return nomEntreprise;
@@ -102,5 +119,46 @@ public class PartnershipRequestDTO {
 
     public void setTypePartenariat(PartnershipType typePartenariat) {
         this.typePartenariat = typePartenariat;
+    }
+
+    // New Getters & Setters
+    public String getProposition() {
+        return proposition;
+    }
+
+    public void setProposition(String proposition) {
+        this.proposition = proposition;
+    }
+
+    public String getAddedValue() {
+        return addedValue;
+    }
+
+    public void setAddedValue(String addedValue) {
+        this.addedValue = addedValue;
+    }
+
+    public Double getProposedBudget() {
+        return proposedBudget;
+    }
+
+    public void setProposedBudget(Double proposedBudget) {
+        this.proposedBudget = proposedBudget;
+    }
+
+    public Long getTargetCompetitionId() {
+        return targetCompetitionId;
+    }
+
+    public void setTargetCompetitionId(Long targetCompetitionId) {
+        this.targetCompetitionId = targetCompetitionId;
+    }
+
+    public String getTargetClub() {
+        return targetClub;
+    }
+
+    public void setTargetClub(String targetClub) {
+        this.targetClub = targetClub;
     }
 }

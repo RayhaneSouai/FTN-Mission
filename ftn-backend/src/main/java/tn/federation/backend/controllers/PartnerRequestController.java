@@ -11,6 +11,7 @@ import tn.federation.backend.entities.*;
 import tn.federation.backend.repositories.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/partners")
@@ -30,17 +31,27 @@ public class PartnerRequestController {
     }
 
     // =========================
-    // PARTNERSHIP REQUEST
+    // PARTNERSHIP REQUEST (Enhanced)
     // =========================
+    @GetMapping("/requests")
+    public ResponseEntity<List<PartnershipRequest>> getAllPartnershipRequests() {
+        List<PartnershipRequest> requests = partnershipRequestRepository.findAllByOrderByCreatedAtDesc();
+        return ResponseEntity.ok(requests);
+    }
+
+    @GetMapping("/sponsorships")
+    public ResponseEntity<List<SponsorshipRequest>> getAllSponsorshipRequests() {
+        List<SponsorshipRequest> requests = sponsorshipRequestRepository.findAllByOrderByCreatedAtDesc();
+        return ResponseEntity.ok(requests);
+    }
     @PostMapping("/requests")
     public ResponseEntity<?> createPartnership(@Valid @RequestBody PartnershipRequestDTO dto) {
-
         User requester = getAuthenticatedUserOptional();
 
         PartnershipRequest req = new PartnershipRequest();
-
         req.setRequester(requester);
 
+        // Existing fields
         req.setNomEntreprise(dto.getNomEntreprise());
         req.setNomRepresentant(dto.getNomRepresentant());
         req.setEmail(dto.getEmail());
@@ -49,33 +60,38 @@ public class PartnerRequestController {
         req.setSiteWeb(dto.getSiteWeb());
         req.setMatriculeFiscale(dto.getMatriculeFiscale());
         req.setTypePartenariat(dto.getTypePartenariat());
-
         req.setMessage(dto.getMessage());
+
+        // === NEW Advanced Fields ===
+        req.setProposition(dto.getProposition());
+        req.setAddedValue(dto.getAddedValue());
+        req.setProposedBudget(dto.getProposedBudget());
+        req.setTargetCompetitionId(dto.getTargetCompetitionId());
+        req.setTargetClub(dto.getTargetClub());
+
+        // Auto-analysis
+        req.setAddedValueScore(calculateAddedValueScore(req));
+        req.setSuggestedModels(generateSuggestedModels(req));
 
         req.setStatut(PartnershipRequestStatus.PENDING);
         req.setCreatedAt(LocalDateTime.now());
 
         partnershipRequestRepository.save(req);
-
         return ResponseEntity.ok().build();
     }
 
     // =========================
-    // SPONSORSHIP REQUEST
+    // SPONSORSHIP REQUEST (kept as is for now)
     // =========================
     @PostMapping("/sponsorships")
     public ResponseEntity<?> createSponsorship(@Valid @RequestBody SponsorshipRequestDTO dto) {
-
         User requester = getAuthenticatedUserOptional();
-
         User swimmer = userRepository.findById(dto.getSwimmerId())
                 .orElseThrow(() -> new IllegalArgumentException("Nageur introuvable"));
 
         SponsorshipRequest req = new SponsorshipRequest();
-
         req.setRequester(requester);
         req.setSwimmer(swimmer);
-
         req.setNomSponsor(dto.getNomSponsor());
         req.setEntreprise(dto.getEntreprise());
         req.setEmail(dto.getEmail());
@@ -83,13 +99,77 @@ public class PartnerRequestController {
         req.setTypeSponsor(dto.getTypeSponsor());
         req.setMontant(dto.getMontant());
         req.setMessage(dto.getMessage());
-
         req.setStatut(SponsorshipRequestStatus.PENDING);
         req.setCreatedAt(LocalDateTime.now());
 
         sponsorshipRequestRepository.save(req);
-
         return ResponseEntity.ok().build();
+    }
+
+    // =========================
+    // ADMIN REVIEW ENDPOINT (New)
+    // =========================
+    @PutMapping("/requests/{id}/review")
+    public ResponseEntity<?> reviewPartnership(
+            @PathVariable Long id,
+            @RequestParam String status,
+            @RequestParam(required = false) String notes,
+            @RequestParam(required = false) String modeleDeCollaboration) {
+
+        PartnershipRequest req = partnershipRequestRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Request not found"));
+
+        req.setStatut(PartnershipRequestStatus.valueOf(status.toUpperCase()));
+        req.setDecisionNotes(notes);
+        req.setModeleDeCollaboration(modeleDeCollaboration);   // New
+        req.setReviewedAt(LocalDateTime.now());
+
+        partnershipRequestRepository.save(req);
+        return ResponseEntity.ok().build();
+    }
+
+    // =========================
+    // ANALYSIS HELPERS
+    // =========================
+    private int calculateAddedValueScore(PartnershipRequest req) {
+        int score = 40; // base score
+
+        if (req.getAddedValue() != null) {
+            String text = req.getAddedValue().toLowerCase();
+            if (text.contains("media") || text.contains("visibilit") || text.contains("publicit")) score += 20;
+            if (text.contains("financi") || text.contains("budget") || text.contains("argent")) score += 18;
+            if (text.contains("jeune") || text.contains("academ") || text.contains("formation")) score += 12;
+            if (text.contains("national") || text.contains("international")) score += 15;
+            if (text.contains("technolog") || text.contains("innovation")) score += 10;
+        }
+
+        if (req.getProposedBudget() != null) {
+            if (req.getProposedBudget() > 50000) score += 20;
+            else if (req.getProposedBudget() > 20000) score += 12;
+        }
+
+        return Math.min(100, score);
+    }
+
+    private String generateSuggestedModels(PartnershipRequest req) {
+        StringBuilder sb = new StringBuilder();
+
+        if (req.getTypePartenariat() == PartnershipType.FINANCIER) {
+            sb.append("1. Sponsor Titre - Compétition Nationale\n");
+            sb.append("2. Partenaire Officiel des Équipes Nationales\n");
+        } else if (req.getTypePartenariat() == PartnershipType.MEDIATIQUE) {
+            sb.append("1. Partenaire Média Officiel\n");
+            sb.append("2. Diffusion et Visibilité sur Réseaux FTN\n");
+        } else {
+            sb.append("1. Partenariat Stratégique Club\n");
+            sb.append("2. Soutien Événements Majeurs\n");
+        }
+
+        if (req.getTargetClub() != null) {
+            sb.append("3. Partenariat Spécifique avec ").append(req.getTargetClub());
+        }
+
+        return sb.toString();
     }
 
     // =========================
@@ -97,13 +177,9 @@ public class PartnerRequestController {
     // =========================
     private User getAuthenticatedUserOptional() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        if (auth == null || !auth.isAuthenticated() ||
-                auth.getName() == null ||
-                auth.getName().equals("anonymousUser")) {
+        if (auth == null || !auth.isAuthenticated() || auth.getName() == null || auth.getName().equals("anonymousUser")) {
             return null;
         }
-
         return userRepository.findByEmail(auth.getName()).orElse(null);
     }
 }

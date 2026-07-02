@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/FTN-Mission.iml" filepath="$PROJECT_DIR$/.idea/FTN-Mission.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/ProjetFtn.iml" filepath="$PROJECT_DIR$/.idea/ProjetFtn.iml" />
     </modules>
   </component>
 </project>

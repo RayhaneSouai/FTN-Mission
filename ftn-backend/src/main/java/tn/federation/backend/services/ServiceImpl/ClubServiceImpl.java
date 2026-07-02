@@ -3,6 +3,8 @@ package tn.federation.backend.services.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import tn.federation.backend.dto.ImportResult;
 import tn.federation.backend.entities.Club;
 import tn.federation.backend.entities.Role;
 import tn.federation.backend.entities.User;
@@ -11,10 +13,16 @@ import tn.federation.backend.repositories.LicenseRepository;
 import tn.federation.backend.repositories.UserRepository;
 import tn.federation.backend.services.Abstraction.IClubService;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.commons.csv.*;
+
 
 @Service
 public class ClubServiceImpl implements IClubService {
@@ -133,5 +141,73 @@ public class ClubServiceImpl implements IClubService {
     @Override
     public List<Club> getTopClubsBySwimmers() {
         return clubRepository.findClubsRankedBySwimmerCount();
+    }
+    public ImportResult importClubsFromCSV(MultipartFile file) {
+        ImportResult result = new ImportResult();
+
+        if (file.isEmpty()) {
+            result.setMessage("Le fichier est vide");
+            return result;
+        }
+
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(file.getInputStream()));
+             CSVParser parser = CSVParser.parse(br, CSVFormat.DEFAULT
+                     .withFirstRecordAsHeader()
+                     .withIgnoreHeaderCase()
+                     .withTrim())) {
+
+            for (CSVRecord record : parser) {
+                try {
+                    String name = record.get("name");
+
+                    if (name == null || name.trim().isEmpty()) {
+                        result.addError("Ligne " + record.getRecordNumber() + ": Nom du club manquant");
+                        result.incrementFailed();
+                        continue;
+                    }
+
+                    // Vérifier si le club existe déjà
+                    if (clubRepository.findByNameIgnoreCase(name).isPresent()) {
+                        result.addError("Ligne " + record.getRecordNumber() + ": Club '" + name + "' existe déjà");
+                        result.incrementFailed();
+                        continue;
+                    }
+
+                    Club club = new Club();
+                    club.setName(name);
+                    club.setRegion(record.get("region"));
+                    club.setAddress(record.get("address"));
+                    club.setContact(record.get("contact"));
+                    club.setManager(record.get("manager"));
+
+                    // Gestion de la date d'affiliation
+                    String dateStr = record.get("affiliationDate");
+                    if (dateStr != null && !dateStr.trim().isEmpty()) {
+                        try {
+                            club.setAffiliationDate(LocalDate.parse(dateStr.trim(), dateFormatter));
+                        } catch (Exception e) {
+                            result.addError("Ligne " + record.getRecordNumber() + ": Format de date invalide (utilisez yyyy-MM-dd)");
+                        }
+                    }
+
+                    clubRepository.save(club);
+                    result.incrementSuccess();
+
+                } catch (Exception e) {
+                    result.addError("Ligne " + record.getRecordNumber() + ": " + e.getMessage());
+                    result.incrementFailed();
+                }
+            }
+
+            result.setMessage("Import terminé : " + result.getSuccessCount() + " succès, " + result.getFailedCount() + " échecs");
+
+        } catch (Exception e) {
+            result.setMessage("Erreur lors de la lecture du fichier CSV");
+            e.printStackTrace();
+        }
+
+        return result;
     }
 }
