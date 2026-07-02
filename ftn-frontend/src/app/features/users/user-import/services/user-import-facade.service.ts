@@ -157,7 +157,11 @@ export class UserImportFacadeService {
       return;
     }
     if (this.step === 'mapping' && this.parsed && this.columnMapper.isFieldMapComplete(this.fieldMap)) {
-      this.runValidation();
+      await this.runValidation();
+      this.step = 'validation';
+      return;
+    }
+    if (this.step === 'validation') {
       this.step = 'preview';
       return;
     }
@@ -195,7 +199,7 @@ export class UserImportFacadeService {
     this.refreshMappingState();
   }
 
-  runValidation(): void {
+  async runValidation(): Promise<void> {
     if (!this.parsed) return;
     this.validation = null;
     this.validating = true;
@@ -203,7 +207,21 @@ export class UserImportFacadeService {
     try {
       const mappings = this.columnMapper.toMappings(this.fieldMap);
       this.mappedRows = this.validator.buildMappedRows(this.parsed, mappings);
-      this.validation = this.buildFastValidation();
+      
+      // Load existing emails to perform real checks
+      let existingEmails = new Set<string>();
+      try {
+        const users = await firstValueFrom(this.userService.getAllUsers());
+        existingEmails = new Set((users || []).map((u: any) => u.email?.toLowerCase()).filter(Boolean));
+      } catch (err) {
+        console.warn('Could not load existing emails for validation', err);
+      }
+
+      this.validation = await this.validator.validateAsync(
+        this.mappedRows,
+        existingEmails,
+        (progress) => (this.validationProgress = progress)
+      );
     } catch (e: unknown) {
       this.fileError = e instanceof Error ? e.message : 'Impossible de valider le fichier CSV.';
       this.validation = {
@@ -227,7 +245,8 @@ export class UserImportFacadeService {
 
     this.mappedRows.forEach((row) => {
       const issues: ImportValidationSummary['rows'][number]['issues'] = [];
-      const email = (row.mapped.email ?? '').trim().toLowerCase();
+      const rawEmail = (row.mapped.email ?? '').trim();
+      const email = rawEmail.replace(/;+$/g, '').toLowerCase();
       const role = this.validator.normalizeRole(row.mapped.role ?? '');
 
       if (!row.resolvedFirstName.trim() || !row.resolvedLastName.trim()) {
@@ -237,7 +256,7 @@ export class UserImportFacadeService {
           message: 'Identité manquante'
         });
       }
-      if (!email || !EMAIL_PATTERN.test(email)) {
+      if (!rawEmail || !EMAIL_PATTERN.test(email)) {
         issues.push({
           field: 'email',
           severity: 'error',

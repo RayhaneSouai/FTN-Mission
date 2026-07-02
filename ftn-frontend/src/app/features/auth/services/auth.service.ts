@@ -17,8 +17,8 @@ export class AuthService {
   }
 
   private loadUserFromStorage() {
-    if (typeof localStorage !== 'undefined') {
-      const userStr = localStorage.getItem('user');
+    if (typeof sessionStorage !== 'undefined') {
+      const userStr = sessionStorage.getItem('user');
       if (userStr) {
         this.currentUserSubject.next(JSON.parse(userStr));
       }
@@ -26,16 +26,16 @@ export class AuthService {
   }
 
   setUser(user: any) {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('isLoggedIn', 'true');
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem('user', JSON.stringify(user));
+      sessionStorage.setItem('isLoggedIn', 'true');
     }
     this.currentUserSubject.next(user);
   }
 
   logout() {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.clear();
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.clear();
     }
     this.currentUserSubject.next(null);
     this.router.navigate(['/']);

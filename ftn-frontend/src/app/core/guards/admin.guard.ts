@@ -8,10 +8,10 @@ export const adminGuard: CanActivateFn = (_route, state) => {
   const platformId = inject(PLATFORM_ID);
 
   if (isPlatformBrowser(platformId)) {
-    const token = localStorage.getItem('token');
-    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    const token = sessionStorage.getItem('token');
+    const isAdmin = sessionStorage.getItem('isAdmin') === 'true';
 
-    const userStr = localStorage.getItem('user');
+    const userStr = sessionStorage.getItem('user');
     if (token && userStr) {
       try {
         const user = JSON.parse(userStr);
@@ -19,7 +19,7 @@ export const adminGuard: CanActivateFn = (_route, state) => {
           return true;
         }
       } catch (e) {
-        console.error('Error parsing user from localStorage', e);
+        console.error('Error parsing user from sessionStorage', e);
       }
     }
 

@@ -4,125 +4,815 @@
     subtitle="Gérez vos informations personnelles et la sécurité de votre compte.">
   </app-admin-page-header>
 
+  <!-- Horizontal tabs -->
   <div class="admin-profile-tabs">
     <button type="button" class="admin-profile-tab" [class.active]="activeTab === 'info'" (click)="activeTab = 'info'">
       <i class="bi bi-person me-1"></i> Informations
     </button>
     <button type="button" class="admin-profile-tab" [class.active]="activeTab === 'security'" (click)="activeTab = 'security'">
-      <i class="bi bi-shield-lock me-1"></i> Sécurité
+      <i class="bi bi-shield-lock me-2"></i> Sécurité
+    </button>
+    <button type="button" class="admin-profile-tab" [class.active]="activeTab === 'club'" (click)="activeTab = 'club'" *ngIf="isCoach">
+      <i class="bi bi-building me-2"></i> Mon Club & Affiliation
+    </button>
+    <button type="button" class="admin-profile-tab" [class.active]="activeTab === 'club'" (click)="activeTab = 'club'" *ngIf="isSwimmer && !user?.clubId">
+      <i class="bi bi-card-checklist me-2"></i> Ma Licence Sportive
     </button>
   </div>
 
-  <!-- ── Info tab ── -->
-  <div class="admin-profile-grid" *ngIf="activeTab === 'info'">
+  <div class="tab-content-wrapper mt-4">
+    <!-- ── Info tab ── -->
+    <div class="admin-profile-grid" *ngIf="activeTab === 'info'">
+      <!-- Avatar card -->
+      <app-admin-panel>
+        <div class="admin-profile-identity text-center p-3">
+          <div class="avatar-wrapper mb-3 d-inline-block">
+            <img
+              [src]="'https://ui-avatars.com/api/?name=' + user?.firstName + '+' + user?.lastName + '&background=004da3&size=128&color=fff'"
+              class="admin-profile-avatar"
+              alt="Avatar">
+            <div class="status-indicator" [class.status-active]="user?.active" [class.status-inactive]="!user?.active" [title]="user?.active ? 'Actif' : 'Inactif'"></div>
+          </div>
+          <h2 class="admin-profile-name mt-2">{{ user?.firstName }} {{ user?.lastName }}</h2>
+          <p class="admin-profile-email text-muted">{{ user?.email }}</p>
+          <span class="admin-role-badge mt-1">{{ user?.role }}</span>
+          
+          <div class="mt-4 pt-3 border-top text-start w-100">
+            <small class="text-muted d-block mb-1">Statut du compte</small>
+            <span class="fw-semibold text-success" *ngIf="user?.active">
+              <i class="bi bi-check-circle-fill me-1"></i> Actif
+            </span>
+            <span class="fw-semibold text-danger" *ngIf="!user?.active">
+              <i class="bi bi-x-circle-fill me-1"></i> Inactif
+            </span>
+          </div>
+        </div>
+      </app-admin-panel>
 
-    <!-- Avatar card -->
-    <app-admin-panel>
-      <div class="admin-profile-identity">
-        <img
-          [src]="'https://ui-avatars.com/api/?name=' + user?.firstName + '+' + user?.lastName + '&background=004da3&size=128&color=fff'"
-          class="admin-profile-avatar"
-          alt="Avatar">
-        <h2 class="admin-profile-name">{{ user?.firstName }} {{ user?.lastName }}</h2>
-        <p class="admin-profile-email">{{ user?.email }}</p>
-        <span class="admin-role-badge">{{ user?.role }}</span>
-        <div class="mt-4 pt-3 border-top text-start w-100">
-          <small class="text-muted d-block mb-1">Statut du compte</small>
-          <span class="fw-semibold text-success" *ngIf="user?.active">
-            <i class="bi bi-check-circle-fill me-1"></i> Actif
+      <!-- Edit form card -->
+      <app-admin-panel title="Informations personnelles" subtitle="Mettez à jour vos coordonnées">
+        <div class="p-2">
+          <div *ngIf="error" class="admin-alert admin-alert--danger mb-3">
+            <i class="bi bi-exclamation-octagon-fill"></i>
+            <span>{{ error }}</span>
+          </div>
+          <div *ngIf="success" class="admin-alert admin-alert--success mb-3">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>{{ success }}</span>
+          </div>
+
+          <form (ngSubmit)="saveProfile()">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="admin-form-label">Prénom</label>
+                <input type="text" class="form-control admin-form-control"
+                       [(ngModel)]="user.firstName" name="firstName" required>
+              </div>
+
+              <div class="col-md-6">
+                <label class="admin-form-label">Nom</label>
+                <input type="text" class="form-control admin-form-control"
+                       [(ngModel)]="user.lastName" name="lastName" required>
+              </div>
+
+              <div class="col-12">
+                <label class="admin-form-label">Email</label>
+                <input type="email" class="form-control admin-form-control bg-light"
+                       [(ngModel)]="user.email" name="email" required readonly>
+                <div class="form-text small">L'email ne peut pas être modifié.</div>
+              </div>
+
+              <div class="col-md-6" *ngIf="user?.birthDate">
+                <label class="admin-form-label">Date de naissance</label>
+                <input type="date" class="form-control admin-form-control bg-light"
+                       [(ngModel)]="user.birthDate" name="birthDate" readonly>
+              </div>
+
+              <div class="col-md-6" *ngIf="user?.gender">
+                <label class="admin-form-label">Genre</label>
+                <select class="form-select admin-form-control bg-light"
+                        [(ngModel)]="user.gender" name="gender" disabled>
+                  <option value="HOMME">Homme</option>
+                  <option value="FEMME">Femme</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-top text-end">
+              <button type="submit" class="admin-btn admin-btn--primary" [disabled]="loading">
+                <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+                <i class="bi bi-save me-1" *ngIf="!loading"></i> Enregistrer
+              </button>
+            </div>
+          </form>
+        </div>
+      </app-admin-panel>
+    </div>
+
+    <!-- ── Security tab ── -->
+    <div *ngIf="activeTab === 'security'" class="fade-in">
+      <app-admin-panel title="Sécurité du compte" subtitle="Protégez l'accès à votre espace">
+        <div class="p-2">
+          <div class="admin-security-block p-4">
+            <div class="admin-security-block__icon"><i class="bi bi-key"></i></div>
+            <div class="flex-grow-1 ms-3">
+              <h4 class="admin-security-block__title">Mot de passe</h4>
+              <p class="admin-security-block__text mb-0">
+                Un e-mail sécurisé vous sera envoyé pour définir un nouveau mot de passe conforme à la politique FTN.
+              </p>
+            </div>
+            <button type="button" class="admin-btn admin-btn--primary ms-md-auto mt-3 mt-md-0" (click)="openConfirmModal()">
+              Réinitialiser le mot de passe
+            </button>
+          </div>
+          <ul class="admin-security-tips mt-4">
+            <li><i class="bi bi-check-circle-fill"></i> 8 caractères minimum avec majuscule, minuscule, chiffre et symbole</li>
+            <li><i class="bi bi-check-circle-fill"></i> Ne partagez jamais vos identifiants</li>
+            <li><i class="bi bi-check-circle-fill"></i> Déconnectez-vous sur les postes partagés</li>
+          </ul>
+        </div>
+      </app-admin-panel>
+    </div>
+
+    <!-- ── Swimmer License tab (Independent Swimmer specific) ── -->
+    <div *ngIf="activeTab === 'club' && isSwimmer && !user?.clubId" class="fade-in coach-validation">
+      <div class="coach-validation-hero" style="background: linear-gradient(135deg, #0d6efd, #0dcaf0);">
+        <div class="coach-validation-hero__content">
+          <span class="coach-validation-hero__badge">
+            <i class="bi bi-card-checklist"></i>
+            Saison {{ currentSeason }}
           </span>
-          <span class="fw-semibold text-danger" *ngIf="!user?.active">
-            <i class="bi bi-x-circle-fill me-1"></i> Inactif
-          </span>
+          <h2 class="coach-validation-hero__title">Validation & Renouvellement de Licence</h2>
+          <p class="coach-validation-hero__subtitle">
+            En tant que nageur indépendant, validez vous-même votre saison sportive pour renouveler votre licence.
+          </p>
+        </div>
+        <div class="coach-validation-hero__icon" aria-hidden="true">
+          <i class="bi bi-shield-check"></i>
         </div>
       </div>
-    </app-admin-panel>
 
-    <!-- Edit form card -->
-    <app-admin-panel title="Informations personnelles" subtitle="Mettez à jour vos coordonnées">
-
-      <div *ngIf="error" class="admin-alert admin-alert--danger mb-3">
+      <div *ngIf="error" class="admin-alert admin-alert--danger">
         <i class="bi bi-exclamation-octagon-fill"></i>
         <span>{{ error }}</span>
       </div>
-      <div *ngIf="success" class="admin-alert admin-alert--success mb-3">
+      <div *ngIf="success" class="admin-alert admin-alert--success">
         <i class="bi bi-check-circle-fill"></i>
         <span>{{ success }}</span>
       </div>
 
-      <form (ngSubmit)="saveProfile()">
-        <div class="row g-3">
-
-          <div class="col-md-6">
-            <label class="admin-form-label">Prénom</label>
-            <input type="text" class="form-control admin-form-control"
-                   [(ngModel)]="user.firstName" name="firstName" required>
-          </div>
-
-          <div class="col-md-6">
-            <label class="admin-form-label">Nom</label>
-            <input type="text" class="form-control admin-form-control"
-                   [(ngModel)]="user.lastName" name="lastName" required>
-          </div>
-
-          <div class="col-12">
-            <label class="admin-form-label">Email</label>
-            <input type="email" class="form-control admin-form-control"
-                   [(ngModel)]="user.email" name="email" required readonly>
-            <div class="form-text small">L'email ne peut pas être modifié.</div>
-          </div>
-
-          <div class="col-md-6" *ngIf="user?.birthDate">
-            <label class="admin-form-label">Date de naissance</label>
-            <input type="date" class="form-control admin-form-control"
-                   [(ngModel)]="user.birthDate" name="birthDate" readonly>
-          </div>
-
-          <div class="col-md-6" *ngIf="user?.gender">
-            <label class="admin-form-label">Genre</label>
-            <select class="form-select admin-form-control"
-                    [(ngModel)]="user.gender" name="gender" disabled>
-              <option value="HOMME">Homme</option>
-              <option value="FEMME">Femme</option>
-            </select>
-          </div>
-
+      <div *ngIf="myLicenseLoading" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Chargement de votre licence...</span>
         </div>
+      </div>
 
-        <div class="mt-4 pt-3 border-top text-end">
-          <button type="submit" class="admin-btn admin-btn--primary" [disabled]="loading">
-            <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
-            Enregistrer les modifications
-          </button>
+      <ng-container *ngIf="!myLicenseLoading">
+      <app-admin-panel *ngIf="myLicenses.length === 0">
+        <app-admin-empty-state
+          icon="bi-card-checklist"
+          title="Aucune licence trouvée"
+          message="L'administration n'a pas encore initié de demande de licence.">
+        </app-admin-empty-state>
+      </app-admin-panel>
+
+      <app-admin-panel
+        *ngIf="myLicenses.length > 0"
+        title="Mes licences sportives"
+        subtitle="Consultez et validez vos licences par saison"
+        [noPadding]="true">
+          <div class="admin-table-card coach-clubs-table">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th class="ps-4">Numéro de licence</th>
+                    <th class="text-center">Saison</th>
+                    <th class="text-center">Statut</th>
+                    <th class="text-end pe-4">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let license of myLicenses" class="coach-club-row">
+                    <td class="ps-4">
+                      <div class="coach-club-cell">
+                        <div class="coach-club-cell__icon">
+                          <i class="bi bi-person-badge"></i>
+                        </div>
+                        <div>
+                          <strong class="coach-club-cell__name">{{ license.licenseNumber || 'Création en attente' }}</strong>
+                          <span class="coach-club-cell__id">Valable du {{ license.issueDate | date:'dd MMM yyyy' }} au {{ license.expiryDate | date:'dd MMM yyyy' }}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="text-center">
+                      <span class="coach-season-tag">{{ license.season }}</span>
+                    </td>
+                    <td class="text-center">
+                      <span class="coach-status"
+                            [class.coach-status--validated]="license.validationStatus === 'VALIDATED'"
+                            [class.coach-status--refused]="license.validationStatus === 'REJECTED'"
+                            [class.coach-status--pending]="license.validationStatus === 'PENDING'">
+                        <i class="bi"
+                           [class.bi-check-circle-fill]="license.validationStatus === 'VALIDATED'"
+                           [class.bi-x-circle-fill]="license.validationStatus === 'REJECTED'"
+                           [class.bi-clock-fill]="license.validationStatus === 'PENDING'"></i>
+                        {{ license.validationStatus === 'VALIDATED' ? 'Validée' : license.validationStatus === 'REJECTED' ? 'Refusée' : 'En attente' }}
+                      </span>
+                    </td>
+                    <td class="text-end pe-4">
+                      <button type="button" class="admin-btn admin-btn--ghost" (click)="openSwimmerLicenseDetail(license)">
+                        <i class="bi bi-folder2-open"></i>
+                        Vérifier &amp; valider
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+      </app-admin-panel>
+
+      <!-- ── Detail modal ── -->
+      <div class="coach-modal-backdrop" *ngIf="selectedSwimmerLicenseForDetail" (click)="closeSwimmerLicenseDetail()">
+        <div class="coach-modal coach-modal--xl" (click)="$event.stopPropagation()">
+          <div class="coach-modal__header">
+            <div class="coach-modal__header-main">
+              <div class="coach-modal__club-icon">
+                <i class="bi bi-person-badge"></i>
+              </div>
+              <div>
+                <h3 class="coach-modal__title">{{ selectedSwimmerLicenseForDetail.licenseNumber || 'Licence en attente' }}</h3>
+                <p class="coach-modal__subtitle">Dossier sportif — Saison {{ selectedSwimmerLicenseForDetail.season }}</p>
+              </div>
+            </div>
+            <button type="button" class="coach-modal__close" (click)="closeSwimmerLicenseDetail()" aria-label="Fermer">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+
+          <div class="coach-modal__body">
+            <div class="coach-detail-grid">
+              <div class="coach-detail-panel">
+                <h4 class="coach-detail-panel__title">
+                  <i class="bi bi-file-earmark-text"></i>
+                  Informations sur la licence
+                </h4>
+                <dl class="coach-detail-list">
+                  <div class="coach-detail-list__row">
+                    <dt>Saison</dt>
+                    <dd>{{ selectedSwimmerLicenseForDetail.season }}</dd>
+                  </div>
+                  <div class="coach-detail-list__row">
+                    <dt>Date d'émission</dt>
+                    <dd>{{ selectedSwimmerLicenseForDetail.issueDate | date:'dd MMM yyyy' }}</dd>
+                  </div>
+                  <div class="coach-detail-list__row">
+                    <dt>Date d'expiration</dt>
+                    <dd>{{ selectedSwimmerLicenseForDetail.expiryDate | date:'dd MMM yyyy' }}</dd>
+                  </div>
+                  <div class="coach-detail-list__row">
+                    <dt>Statut de validation</dt>
+                    <dd>
+                      <span class="badge"
+                            [class.bg-success]="selectedSwimmerLicenseForDetail.validationStatus === 'VALIDATED'"
+                            [class.bg-danger]="selectedSwimmerLicenseForDetail.validationStatus === 'REJECTED'"
+                            [class.bg-warning]="selectedSwimmerLicenseForDetail.validationStatus === 'PENDING'">
+                        {{ selectedSwimmerLicenseForDetail.validationStatus === 'VALIDATED' ? 'Validée' : selectedSwimmerLicenseForDetail.validationStatus === 'REJECTED' ? 'Refusée' : 'En attente' }}
+                      </span>
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+
+              <div class="coach-detail-panel">
+                 <h4 class="coach-detail-panel__title">
+                  <i class="bi bi-person-check"></i>
+                  Nageur Indépendant
+                </h4>
+                <p class="text-muted small mb-4">
+                  En tant que licencié individuel sans club (nageur indépendant), vous devez confirmer que vos informations de profil sont exactes et à jour. Cette déclaration fait office de demande de validation et sera transmise à l'administration fédérale pour approbation.
+                </p>
+              </div>
+            </div>
+
+            <div class="coach-declaration">
+              <label class="coach-declaration__box" [class.coach-declaration__box--disabled]="selectedSwimmerLicenseForDetail.validationStatus === 'VALIDATED'">
+                <input type="checkbox"
+                       [(ngModel)]="isDeclarationChecked"
+                       [disabled]="selectedSwimmerLicenseForDetail.validationStatus === 'VALIDATED'">
+                <span class="coach-declaration__text">
+                  Je déclare sur l'honneur que mes informations personnelles, médicales et de niveau de natation renseignées sur mon profil sont exactes et conformes aux règlements de la FTN.
+                </span>
+              </label>
+            </div>
+
+            <div class="coach-actions-bar">
+              <div class="coach-actions-bar__status">
+                <span class="coach-section-label">Statut de la licence</span>
+                <div class="coach-actions-bar__status-row">
+                  <span class="coach-status coach-status--lg"
+                        [class.coach-status--validated]="selectedSwimmerLicenseForDetail.validationStatus === 'VALIDATED'"
+                        [class.coach-status--refused]="selectedSwimmerLicenseForDetail.validationStatus === 'REJECTED'"
+                        [class.coach-status--pending]="selectedSwimmerLicenseForDetail.validationStatus === 'PENDING'">
+                    <i class="bi"
+                       [class.bi-check-circle-fill]="selectedSwimmerLicenseForDetail.validationStatus === 'VALIDATED'"
+                       [class.bi-x-circle-fill]="selectedSwimmerLicenseForDetail.validationStatus === 'REJECTED'"
+                       [class.bi-clock-fill]="selectedSwimmerLicenseForDetail.validationStatus === 'PENDING'"></i>
+                    {{ selectedSwimmerLicenseForDetail.validationStatus === 'VALIDATED' ? 'Licence validée' : selectedSwimmerLicenseForDetail.validationStatus === 'REJECTED' ? 'Refusée' : 'En attente de signature' }}
+                  </span>
+                </div>
+              </div>
+              <div class="coach-actions-bar__buttons">
+                <button type="button"
+                        class="admin-btn coach-btn--danger"
+                        [class.coach-btn--danger-active]="selectedSwimmerLicenseForDetail.validationStatus === 'REJECTED'"
+                        (click)="validateMyIndependentLicense(selectedSwimmerLicenseForDetail.id, false)"
+                        [disabled]="clubValidationLoading || selectedSwimmerLicenseForDetail.validationStatus === 'VALIDATED'">
+                  <i class="bi bi-x-circle"></i>
+                  Refuser
+                </button>
+                <button type="button"
+                        class="admin-btn admin-btn--primary"
+                        (click)="validateMyIndependentLicense(selectedSwimmerLicenseForDetail.id, true)"
+                        [disabled]="clubValidationLoading || (!isDeclarationChecked && selectedSwimmerLicenseForDetail.validationStatus !== 'VALIDATED')">
+                  <span *ngIf="clubValidationLoading" class="spinner-border spinner-border-sm"></span>
+                  <i class="bi bi-check-circle-fill" *ngIf="!clubValidationLoading"></i>
+                  {{ selectedSwimmerLicenseForDetail.validationStatus === 'VALIDATED' ? 'Validé' : 'Confirmer et valider' }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="coach-modal__footer">
+            <button type="button" class="admin-btn admin-btn--secondary" (click)="closeSwimmerLicenseDetail()">
+              Fermer le dossier
+            </button>
+          </div>
         </div>
-      </form>
+      </div>
+      </ng-container>
+    </div>
 
-    </app-admin-panel>
-  </div>
-
-  <!-- ── Security tab ── -->
-  <div *ngIf="activeTab === 'security'">
-    <app-admin-panel title="Sécurité du compte" subtitle="Protégez l'accès à votre espace administrateur">
-      <div class="admin-security-block">
-        <div class="admin-security-block__icon"><i class="bi bi-key"></i></div>
-        <div>
-          <h4 class="admin-security-block__title">Mot de passe</h4>
-          <p class="admin-security-block__text">
-            Un e-mail sécurisé vous sera envoyé pour définir un nouveau mot de passe conforme à la politique FTN.
+    <!-- ── Club tab (Coach / Manager specific) ── -->
+    <div *ngIf="activeTab === 'club' && isCoach" class="fade-in coach-validation">
+      <div class="coach-validation-hero">
+        <div class="coach-validation-hero__content">
+          <span class="coach-validation-hero__badge">
+            <i class="bi bi-calendar-check"></i>
+            Saison {{ currentSeason }}
+          </span>
+          <h2 class="coach-validation-hero__title">Validation de la saison sportive</h2>
+          <p class="coach-validation-hero__subtitle">
+            Gérez la conformité et l'affiliation de votre club pour l'activation des licences de vos nageurs.
           </p>
         </div>
-        <button type="button" class="admin-btn admin-btn--primary" (click)="openConfirmModal()">
-          Réinitialiser le mot de passe
-        </button>
+        <div class="coach-validation-hero__icon" aria-hidden="true">
+          <i class="bi bi-shield-check"></i>
+        </div>
       </div>
-      <ul class="admin-security-tips">
-        <li><i class="bi bi-check2"></i> 8 caractères minimum avec majuscule, minuscule, chiffre et symbole</li>
-        <li><i class="bi bi-check2"></i> Ne partagez jamais vos identifiants administrateur</li>
-        <li><i class="bi bi-check2"></i> Déconnectez-vous sur les postes partagés</li>
-      </ul>
-    </app-admin-panel>
-  </div>
 
+      <div *ngIf="error" class="admin-alert admin-alert--danger">
+        <i class="bi bi-exclamation-octagon-fill"></i>
+        <span>{{ error }}</span>
+      </div>
+      <div *ngIf="success" class="admin-alert admin-alert--success">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>{{ success }}</span>
+      </div>
+
+      <app-admin-panel *ngIf="clubValidations.length === 0">
+        <app-admin-empty-state
+          icon="bi-building-x"
+          title="Aucun club assigné"
+          message="Vous n'êtes assigné à aucun club pour le moment. Contactez l'administration fédérale.">
+        </app-admin-empty-state>
+      </app-admin-panel>
+
+      <app-admin-panel
+        *ngIf="clubValidations.length > 0"
+        title="Mes clubs assignés"
+        subtitle="Consultez le statut de validation et ouvrez le dossier sportif de chaque club"
+        [noPadding]="true">
+          <div class="admin-table-card coach-clubs-table">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th class="ps-4">Club</th>
+                    <th class="text-center">Saison</th>
+                    <th class="text-center">Statut</th>
+                    <th class="text-end pe-4">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let validation of clubValidations" class="coach-club-row">
+                    <td class="ps-4">
+                      <div class="coach-club-cell">
+                        <div class="coach-club-cell__icon">
+                          <i class="bi bi-building"></i>
+                        </div>
+                        <div>
+                          <strong class="coach-club-cell__name">{{ validation.clubName }}</strong>
+                          <span class="coach-club-cell__id">#{{ validation.clubId }}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="text-center">
+                      <span class="coach-season-tag">{{ currentSeason }}</span>
+                    </td>
+                    <td class="text-center">
+                      <span class="coach-status"
+                            [class.coach-status--validated]="validation.status === 'VALIDATED'"
+                            [class.coach-status--refused]="validation.status === 'REFUSED'"
+                            [class.coach-status--pending]="validation.status === 'PENDING'">
+                        <i class="bi"
+                           [class.bi-check-circle-fill]="validation.status === 'VALIDATED'"
+                           [class.bi-x-circle-fill]="validation.status === 'REFUSED'"
+                           [class.bi-clock-fill]="validation.status === 'PENDING'"></i>
+                        {{ validation.status === 'VALIDATED' ? 'Validé' : validation.status === 'REFUSED' ? 'Refusé' : 'En attente' }}
+                      </span>
+                    </td>
+                    <td class="text-end pe-4">
+                      <button type="button" class="admin-btn admin-btn--ghost" (click)="openValidationDetail(validation)">
+                        <i class="bi bi-folder2-open"></i>
+                        Vérifier &amp; valider
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+      </app-admin-panel>
+
+      <!-- ── Detail modal ── -->
+      <div class="coach-modal-backdrop" *ngIf="selectedValidationForDetail" (click)="closeValidationDetail()">
+        <div class="coach-modal coach-modal--xl" (click)="$event.stopPropagation()">
+          <div class="coach-modal__header">
+            <div class="coach-modal__header-main">
+              <div class="coach-modal__club-icon">
+                <i class="bi bi-building"></i>
+              </div>
+              <div>
+                <h3 class="coach-modal__title">{{ selectedValidationForDetail.clubName }}</h3>
+                <p class="coach-modal__subtitle">Dossier sportif — Saison {{ currentSeason }}</p>
+              </div>
+            </div>
+            <button type="button" class="coach-modal__close" (click)="closeValidationDetail()" aria-label="Fermer">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+
+          <div class="coach-modal__body">
+            <div *ngIf="selectedValidationForDetail.detailsLoading || selectedValidationForDetail.statsLoading" class="coach-loading">
+              <div class="spinner-border text-primary" role="status"></div>
+              <p>Chargement des données du club…</p>
+            </div>
+
+            <ng-container *ngIf="!selectedValidationForDetail.detailsLoading && !selectedValidationForDetail.statsLoading">
+              <div class="coach-stats-row">
+                <div class="coach-stat-card coach-stat-card--blue">
+                  <div class="coach-stat-card__main">
+                    <div>
+                      <span class="coach-stat-card__label">Nageurs affiliés</span>
+                      <span class="coach-stat-card__value">{{ selectedValidationForDetail.stats?.totalSwimmers || 0 }}</span>
+                      <span class="coach-stat-card__detail">
+                        <i class="bi bi-check-circle-fill"></i>
+                        {{ selectedValidationForDetail.stats?.activeSwimmers || 0 }} actifs
+                      </span>
+                    </div>
+                    <div class="coach-stat-card__icon"><i class="bi bi-people"></i></div>
+                  </div>
+                </div>
+                <div class="coach-stat-card coach-stat-card--azure">
+                  <div class="coach-stat-card__main">
+                    <div>
+                      <span class="coach-stat-card__label">Licences actives</span>
+                      <span class="coach-stat-card__value">{{ selectedValidationForDetail.stats?.competitionsCount || 0 }}</span>
+                      <span class="coach-stat-card__detail">Saison {{ currentSeason }}</span>
+                    </div>
+                    <div class="coach-stat-card__icon"><i class="bi bi-card-checklist"></i></div>
+                  </div>
+                </div>
+                <div class="coach-stat-card coach-stat-card--orange">
+                  <div class="coach-stat-card__main">
+                    <div>
+                      <span class="coach-stat-card__label">Âge moyen</span>
+                      <span class="coach-stat-card__value">{{ (selectedValidationForDetail.stats?.averageAge | number:'1.1-1') || '0.0' }}</span>
+                      <span class="coach-stat-card__detail">Moyenne du roster</span>
+                    </div>
+                    <div class="coach-stat-card__icon"><i class="bi bi-calendar3"></i></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="coach-detail-grid">
+                <div class="coach-detail-panel">
+                  <h4 class="coach-detail-panel__title">
+                    <i class="bi bi-file-earmark-text"></i>
+                    Audit fiche administrative
+                  </h4>
+                  <dl class="coach-detail-list">
+                    <div class="coach-detail-list__row">
+                      <dt>Nom du club</dt>
+                      <dd>{{ selectedValidationForDetail.details?.name }}</dd>
+                    </div>
+                    <div class="coach-detail-list__row">
+                      <dt>Responsable / Manager</dt>
+                      <dd>{{ selectedValidationForDetail.details?.manager || 'Non spécifié' }}</dd>
+                    </div>
+                    <div class="coach-detail-list__row">
+                      <dt>Contact</dt>
+                      <dd>{{ selectedValidationForDetail.details?.contact || 'Non spécifié' }}</dd>
+                    </div>
+                    <div class="coach-detail-list__row">
+                      <dt>Région (Gouvernorat)</dt>
+                      <dd>{{ selectedValidationForDetail.details?.region || 'Non spécifié' }}</dd>
+                    </div>
+                    <div class="coach-detail-list__row">
+                      <dt>Adresse postale</dt>
+                      <dd>{{ selectedValidationForDetail.details?.address || 'Non spécifiée' }}</dd>
+                    </div>
+                    <div class="coach-detail-list__row" *ngIf="selectedValidationForDetail.details?.affiliationDate">
+                      <dt>Date d'affiliation</dt>
+                      <dd>{{ selectedValidationForDetail.details?.affiliationDate | date:'dd/MM/yyyy' }}</dd>
+                    </div>
+                  </dl>
+                  <button type="button" class="admin-btn admin-btn--ghost coach-detail-panel__action" (click)="toggleErrorReportModal(true)">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Signaler une erreur administrative
+                  </button>
+                </div>
+
+                <div class="coach-detail-panel">
+                  <h4 class="coach-detail-panel__title">
+                    <i class="bi bi-bar-chart-line"></i>
+                    Effectif &amp; critères de roster
+                  </h4>
+
+                  <div class="coach-distribution">
+                    <h5 class="coach-section-label">Répartition par niveau</h5>
+                    <p *ngIf="!selectedValidationForDetail.stats?.distribution || (selectedValidationForDetail.stats?.distribution | keyvalue).length === 0"
+                       class="coach-distribution__empty">
+                      Aucun athlète dans l'effectif.
+                    </p>
+                    <div *ngIf="selectedValidationForDetail.stats?.distribution && (selectedValidationForDetail.stats?.distribution | keyvalue).length > 0"
+                         class="coach-distribution__list">
+                      <div *ngFor="let item of selectedValidationForDetail.stats?.distribution | keyvalue" class="coach-distribution__item">
+                        <div class="coach-distribution__head">
+                          <span>{{ getLevelLabel(item.key) }}</span>
+                          <span>{{ item.value }} nageur(s)</span>
+                        </div>
+                        <div class="coach-distribution__bar">
+                          <div class="coach-distribution__fill"
+                               [style.width.%]="getPercent(item.value, selectedValidationForDetail.stats?.totalSwimmers)"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="coach-compliance">
+                    <h5 class="coach-section-label">Contrôle de conformité</h5>
+                    <ul class="coach-compliance__list">
+                      <li>
+                        <span><i class="bi bi-check2-circle"></i> Effectif minimum requis</span>
+                        <span class="coach-compliance__tag"
+                              [class.coach-compliance__tag--ok]="selectedValidationForDetail.stats?.totalSwimmers >= 1"
+                              [class.coach-compliance__tag--ko]="selectedValidationForDetail.stats?.totalSwimmers < 1">
+                          {{ selectedValidationForDetail.stats?.totalSwimmers >= 1 ? 'Conforme' : 'Non conforme' }}
+                        </span>
+                      </li>
+                      <li>
+                        <span><i class="bi bi-check2-circle"></i> Âge roster défini</span>
+                        <span class="coach-compliance__tag"
+                              [class.coach-compliance__tag--ok]="selectedValidationForDetail.stats?.averageAge > 0"
+                              [class.coach-compliance__tag--warn]="!(selectedValidationForDetail.stats?.averageAge > 0)">
+                          {{ selectedValidationForDetail.stats?.averageAge > 0 ? 'Conforme' : 'Non défini' }}
+                        </span>
+                      </li>
+                      <li>
+                        <span><i class="bi bi-check2-circle"></i> Licences numériques</span>
+                        <span class="coach-compliance__tag coach-compliance__tag--ok">Actif</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pending Licenses Section -->
+              <div class="coach-detail-panel mt-4 mb-4" *ngIf="pendingLicenses.length > 0 || pendingLicensesLoading" style="width: 100%;">
+                <h4 class="coach-detail-panel__title d-flex justify-content-between align-items-center">
+                  <span>
+                    <i class="bi bi-person-lines-fill"></i>
+                    Licences individuelles en attente
+                  </span>
+                  <span class="badge bg-warning rounded-pill" *ngIf="pendingLicenses.length > 0">{{ pendingLicenses.length }}</span>
+                </h4>
+                
+                <div *ngIf="pendingLicensesLoading" class="text-center py-3">
+                  <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                </div>
+
+                <div *ngIf="!pendingLicensesLoading && pendingLicenses.length > 0" class="table-responsive mt-3">
+                  <table class="table table-sm align-middle mb-0" style="background: white; border-radius: 8px; overflow: hidden;">
+                    <thead class="table-light">
+                      <tr>
+                        <th class="ps-3">Nageur</th>
+                        <th>Numéro Licence</th>
+                        <th class="text-end pe-3">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let license of pendingLicenses">
+                        <td class="ps-3">
+                          <div class="d-flex align-items-center">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; font-size: 14px;">
+                              {{ license.swimmer?.firstName?.charAt(0) }}{{ license.swimmer?.lastName?.charAt(0) }}
+                            </div>
+                            <strong>{{ license.swimmer?.firstName }} {{ license.swimmer?.lastName }}</strong>
+                          </div>
+                        </td>
+                        <td>
+                          <span class="text-muted small">{{ license.licenseNumber }}</span>
+                        </td>
+                        <td class="text-end pe-3">
+                          <button class="btn btn-sm btn-outline-danger me-2" (click)="validatePendingLicense(license.id, false)" title="Refuser">
+                            <i class="bi bi-x-lg"></i>
+                          </button>
+                          <button class="btn btn-sm btn-outline-success" (click)="validatePendingLicense(license.id, true)" title="Valider">
+                            <i class="bi bi-check-lg"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="coach-declaration">
+                <label class="coach-declaration__box" [class.coach-declaration__box--disabled]="selectedValidationForDetail.status === 'VALIDATED'">
+                  <input type="checkbox"
+                         [(ngModel)]="isDeclarationChecked"
+                         [disabled]="selectedValidationForDetail.status === 'VALIDATED'">
+                  <span class="coach-declaration__text">
+                    En cochant cette case, je certifie sur l'honneur l'exactitude de l'effectif sportif et la conformité des informations administratives. Cette signature électronique initie l'activation des licences pour la saison <strong>{{ currentSeason }}</strong>.
+                  </span>
+                </label>
+              </div>
+
+              <div class="coach-actions-bar">
+                <div class="coach-actions-bar__status">
+                  <span class="coach-section-label">Statut de conformité</span>
+                  <div class="coach-actions-bar__status-row">
+                    <span class="coach-status coach-status--lg"
+                          [class.coach-status--validated]="selectedValidationForDetail.status === 'VALIDATED'"
+                          [class.coach-status--refused]="selectedValidationForDetail.status === 'REFUSED'"
+                          [class.coach-status--pending]="selectedValidationForDetail.status === 'PENDING'">
+                      <i class="bi"
+                         [class.bi-check-circle-fill]="selectedValidationForDetail.status === 'VALIDATED'"
+                         [class.bi-x-circle-fill]="selectedValidationForDetail.status === 'REFUSED'"
+                         [class.bi-clock-fill]="selectedValidationForDetail.status === 'PENDING'"></i>
+                      {{ selectedValidationForDetail.status === 'VALIDATED' ? 'Conformité validée' : selectedValidationForDetail.status === 'REFUSED' ? 'Refusé' : 'En attente de signature' }}
+                    </span>
+                    <span class="coach-actions-bar__date" *ngIf="selectedValidationForDetail.validatedAt">
+                      Signé le {{ selectedValidationForDetail.validatedAt | date:'dd/MM/yyyy à HH:mm' }}
+                    </span>
+                  </div>
+                </div>
+                <div class="coach-actions-bar__buttons">
+                  <button type="button"
+                          class="admin-btn coach-btn--danger"
+                          [class.coach-btn--danger-active]="selectedValidationForDetail.status === 'REFUSED'"
+                          (click)="toggleRefusalModal(true)"
+                          [disabled]="clubValidationLoading">
+                    <i class="bi bi-x-circle"></i>
+                    {{ selectedValidationForDetail.status === 'REFUSED' ? 'Marqué comme refusé' : 'Déclarer non conforme' }}
+                  </button>
+                  <button type="button"
+                          class="admin-btn admin-btn--primary"
+                          (click)="validateClubSeason(selectedValidationForDetail.clubId, true)"
+                          [disabled]="clubValidationLoading || (!isDeclarationChecked && selectedValidationForDetail.status !== 'VALIDATED')">
+                    <span *ngIf="clubValidationLoading" class="spinner-border spinner-border-sm"></span>
+                    <i class="bi bi-check-circle-fill" *ngIf="!clubValidationLoading"></i>
+                    {{ selectedValidationForDetail.status === 'VALIDATED' ? 'Re-déclarer la validation' : 'Confirmer et valider' }}
+                  </button>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+
+          <div class="coach-modal__footer">
+            <button type="button" class="admin-btn admin-btn--secondary" (click)="closeValidationDetail()">
+              Fermer le dossier
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Error report modal ── -->
+      <div class="coach-modal-backdrop coach-modal-backdrop--nested" *ngIf="showErrorReportModal && selectedValidationForDetail">
+        <div class="coach-modal coach-modal--sm" (click)="$event.stopPropagation()">
+          <div class="coach-modal__header coach-modal__header--light">
+            <h3 class="coach-modal__title coach-modal__title--dark">
+              <i class="bi bi-exclamation-triangle-fill coach-modal__title-icon--warning"></i>
+              Signaler des erreurs administratives
+            </h3>
+            <button type="button" class="coach-modal__close coach-modal__close--dark" (click)="toggleErrorReportModal(false)" aria-label="Fermer">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+          <div class="coach-modal__body">
+            <div *ngIf="reportedErrorSuccess" class="admin-alert admin-alert--success mb-0">
+              <i class="bi bi-check-circle-fill"></i>
+              <span>{{ reportedErrorSuccess }}</span>
+            </div>
+            <ng-container *ngIf="!reportedErrorSuccess">
+              <p class="coach-modal__intro">Sélectionnez les champs erronés sur votre fiche administrative :</p>
+              <div class="coach-checkbox-list">
+                <label class="coach-checkbox-item">
+                  <input type="checkbox" [(ngModel)]="selectedErrorFields.manager">
+                  <span>Responsable / Manager</span>
+                </label>
+                <label class="coach-checkbox-item">
+                  <input type="checkbox" [(ngModel)]="selectedErrorFields.contact">
+                  <span>Contact téléphonique</span>
+                </label>
+                <label class="coach-checkbox-item">
+                  <input type="checkbox" [(ngModel)]="selectedErrorFields.address">
+                  <span>Adresse postale</span>
+                </label>
+                <label class="coach-checkbox-item">
+                  <input type="checkbox" [(ngModel)]="selectedErrorFields.region">
+                  <span>Gouvernorat / Région</span>
+                </label>
+                <label class="coach-checkbox-item">
+                  <input type="checkbox" [(ngModel)]="selectedErrorFields.affiliationDate">
+                  <span>Date d'affiliation</span>
+                </label>
+              </div>
+              <div class="mt-3">
+                <label class="admin-form-label">Description détaillée</label>
+                <textarea class="form-control admin-form-control" rows="3"
+                          [(ngModel)]="errorDescription"
+                          placeholder="Décrivez les modifications à apporter…"></textarea>
+              </div>
+            </ng-container>
+          </div>
+          <div class="coach-modal__footer" *ngIf="!reportedErrorSuccess">
+            <button type="button" class="admin-btn admin-btn--ghost" (click)="toggleErrorReportModal(false)">Annuler</button>
+            <button type="button" class="admin-btn admin-btn--primary"
+                    [disabled]="!isFieldSelectedForError()"
+                    (click)="submitErrorReport(selectedValidationForDetail.clubId)">
+              Envoyer le signalement
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Refusal modal ── -->
+      <div class="coach-modal-backdrop coach-modal-backdrop--nested" *ngIf="showRefusalModal && selectedValidationForDetail">
+        <div class="coach-modal coach-modal--sm" (click)="$event.stopPropagation()">
+          <div class="coach-modal__header coach-modal__header--danger">
+            <h3 class="coach-modal__title">
+              <i class="bi bi-x-circle-fill"></i>
+              Déclarer non conforme
+            </h3>
+            <button type="button" class="coach-modal__close" (click)="toggleRefusalModal(false)" aria-label="Fermer">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+          <div class="coach-modal__body">
+            <p class="coach-modal__intro">Indiquez la raison principale de non-conformité de la saison :</p>
+            <div class="mb-3">
+              <label class="admin-form-label">Catégorie de motif</label>
+              <select class="form-select admin-form-control" [(ngModel)]="refusalReasonCategory">
+                <option value="" disabled selected>Choisir un motif…</option>
+                <option value="ROSTER_INCORRECT">Effectif de nageurs incomplet ou incorrect</option>
+                <option value="ADMIN_INCORRECT">Champs administratifs erronés</option>
+                <option value="LICENSES_MISSING">Licences obligatoires manquantes</option>
+                <option value="OTHER">Autre motif (préciser ci-dessous)</option>
+              </select>
+            </div>
+            <div>
+              <label class="admin-form-label">Notes complémentaires</label>
+              <textarea class="form-control admin-form-control" rows="3"
+                        [(ngModel)]="refusalReason"
+                        placeholder="Commentaires pour l'administration fédérale…"></textarea>
+            </div>
+          </div>
+          <div class="coach-modal__footer">
+            <button type="button" class="admin-btn admin-btn--ghost" (click)="toggleRefusalModal(false)">Annuler</button>
+            <button type="button" class="admin-btn coach-btn--danger"
+                    [disabled]="!refusalReasonCategory"
+                    (click)="confirmRefusal(selectedValidationForDetail.clubId)">
+              Confirmer le refus
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ── Confirm modal ── -->
@@ -168,7 +858,7 @@
     <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
       <div class="modal-body text-center p-5">
         <div class="mb-4">
-          <div class="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex align-items-center justify-content-center"
+          <div class="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex align-items-center justify-content-center mx-auto"
                style="width: 80px; height: 80px;">
             <i class="bi bi-envelope-check-fill fs-1"></i>
           </div>

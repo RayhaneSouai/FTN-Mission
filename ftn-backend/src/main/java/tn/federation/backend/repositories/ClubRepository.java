@@ -15,6 +15,7 @@ public interface ClubRepository extends CrudRepository<Club, Long> {
 
     // Category 2 — Business methods
     List<Club> findByRegion(String region);
+    List<Club> findByCoachId(Long coachId);
 
     List<Club> findByNameContainingIgnoreCaseOrRegionContainingIgnoreCase(String name, String region);
 

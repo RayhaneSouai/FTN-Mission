@@ -7,7 +7,7 @@ export const publicGuard: CanActivateFn = (route, state) => {
   const platformId = inject(PLATFORM_ID);
   
   if (isPlatformBrowser(platformId)) {
-    const userStr = localStorage.getItem('user');
+    const userStr = sessionStorage.getItem('user');
     if (userStr) {
       try {
         const user = JSON.parse(userStr);
@@ -15,10 +15,10 @@ export const publicGuard: CanActivateFn = (route, state) => {
           return router.createUrlTree(['/admin']);
         }
       } catch (e) {
-        console.error('Error parsing user from localStorage', e);
+        console.error('Error parsing user from sessionStorage', e);
       }
     }
-    const isAdmin = localStorage.getItem('isAdmin');
+    const isAdmin = sessionStorage.getItem('isAdmin');
     if (isAdmin === 'true') {
       return router.createUrlTree(['/admin']);
     }

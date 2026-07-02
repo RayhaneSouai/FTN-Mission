@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -29,6 +31,16 @@ public class PressComment {
     @JoinColumn(name = "press_item_id")
     @JsonIgnore
     private PressItem pressItem;
+
+    // Self-reference for reply threads (one level deep)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_comment_id")
+    @JsonIgnore
+    private PressComment parentComment;
+
+    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<PressComment> replies = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {

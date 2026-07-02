@@ -50,20 +50,19 @@ export class RegisterComponent {
     }
   }
 
-  passwordFieldError(): string | null {
-    const pwd = this.userData.password || '';
-    if (!pwd) {
+  passwordFieldError(ctrl: NgModel): string | null {
+    if (!this.shouldShowConfirmErrors(ctrl)) {
       return null;
+    }
+    const pwd = ((ctrl.value as string) || '').trim();
+    if (!pwd) {
+      return 'Mot de passe requis.';
     }
     return passwordPolicyErrorMessage(pwd);
   }
 
-  passwordFieldInvalid(): boolean {
-    const pwd = this.userData.password || '';
-    if (!pwd) {
-      return false;
-    }
-    return !validatePasswordStrength(pwd).valid;
+  passwordFieldInvalid(ctrl: NgModel): boolean {
+    return this.passwordFieldError(ctrl) !== null;
   }
 
   goToStep2(form: NgForm): void {
@@ -113,10 +112,6 @@ export class RegisterComponent {
       return 'Confirmation requise.';
     }
     const pwd = this.userData.password || '';
-    const policyMsg = passwordPolicyErrorMessage(pwd);
-    if (policyMsg) {
-      return policyMsg;
-    }
     if (v !== pwd) {
       return 'Les mots de passe ne correspondent pas.';
     }

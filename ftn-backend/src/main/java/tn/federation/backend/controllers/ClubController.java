@@ -10,18 +10,15 @@ import org.springframework.web.multipart.MultipartFile;
 import tn.federation.backend.dto.ClubJoinRequestDTO;
 import tn.federation.backend.dto.ImportResult;
 import tn.federation.backend.dto.RegionOptionDto;
-import tn.federation.backend.entities.Club;
-import tn.federation.backend.entities.ClubJoinRequest;
-import tn.federation.backend.entities.ClubJoinRequestStatus;
-import tn.federation.backend.entities.Region;
-import tn.federation.backend.entities.Role;
-import tn.federation.backend.entities.User;
+import tn.federation.backend.entities.*;
 
 import java.util.Arrays;
+
+import tn.federation.backend.repositories.*;
 import tn.federation.backend.services.Abstraction.IClubService;
-import tn.federation.backend.repositories.ClubJoinRequestRepository;
-import tn.federation.backend.repositories.ClubRepository;
-import tn.federation.backend.repositories.UserRepository;
+import tn.federation.backend.services.Abstraction.INotificationService;
+import tn.federation.backend.dto.ClubAdminReportDTO;
+
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -43,6 +40,15 @@ public class ClubController {
 
     @Autowired
     private ClubJoinRequestRepository clubJoinRequestRepository;
+
+    @Autowired
+    private ClubSeasonValidationRepository clubSeasonValidationRepository;
+
+    @Autowired
+    private LicenseRepository licenseRepository;
+
+    @Autowired
+    private INotificationService notificationService;
 
     // ─── Regions ─────────────────────────────────────────────────────
     @GetMapping("/regions")
@@ -245,22 +251,127 @@ public class ClubController {
         return ResponseEntity.ok(clubService.getTopClubsBySwimmers());
     }
 
-    @PostMapping("/import/csv")
+    // ─── Season Validation by Coach (Club Manager) ────────────────────
+    @PostMapping("/my-club/validate-season")
+    @PreAuthorize("hasRole('COACH')")
+    public ResponseEntity<ClubSeasonValidation> validateSeason(
+            @RequestParam String season,
+            @RequestParam(required = false) Long clubId,
+            @RequestParam(required = false, defaultValue = "true") Boolean isValidated,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        User coach = userRepository.findByEmail(currentUser.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("Coach introuvable"));
+
+        List<Club> clubs = clubRepository.findByCoachId(coach.getId());
+        if (clubs.isEmpty()) {
+            throw new IllegalArgumentException("Vous n'êtes assigné à aucun club.");
+        }
+
+        Club club;
+        if (clubId != null) {
+            club = clubs.stream()
+                    .filter(c -> c.getId() == clubId)
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Club non assigné à ce coach."));
+        } else {
+            club = clubs.get(0);
+        }
+
+        String normalizedSeason = season.replace('/', '-').trim();
+
+        ClubSeasonValidation validation = clubSeasonValidationRepository.findByClubIdAndSeason(club.getId(), normalizedSeason)
+                .orElseGet(() -> {
+                    ClubSeasonValidation v = new ClubSeasonValidation();
+                    v.setClub(club);
+                    v.setSeason(normalizedSeason);
+                    return v;
+                });
+
+        validation.setIsValidated(isValidated);
+        validation.setValidatedBy(coach);
+        validation.setValidatedAt(LocalDateTime.now());
+
+        ClubSeasonValidation saved = clubSeasonValidationRepository.save(validation);
+
+        // Update validation status of all licenses of this club for this season
+        List<License> licenses = licenseRepository.findByClub_Id(club.getId()).stream()
+                .filter(l -> normalizedSeason.equals(l.getSeason()))
+                .toList();
+        for (License license : licenses) {
+            license.setValidationStatus(isValidated ? tn.federation.backend.entities.LicenseStatus.VALIDATED : tn.federation.backend.entities.LicenseStatus.REJECTED);
+        }
+        licenseRepository.saveAll(licenses);
+
+        // Notify administrator of the coach's decision
+        notificationService.notifyAdminOfSeasonValidationDecision(coach, club, normalizedSeason, isValidated);
+
+        return ResponseEntity.ok(saved);
+    }
+
+    @GetMapping("/my-club/season-validation")
+    @PreAuthorize("hasRole('COACH')")
+    public ResponseEntity<List<Map<String, Object>>> getSeasonValidation(
+            @RequestParam String season,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        User coach = userRepository.findByEmail(currentUser.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("Coach introuvable"));
+
+        List<Club> clubs = clubRepository.findByCoachId(coach.getId());
+        List<Map<String, Object>> result = new java.util.ArrayList<>();
+
+        String normalizedSeason = season.replace('/', '-').trim();
+
+        for (Club club : clubs) {
+            java.util.Optional<ClubSeasonValidation> opt = clubSeasonValidationRepository.findByClubIdAndSeason(club.getId(), normalizedSeason);
+            Map<String, Object> map = new java.util.HashMap<>();
+            map.put("clubId", club.getId());
+            map.put("clubName", club.getName());
+
+            if (opt.isPresent()) {
+                ClubSeasonValidation validation = opt.get();
+                map.put("isValidated", validation.getIsValidated());
+                map.put("status", validation.getIsValidated() ? "VALIDATED" : "REFUSED");
+                map.put("validatedAt", validation.getValidatedAt());
+            } else {
+                map.put("isValidated", false);
+                map.put("status", "PENDING");
+                map.put("validatedAt", null);
+            }
+            result.add(map);
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/my-club/report-admin-error")
+    @PreAuthorize("hasRole('COACH')")
+    public ResponseEntity<Map<String, String>> reportAdminError(
+            @RequestBody @Valid ClubAdminReportDTO report,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        User coach = userRepository.findByEmail(currentUser.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("Coach introuvable"));
+
+        String normalizedSeason = report.getSeason().replace('/', '-').trim();
+
+        notificationService.reportClubAdminError(
+                coach,
+                report.getClubId(),
+                normalizedSeason,
+                report.getFields(),
+                report.getDescription());
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Votre signalement a été enregistré. L'administration fédérale a été notifiée."));
+    }
+
+    @PostMapping("/season-validation/request")
     @PreAuthorize("hasRole('ADMIN')")
-
-    public ResponseEntity<ImportResult> importClubsCSV(@RequestParam("file") MultipartFile file) {
-        if (file.isEmpty() || !file.getOriginalFilename().endsWith(".csv")) {
-            return ResponseEntity.badRequest()
-                    .body(new ImportResult(0, 0, "Fichier CSV invalide ou vide"));
-        }
-
-        try {
-            ImportResult result = clubService.importClubsFromCSV(file);
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest()
-                    .body(new ImportResult(0, 0, "Erreur lors de l'import : " + e.getMessage()));
-        }
+    public ResponseEntity<Map<String, Object>> requestSeasonValidation(@RequestParam String season) {
+        String normalizedSeason = season.replace('/', '-').trim();
+        int notified = notificationService.requestSeasonValidationForAllCoaches(normalizedSeason);
+        return ResponseEntity.ok(Map.of(
+                "message", notified + " coach(s) notifié(s) pour la saison " + normalizedSeason,
+                "notifiedCount", notified,
+                "season", normalizedSeason));
     }
 }

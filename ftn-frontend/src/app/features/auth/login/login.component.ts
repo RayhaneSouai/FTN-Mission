@@ -28,15 +28,15 @@ export class LoginComponent {
     this.authService.login(this.credentials).subscribe({
       next: (res) => {
         if (isPlatformBrowser(this.platformId)) {
-          localStorage.setItem('token', res.token);
+          sessionStorage.setItem('token', res.token);
           this.authService.setUser(res.user);
           const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
 
           if (res.user.role === 'ADMIN' || res.user.role === 'ADMINISTRATEUR') {
-            localStorage.setItem('isAdmin', 'true');
+            sessionStorage.setItem('isAdmin', 'true');
             this.router.navigate(['/admin']);
           } else {
-            localStorage.removeItem('isAdmin');
+            sessionStorage.removeItem('isAdmin');
             this.router.navigate(['/']);
           }
 

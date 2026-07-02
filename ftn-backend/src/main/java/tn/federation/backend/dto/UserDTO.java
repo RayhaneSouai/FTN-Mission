@@ -21,6 +21,19 @@ public class UserDTO {
     private LocalDateTime createdAt;
     private Boolean mustChangePassword;
 
+    private Long licenseId;
+    private String licenseNumber;
+    private String licenseValidationStatus;
+
+    public Long getLicenseId() { return licenseId; }
+    public void setLicenseId(Long licenseId) { this.licenseId = licenseId; }
+
+    public String getLicenseNumber() { return licenseNumber; }
+    public void setLicenseNumber(String licenseNumber) { this.licenseNumber = licenseNumber; }
+
+    public String getLicenseValidationStatus() { return licenseValidationStatus; }
+    public void setLicenseValidationStatus(String licenseValidationStatus) { this.licenseValidationStatus = licenseValidationStatus; }
+
     public Boolean getMustChangePassword() {
         return mustChangePassword;
     }
