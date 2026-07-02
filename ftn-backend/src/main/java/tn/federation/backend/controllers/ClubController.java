@@ -6,7 +6,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import tn.federation.backend.dto.ClubJoinRequestDTO;
+import tn.federation.backend.dto.ImportResult;
 import tn.federation.backend.dto.RegionOptionDto;
 import tn.federation.backend.entities.Club;
 import tn.federation.backend.entities.ClubJoinRequest;
@@ -241,5 +243,24 @@ public class ClubController {
     @GetMapping("/ranking")
     public ResponseEntity<List<Club>> getTopClubsBySwimmers() {
         return ResponseEntity.ok(clubService.getTopClubsBySwimmers());
+    }
+
+    @PostMapping("/import/csv")
+    @PreAuthorize("hasRole('ADMIN')")
+
+    public ResponseEntity<ImportResult> importClubsCSV(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty() || !file.getOriginalFilename().endsWith(".csv")) {
+            return ResponseEntity.badRequest()
+                    .body(new ImportResult(0, 0, "Fichier CSV invalide ou vide"));
+        }
+
+        try {
+            ImportResult result = clubService.importClubsFromCSV(file);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest()
+                    .body(new ImportResult(0, 0, "Erreur lors de l'import : " + e.getMessage()));
+        }
     }
 }
