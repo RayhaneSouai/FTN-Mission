@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { catchError, finalize, of, tap } from 'rxjs';
-import { Competition } from '../models/competition.model';
+import { Competition, CompetitionRequest } from '../models/competition.model';
 import { CompetitionApiService } from './competition-api.service';
 import { ToastService } from './toast.service';
 
@@ -90,6 +90,29 @@ export class CompetitionStateService {
                 return of([]);
             }),
             finalize(() => this.state.update((s) => ({ ...s, loading: false })))
+        ).subscribe();
+    }
+
+    addCompetition(dto: CompetitionRequest): void {
+        this.api.create(dto).pipe(
+            tap((created) => this.state.update((s) => ({ ...s, items: [...s.items, created] }))),
+            catchError((err) => {
+                this.toast.showError(err?.message ?? 'Échec de la création');
+                return of(null);
+            })
+        ).subscribe();
+    }
+
+    updateCompetition(id: number, dto: CompetitionRequest): void {
+        this.api.update(id, dto).pipe(
+            tap((updated) => this.state.update((s) => ({
+                ...s,
+                items: s.items.map((c) => (c.id === id ? updated : c))
+            }))),
+            catchError((err) => {
+                this.toast.showError(err?.message ?? 'Échec de la mise à jour');
+                return of(null);
+            })
         ).subscribe();
     }
 
