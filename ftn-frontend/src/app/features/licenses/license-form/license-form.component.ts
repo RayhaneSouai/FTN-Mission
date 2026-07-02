@@ -133,18 +133,34 @@ export class LicenseFormComponent implements OnInit, OnChanges {
     this.loading = true;
     this.error = '';
     
-    if (!this.licenseData.season?.trim() || 
-        !this.licenseData.swimmer?.id || 
-        !this.licenseData.issueDate || 
-        !this.licenseData.expiryDate) {
-      this.error = 'La saison, le nageur, la date d\'émission et la date d\'expiration sont obligatoires.';
+    const clubId = this.licenseData.club?.id;
+    const swimmerId = this.licenseData.swimmer?.id;
+
+    if (!this.licenseData.season?.trim() || !this.licenseData.issueDate || !this.licenseData.expiryDate) {
+      this.error = 'La saison, la date d\'émission et la date d\'expiration sont obligatoires.';
       this.loading = false;
       return;
     }
 
-    const selectedSwimmer = this.swimmers.find(s => s.id === this.licenseData.swimmer.id);
-    if (selectedSwimmer) {
-      this.licenseData.club = { id: selectedSwimmer.clubId || null };
+    if (this.isEditMode) {
+      if (!swimmerId) {
+        this.error = 'Le nageur est obligatoire pour la mise à jour.';
+        this.loading = false;
+        return;
+      }
+    } else if (!clubId && !swimmerId) {
+      this.error = 'Sélectionnez un club ou un nageur.';
+      this.loading = false;
+      return;
+    }
+
+    if (swimmerId && !clubId) {
+      const selectedSwimmer = this.swimmers.find(s => s.id === swimmerId);
+      if (selectedSwimmer) {
+        this.licenseData.club = { id: selectedSwimmer.clubId || null };
+      }
+    } else if (clubId && !swimmerId) {
+      this.licenseData.swimmer = { id: null };
     }
     
     if (this.isEditMode && this.licenseId) {
@@ -162,8 +178,11 @@ export class LicenseFormComponent implements OnInit, OnChanges {
       });
     } else {
       this.licenseService.createLicense(this.licenseData).subscribe({
-        next: () => {
-          this.success = 'Licence créée avec succès.';
+        next: (result) => {
+          const count = Array.isArray(result) ? result.length : 1;
+          this.success = count > 1
+            ? `${count} licences créées avec succès pour le club.`
+            : 'Licence créée avec succès.';
           this.loading = false;
           setTimeout(() => this.formSaved.emit(), 1000);
         },

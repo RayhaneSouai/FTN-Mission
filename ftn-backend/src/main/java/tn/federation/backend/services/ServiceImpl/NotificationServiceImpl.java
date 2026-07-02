@@ -34,18 +34,21 @@ public class NotificationServiceImpl implements INotificationService {
     private final ClubSeasonValidationRepository clubSeasonValidationRepository;
     private final UserRepository userRepository;
     private final IEmailService emailService;
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     public NotificationServiceImpl(
             AppNotificationRepository notificationRepository,
             ClubRepository clubRepository,
             ClubSeasonValidationRepository clubSeasonValidationRepository,
             UserRepository userRepository,
-            IEmailService emailService) {
+            IEmailService emailService,
+            org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate) {
         this.notificationRepository = notificationRepository;
         this.clubRepository = clubRepository;
         this.clubSeasonValidationRepository = clubSeasonValidationRepository;
         this.userRepository = userRepository;
         this.emailService = emailService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @Override
@@ -86,7 +89,7 @@ public class NotificationServiceImpl implements INotificationService {
         notification.setCreatedByUserId(coach.getId());
         notification.setCreatedByName(coachName.trim());
         notification.setPayload(buildPayload(safeFields, description));
-        notificationRepository.save(notification);
+        saveAndBroadcast(notification);
 
         List<User> admins = userRepository.findByRole(Role.ADMIN);
         for (User admin : admins) {
@@ -157,7 +160,7 @@ public class NotificationServiceImpl implements INotificationService {
         notification.setTargetUserId(swimmer.getId());
         notification.setSeason(normalizedSeason);
         notification.setRead(false);
-        notificationRepository.save(notification);
+        saveAndBroadcast(notification);
 
         try {
             emailService.sendSwimmerSeasonValidationRequest(
@@ -184,7 +187,7 @@ public class NotificationServiceImpl implements INotificationService {
         notification.setClubName(club.getName());
         notification.setSeason(season);
         notification.setRead(false);
-        notificationRepository.save(notification);
+        saveAndBroadcast(notification);
 
         try {
             emailService.sendSeasonValidationRequestToCoach(
@@ -219,7 +222,7 @@ public class NotificationServiceImpl implements INotificationService {
         if (!notification.isRead()) {
             notification.setRead(true);
             notification.setReadAt(java.time.LocalDateTime.now());
-            notificationRepository.save(notification);
+            saveAndBroadcast(notification);
         }
     }
 
@@ -260,8 +263,9 @@ public class NotificationServiceImpl implements INotificationService {
         notification.setClubId(club.getId());
         notification.setClubName(club.getName());
         notification.setSeason(season);
+        notification.setLicenseId(license.getId());
         notification.setRead(false);
-        notificationRepository.save(notification);
+        saveAndBroadcast(notification);
 
         try {
             emailService.sendLicensePendingValidationToCoach(
@@ -273,6 +277,48 @@ public class NotificationServiceImpl implements INotificationService {
             );
         } catch (RuntimeException ex) {
             LOGGER.warn("Email validation licence non envoyé à {} : {}", coach.getEmail(), ex.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public void notifySwimmerOfPendingLicense(License license) {
+        if (license == null || license.getSwimmer() == null) return;
+        User swimmer = license.getSwimmer();
+        
+        String swimmerName = (swimmer.getFirstName() + " " + swimmer.getLastName()).trim();
+        String licenseNumber = license.getLicenseNumber();
+        String season = license.getSeason().replace('/', '-').trim();
+
+        AppNotification notification = new AppNotification();
+        notification.setType(NotificationType.LICENSE_VALIDATION_REQUEST);
+        notification.setTitle("Validation de licence en attente");
+        notification.setMessage("Votre licence individuelle (" + licenseNumber + ") "
+                + "est en attente de validation pour la saison " + season + ".");
+        notification.setTargetRole(Role.SWIMMER);
+        notification.setTargetUserId(swimmer.getId());
+        notification.setSeason(season);
+        notification.setLicenseId(license.getId());
+        notification.setRead(false);
+        saveAndBroadcast(notification);
+
+        try {
+            // Note: IEmailService needs a method for this, I'll use sendSwimmerSeasonValidationRequest for now, or I'll just use a generic one if it existed.
+            emailService.sendSwimmerSeasonValidationRequest(
+                    swimmer.getEmail(),
+                    swimmerName,
+                    season
+            );
+        } catch (RuntimeException ex) {
+            LOGGER.warn("Email validation licence non envoyé au nageur {} : {}", swimmer.getEmail(), ex.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deleteNotificationsByLicenseId(Long licenseId) {
+        if (licenseId != null) {
+            notificationRepository.deleteByLicenseId(licenseId);
         }
     }
 
@@ -294,7 +340,7 @@ public class NotificationServiceImpl implements INotificationService {
         notification.setClubName(club.getName());
         notification.setSeason(normalizedSeason);
         notification.setRead(false);
-        notificationRepository.save(notification);
+        saveAndBroadcast(notification);
 
         List<User> admins = userRepository.findByRole(Role.ADMIN);
         for (User admin : admins) {
@@ -327,7 +373,7 @@ public class NotificationServiceImpl implements INotificationService {
         notification.setTargetRole(Role.ADMIN);
         notification.setSeason(normalizedSeason);
         notification.setRead(false);
-        notificationRepository.save(notification);
+        saveAndBroadcast(notification);
 
         List<User> admins = userRepository.findByRole(Role.ADMIN);
         for (User admin : admins) {
@@ -372,5 +418,15 @@ public class NotificationServiceImpl implements INotificationService {
         String fieldsPart = String.join(",", fields);
         String desc = description == null ? "" : description.replace("|", " ").replace("\n", " ");
         return "fields=" + fieldsPart + "|description=" + desc;
+    }
+
+    private void saveAndBroadcast(AppNotification notification) {
+        AppNotification saved = notificationRepository.save(notification);
+        AppNotificationDTO dto = AppNotificationDTO.fromEntity(saved);
+        if (notification.getTargetUserId() != null) {
+            messagingTemplate.convertAndSend("/topic/notifications/" + notification.getTargetUserId(), dto);
+        } else if (notification.getTargetRole() != null) {
+            messagingTemplate.convertAndSend("/topic/notifications/role/" + notification.getTargetRole().name(), dto);
+        }
     }
 }

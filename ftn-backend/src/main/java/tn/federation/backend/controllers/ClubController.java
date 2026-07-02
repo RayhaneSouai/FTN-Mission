@@ -306,7 +306,7 @@ public class ClubController {
                 .filter(l -> normalizedSeason.equals(l.getSeason()))
                 .toList();
         for (License license : licenses) {
-            license.setValidationStatus(isValidated ? "VALIDATED" : "REFUSED");
+            license.setValidationStatus(isValidated ? tn.federation.backend.entities.LicenseStatus.VALIDATED : tn.federation.backend.entities.LicenseStatus.REJECTED);
         }
         licenseRepository.saveAll(licenses);
 

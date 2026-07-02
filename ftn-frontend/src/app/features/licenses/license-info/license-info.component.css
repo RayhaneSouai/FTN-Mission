@@ -629,6 +629,16 @@
   color: #991b1b;
 }
 
+.pending-badge {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.rejected-badge {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
 .swimmer-name {
   font-size: 1.1rem;
   font-weight: 700;
@@ -668,6 +678,26 @@
 .expired-result {
   border: 1px solid rgba(220, 38, 38, 0.3);
   background: linear-gradient(145deg, rgba(220, 38, 38, 0.05) 0%, rgba(220, 38, 38, 0.1) 100%);
+}
+
+.pending-result {
+  border: 1px solid rgba(217, 119, 6, 0.3);
+  background: linear-gradient(145deg, rgba(217, 119, 6, 0.05) 0%, rgba(217, 119, 6, 0.1) 100%);
+}
+
+.rejected-result {
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: linear-gradient(145deg, rgba(239, 68, 68, 0.05) 0%, rgba(239, 68, 68, 0.1) 100%);
+}
+
+.result-icon-pending {
+  font-size: 1.8rem;
+  color: #fbbf24;
+}
+
+.result-icon-rejected {
+  font-size: 1.8rem;
+  color: #f87171;
 }
 
 .result-icon-expired {

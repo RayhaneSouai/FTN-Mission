@@ -229,47 +229,68 @@
         </div>
 
         <!-- Comments Section -->
-        <div style="background:#f8fafc;padding:20px;border-radius:14px;">
-          <h3 style="font-size:1.1rem;font-weight:800;color:#1e293b;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
-            💬 Commentaires <span style="background:#e2e8f0;color:#475569;font-size:0.8rem;padding:2px 8px;border-radius:20px;">{{ interactions?.comments?.length || 0 }}</span>
+        <div style="margin-top:24px;border-top:1px solid #e2e8f0;padding-top:24px;">
+          <h3 style="font-size:1.1rem;color:#1e293b;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+            💬 Commentaires <span style="background:#e2e8f0;color:#475569;font-size:0.8rem;padding:2px 8px;border-radius:20px;">{{ comments.length }}</span>
           </h3>
 
-          <!-- Formulaire Ajout -->
-          <div *ngIf="currentUserId" style="display:flex;gap:12px;margin-bottom:24px;">
-            <div style="width:40px;height:40px;border-radius:50%;background:#1565C0;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;">
-              Moi
+          <div *ngIf="replyingTo" style="background:#eff6ff;padding:8px 12px;border-radius:8px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;border-left:4px solid #3b82f6;">
+            <span style="font-size:0.9rem;color:#1e293b;">En réponse à <strong>{{ replyingTo.userFirstName }}</strong> : <em>{{ replyingTo.text | slice:0:50 }}...</em></span>
+            <button (click)="cancelReply()" style="background:none;border:none;color:#ef4444;cursor:pointer;font-weight:600;">✕</button>
+          </div>
+
+          <div style="display:flex;gap:12px;margin-bottom:24px;">
+            <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg, #3b82f6, #2563eb);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;">
+              M
             </div>
             <div style="flex:1;position:relative;">
-              <textarea [(ngModel)]="newCommentText" rows="2" placeholder="Ajouter un commentaire..."
-                        #commentInput
-                        style="width:100%;padding:12px 16px;border-radius:12px;border:1px solid #cbd5e1;resize:none;font-family:inherit;font-size:0.95rem;transition:all 0.2s;outline:none;"
-                        (focus)="commentInput.style.borderColor='#3b82f6'"
-                        (blur)="commentInput.style.borderColor='#cbd5e1'"></textarea>
-              <button (click)="addComment()" [disabled]="!newCommentText.trim() || isSubmittingComment"
-                      style="position:absolute;bottom:10px;right:10px;background:#1565C0;color:white;border:none;padding:6px 14px;border-radius:8px;font-weight:700;cursor:pointer;opacity:0.9;transition:all 0.2s;">
-                Envoyer
+              <textarea [(ngModel)]="newCommentText" placeholder="Ajouter un commentaire..." rows="2" style="width:100%;border:1px solid #cbd5e1;border-radius:12px;padding:12px;font-family:inherit;resize:none;outline:none;transition:border-color 0.2s;" (focus)="newCommentText = newCommentText || ''"></textarea>
+              <button (click)="postComment()" [disabled]="!newCommentText.trim()" style="position:absolute;bottom:12px;right:12px;background:#3b82f6;color:white;border:none;border-radius:20px;padding:6px 16px;font-size:0.9rem;font-weight:500;cursor:pointer;transition:background 0.2s;" [style.opacity]="newCommentText.trim() ? '1' : '0.5'">
+                Publier
               </button>
             </div>
           </div>
 
-          <!-- Liste des commentaires -->
-          <div *ngIf="interactions?.comments && interactions.comments.length > 0">
-            <div *ngFor="let comment of interactions.comments" style="display:flex;gap:12px;margin-bottom:16px;background:white;padding:16px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-              <div style="width:40px;height:40px;border-radius:50%;background:#e2e8f0;color:#475569;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;text-transform:uppercase;">
-                {{ comment.userInitials || 'U' }}
-              </div>
-              <div style="flex:1;">
-                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-                  <span style="font-weight:800;color:#1e293b;font-size:0.95rem;">{{ comment.userName || 'Utilisateur' }}</span>
-                  <span style="font-size:0.8rem;color:#94a3b8;font-weight:600;">{{ comment.createdAt | date:'dd MMM yyyy HH:mm' }}</span>
+
+          <div *ngIf="comments && comments.length > 0">
+            <div *ngFor="let comment of comments" style="margin-bottom:16px;">
+              <!-- Root comment -->
+              <div style="display:flex;gap:12px;background:white;padding:16px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                <div style="width:40px;height:40px;border-radius:50%;background:#e2e8f0;color:#475569;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;">
+                  {{ comment.userFirstName ? comment.userFirstName.charAt(0).toUpperCase() : 'A' }}
                 </div>
-                <p style="margin:0;color:#334155;line-height:1.6;font-size:0.95rem;white-space:pre-wrap;">{{ comment.text }}</p>
+                <div style="flex:1;">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                    <span style="font-weight:600;color:#1e293b;">{{ comment.userFirstName }} {{ comment.userLastName }}</span>
+                    <span style="font-size:0.8rem;color:#94a3b8;">{{ comment.createdAt | date:'dd MMM, HH:mm' }}</span>
+                  </div>
+                  <p style="color:#475569;margin:0;font-size:0.95rem;line-height:1.5;">{{ comment.text }}</p>
+                  <button (click)="replyTo(comment)" style="background:none;border:none;color:#3b82f6;font-size:0.85rem;padding:0;margin-top:8px;cursor:pointer;font-weight:500;">
+                    ↩ Répondre
+                  </button>
+                </div>
+              </div>
+
+              <!-- Replies -->
+              <div *ngIf="comment.replies && comment.replies.length > 0" style="margin-left:52px;margin-top:12px;display:flex;flex-direction:column;gap:12px;">
+                <div *ngFor="let reply of comment.replies" style="display:flex;gap:12px;background:#f8fafc;padding:12px;border-radius:12px;">
+                  <div style="width:32px;height:32px;border-radius:50%;background:#e2e8f0;color:#475569;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;font-size:0.8rem;">
+                    {{ reply.userFirstName ? reply.userFirstName.charAt(0).toUpperCase() : 'A' }}
+                  </div>
+                  <div style="flex:1;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                      <span style="font-weight:600;color:#1e293b;font-size:0.9rem;">{{ reply.userFirstName }} {{ reply.userLastName }}</span>
+                      <span style="font-size:0.75rem;color:#94a3b8;">{{ reply.createdAt | date:'dd MMM, HH:mm' }}</span>
+                    </div>
+                    <p style="color:#475569;margin:0;font-size:0.9rem;line-height:1.4;">{{ reply.text }}</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          
-          <div *ngIf="!interactions?.comments || interactions.comments.length === 0" style="text-align:center;color:#94a3b8;padding:20px;font-style:italic;">
-            Aucun commentaire pour le moment. Soyez le premier !
+
+          <div *ngIf="!comments || comments.length === 0" style="text-align:center;color:#94a3b8;padding:20px;font-style:italic;">
+            Soyez le premier à commenter !
           </div>
         </div>
 

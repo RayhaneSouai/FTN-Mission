@@ -1,6 +1,6 @@
 .visitor-hero {
   position: relative;
-  background: linear-gradient(135deg, #0d47a1 0%, #1565C0 40%, #1976D2 100%);
+  background: linear-gradient(135deg, var(--ftn-primary, #003a80) 0%, #0069c9 55%, var(--ftn-accent, #0ea5e9) 100%);
   color: #fff;
   padding: 100px 48px 80px;
   text-align: center;
@@ -185,6 +185,35 @@
   min-height: 40px;
   padding: 8px 11px;
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.article-icon-btn:hover {
+  border-color: #cbd5e1;
+  color: var(--ftn-primary, #003a80);
+  transform: translateY(-1px);
+}
+
+.btn-primary {
+  align-items: center;
+  background: var(--ftn-primary, #003a80);
+  border: none;
+  border-radius: var(--ftn-button-radius, 10px);
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.95rem;
+  font-weight: 700;
+  gap: 8px;
+  justify-content: center;
+  padding: 11px 24px;
+  text-decoration: none;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #002d63;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,58,128,0.2);
 }
 
 .article-icon-btn .material-symbols-outlined {

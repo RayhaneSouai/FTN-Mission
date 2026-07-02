@@ -151,9 +151,10 @@ public class DataInitializer implements CommandLineRunner {
         nouveauSwimmer.setPasswordHash(passwordEncoder.encode("azerty123"));
         nouveauSwimmer.setRole(Role.SWIMMER);
         nouveauSwimmer.setActive(true);
-        nouveauSwimmer.setClub(club);
+        nouveauSwimmer.setClub(null); // Independent swimmer
         userRepository.save(nouveauSwimmer);
         System.out.println("✅ Nouveau Compte SWIMMER prêt (nouveau.nageur@ftn.tn / azerty123)");
+
         // ── Articles & Vidéos par défaut ────────────────────────────────
         if (pressItemRepository.count() == 0) {
             System.out.println("✅ Initialisation des articles de presse par défaut...");

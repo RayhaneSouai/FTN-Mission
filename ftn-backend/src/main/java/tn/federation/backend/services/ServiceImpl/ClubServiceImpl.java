@@ -34,20 +34,14 @@ public class ClubServiceImpl implements IClubService {
         if (name.isBlank()) {
             throw new IllegalArgumentException("Nom du club obligatoire");
         }
-        if (club.getCoach() == null) {
-            throw new IllegalArgumentException("Un club doit avoir au moins un coach/manager (le coach est obligatoire).");
-        }
-        if (club.getManager() == null || club.getManager().trim().isEmpty()) {
-            throw new IllegalArgumentException("Un club doit avoir au moins un coach/manager (le manager est obligatoire).");
-        }
         club.setName(name);
         Optional<Club> existing = clubRepository.findFirstByNameIgnoreCase(name);
         if (existing.isPresent()) {
             Club existingClub = existing.get();
-            if (existingClub.getCoach() == null) {
+            if (existingClub.getCoach() == null && club.getCoach() != null) {
                 existingClub.setCoach(club.getCoach());
             }
-            if (existingClub.getManager() == null || existingClub.getManager().trim().isEmpty()) {
+            if ((existingClub.getManager() == null || existingClub.getManager().trim().isEmpty()) && club.getManager() != null) {
                 existingClub.setManager(club.getManager());
             }
             return clubRepository.save(existingClub);
