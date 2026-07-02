@@ -1,0 +1,38 @@
+<div class="chatbot-fab" (click)="toggle()" [class.open]="isOpen()">
+  <span class="fab-icon">💬</span>
+</div>
+
+@if (isOpen()) {
+  <div class="chatbot-window">
+    <div class="chatbot-header">
+      <span class="header-title">🏊 Assistant Compétitions</span>
+      <button class="close-btn" (click)="toggle()">✕</button>
+    </div>
+
+    <div class="chatbot-messages" #messagesContainer>
+      @for (msg of messages(); track $index) {
+        <div class="message" [class.user]="msg.isUser" [class.bot]="!msg.isUser">
+          <p>{{ msg.text }}</p>
+        </div>
+      }
+
+      @if (showSuggestions()) {
+        <div class="suggestions">
+          @for (s of suggestions; track s) {
+            <button class="suggestion-chip" (click)="selectSuggestion(s)">{{ s }}</button>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="chatbot-input">
+      <input
+        type="text"
+        [(ngModel)]="userInput"
+        (keyup.enter)="send()"
+        placeholder="Posez votre question..."
+      />
+      <button class="send-btn" (click)="send()" [disabled]="!userInput.trim()">➤</button>
+    </div>
+  </div>
+}

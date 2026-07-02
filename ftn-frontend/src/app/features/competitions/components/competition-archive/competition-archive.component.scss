@@ -10,9 +10,9 @@
 }
 
 .archive-content {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 2.5rem 2rem;
+  width: 100%;
+  margin: 0;
+  padding: 2.5rem 3rem;
 }
 
 // ─── Hero Banner ──────────────────────────────────
@@ -208,7 +208,6 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  flex-wrap: wrap;
 }
 
 .archive-card-name {
