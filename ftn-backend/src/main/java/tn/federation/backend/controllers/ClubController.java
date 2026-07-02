@@ -193,7 +193,8 @@ public class ClubController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, String>> requestToJoinClub(
             @PathVariable long id,
-            @AuthenticationPrincipal UserDetails currentUser) {
+            @AuthenticationPrincipal UserDetails currentUser,
+            @RequestBody(required = false) Map<String, String> body) {
         User swimmer = userRepository.findByEmail(currentUser.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
         if (swimmer.getRole() != Role.SWIMMER) {
@@ -217,6 +218,9 @@ public class ClubController {
         request.setSwimmer(swimmer);
         request.setClub(club);
         request.setStatus(ClubJoinRequestStatus.PENDING);
+        if (body != null && body.containsKey("message")) {
+            request.setMessage(body.get("message"));
+        }
         clubJoinRequestRepository.save(request);
 
         return ResponseEntity.ok(Map.of("message", "Demande d'adhésion envoyée au club " + club.getName() + "."));

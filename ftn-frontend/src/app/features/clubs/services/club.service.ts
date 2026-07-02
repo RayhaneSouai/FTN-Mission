@@ -26,8 +26,8 @@ export class ClubService {
     return this.http.get<any>(`${this.apiUrl}/${id}/stats`);
   }
 
-  requestToJoin(id: number): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/${id}/join-request`, {});
+  requestToJoin(id: number, message?: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/${id}/join-request`, { message: message ?? '' });
   }
 
   getMyClubs(): Observable<Club[]> {

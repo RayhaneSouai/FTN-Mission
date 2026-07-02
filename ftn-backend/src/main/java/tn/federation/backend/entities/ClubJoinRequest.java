@@ -39,6 +39,9 @@ public class ClubJoinRequest {
 
     private LocalDateTime reviewedAt;
 
+    @Column(columnDefinition = "TEXT")
+    private String message;
+
     @PrePersist
     void onCreate() {
         if (requestedAt == null) {

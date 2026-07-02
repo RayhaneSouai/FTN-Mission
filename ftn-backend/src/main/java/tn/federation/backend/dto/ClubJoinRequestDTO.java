@@ -13,7 +13,8 @@ public record ClubJoinRequestDTO(
         String clubName,
         String clubRegion,
         String status,
-        LocalDateTime requestedAt
+        LocalDateTime requestedAt,
+        String message
 ) {
     public static ClubJoinRequestDTO fromEntity(ClubJoinRequest request) {
         var swimmer = request.getSwimmer();
@@ -28,7 +29,8 @@ public record ClubJoinRequestDTO(
                 club.getName(),
                 club.getRegion(),
                 request.getStatus().name(),
-                request.getRequestedAt()
+                request.getRequestedAt(),
+                request.getMessage()
         );
     }
 }

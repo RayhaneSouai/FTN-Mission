@@ -1,12 +1,9 @@
 
-<!-- Hero Banner -->
-<section class="clubs-hero">
-  <div class="hero-overlay"></div>
-  <div class="hero-content">
-    <h1>{{ isAdminMode ? 'Gestion des Clubs' : 'Clubs affiliés' }}</h1>
-    <p>{{ isAdminMode ? 'Administration des clubs : ajout, modification et statistiques.' : 'Découvrez les clubs de la fédération.' }}</p>
-  </div>
-</section>
+<app-page-hero
+  [title]="isAdminMode ? 'Gestion des clubs' : 'Clubs affiliés'"
+  [subtitle]="isAdminMode ? 'Administration des clubs : ajout, modification et statistiques.' : 'Découvrez les clubs de la fédération.'"
+  [imageUrl]="heroImage">
+</app-page-hero>
 
 <!-- User tabs -->
 <section class="club-tabs-section" *ngIf="!isAdminMode">
@@ -14,12 +11,12 @@
     <button type="button"
             [class.active]="activeTab === 'browse'"
             (click)="setActiveTab('browse')">
-      Browse clubs
+      Parcourir les clubs
     </button>
     <button type="button"
             [class.active]="activeTab === 'mine'"
             (click)="setActiveTab('mine')">
-      My clubs
+      Mes clubs
       <span *ngIf="myClubs.length > 0">{{ myClubs.length }}</span>
     </button>
   </div>
@@ -224,13 +221,37 @@
                 type="button"
                 [class.joined]="isJoinedClub(club)"
                 [disabled]="isJoinButtonDisabled(club)"
-                (click)="requestToJoin(club)">
+                (click)="openJoinModal(club)">
           {{ joinButtonLabel(club) }}
         </button>
       </div>
     </div>
   </div>
 </section>
+
+<!-- Join Request Modal -->
+<div class="modal-overlay" *ngIf="showJoinModal" (click)="closeJoinModal()">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <button class="modal-close" type="button" (click)="closeJoinModal()">×</button>
+    <h3>Demande d'adhésion</h3>
+    <p class="modal-subtitle">{{ clubToJoin?.name }}</p>
+    <div class="form-field">
+      <label for="joinMessage">Motivation <span class="optional">(facultatif)</span></label>
+      <textarea id="joinMessage" class="form-textarea"
+                [(ngModel)]="joinMessage"
+                placeholder="Présentez-vous et expliquez votre motivation à rejoindre ce club..."
+                rows="4"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" (click)="closeJoinModal()">Annuler</button>
+      <button type="button" class="btn-primary"
+              [disabled]="joiningClubId === clubToJoin?.id"
+              (click)="submitJoinRequest()">
+        {{ joiningClubId === clubToJoin?.id ? 'Envoi...' : 'Envoyer la demande' }}
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- My Clubs -->
 <section class="clubs-section my-clubs-section" *ngIf="!isAdminMode && activeTab === 'mine'">
@@ -245,7 +266,7 @@
     </svg>
     <h3>Aucun club rejoint</h3>
     <p>Parcourez les clubs et envoyez une demande d'adhésion.</p>
-    <button class="btn-primary" type="button" (click)="setActiveTab('browse')">Browse clubs</button>
+    <button class="btn-primary" type="button" (click)="setActiveTab('browse')">Parcourir les clubs</button>
   </div>
 
   <div class="clubs-grid" *ngIf="!loadingMyClubs && myClubs.length > 0">
@@ -256,7 +277,7 @@
             <path d="M20 6 9 17l-5-5"/>
           </svg>
         </div>
-        <span class="joined-badge">Joined</span>
+        <span class="joined-badge">Membre</span>
       </div>
       <h3 class="club-name">{{ club.name }}</h3>
       <div class="club-detail"><span class="detail-label">Région</span><span>{{ getRegionLabel(club.region) }}</span></div>

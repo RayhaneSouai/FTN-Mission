@@ -1,5 +1,6 @@
 import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ClubService } from '../../services/club.service';
 import { Club, ClubJoinRequest } from '../../models/club.model';
@@ -10,6 +11,8 @@ import {
   GOVERNORATES_BY_ZONE
 } from '../../models/club-location.constants';
 import { ToastService } from '../../../competitions/services/toast.service';
+import { PAGE_HERO_IMAGES } from '../../../../shared/components/page-hero/page-hero.constants';
+import { PageHeroComponent } from '../../../../shared/components/page-hero/page-hero.component';
 
 export type ClubListMode = 'public' | 'admin';
 type ClubViewMode = 'grid' | 'list';
@@ -17,10 +20,13 @@ type ClubTab = 'browse' | 'mine' | 'requests';
 
 @Component({
   selector: 'app-club-list',
+  standalone: true,
+  imports: [CommonModule, FormsModule, PageHeroComponent],
   templateUrl: './club-list.component.html',
   styleUrl: './club-list.component.css'
 })
 export class ClubListComponent implements OnInit {
+  readonly heroImage = PAGE_HERO_IMAGES.clubs;
   clubs: Club[] = [];
   topClubs: Club[] = [];
   filteredClubs: Club[] = [];
@@ -38,6 +44,9 @@ export class ClubListComponent implements OnInit {
   joiningClubId: number | null = null;
   requestedClubIds = new Set<number>();
   rejectedClubIds = new Set<number>();
+  showJoinModal = false;
+  joinMessage = '';
+  clubToJoin: Club | null = null;
   currentUser: any = null;
   activeTab: ClubTab = 'browse';
   myClubs: Club[] = [];
@@ -256,7 +265,7 @@ export class ClubListComponent implements OnInit {
 
   joinButtonLabel(club: Club): string {
     if (this.isJoinedClub(club)) {
-      return 'Joined';
+      return 'Membre';
     }
     if (club.id && this.requestedClubIds.has(club.id)) {
       return 'Demande envoyée';
@@ -273,7 +282,7 @@ export class ClubListComponent implements OnInit {
       || (!!club.id && this.requestedClubIds.has(club.id));
   }
 
-  requestToJoin(club: Club): void {
+  openJoinModal(club: Club): void {
     this.refreshAuthState();
     if (!club.id) return;
     if (!this.currentUser) {
@@ -285,13 +294,27 @@ export class ClubListComponent implements OnInit {
       this.toast.showError('Votre compte ne peut pas envoyer une demande d\'adhésion club.');
       return;
     }
+    this.clubToJoin = club;
+    this.joinMessage = '';
+    this.showJoinModal = true;
+  }
 
-    this.joiningClubId = club.id;
-    this.clubService.requestToJoin(club.id).subscribe({
+  closeJoinModal(): void {
+    this.showJoinModal = false;
+    this.clubToJoin = null;
+    this.joinMessage = '';
+  }
+
+  submitJoinRequest(): void {
+    if (!this.clubToJoin?.id) return;
+    const clubId = this.clubToJoin.id;
+    this.joiningClubId = clubId;
+    this.clubService.requestToJoin(clubId, this.joinMessage.trim()).subscribe({
       next: (res) => {
-        this.requestedClubIds.add(club.id!);
+        this.requestedClubIds.add(clubId);
         this.joiningClubId = null;
         this.toast.showSuccess(res.message || 'Demande envoyée.');
+        this.closeJoinModal();
         this.loadMyClubData();
       },
       error: (err) => {

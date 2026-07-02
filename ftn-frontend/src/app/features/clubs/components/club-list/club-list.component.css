@@ -893,4 +893,85 @@
   .clubs-grid.list-view .club-public-actions { margin-top: 18px; }
   .form-row { flex-direction: column; gap: 0; }
   .modal-content { margin: 16px; max-width: none; }
+  .modal-box { margin: 16px; max-width: none; }
+}
+
+/* ─── Join Request Modal ──────────────────────────────────────── */
+.modal-box {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+  max-width: 480px;
+  padding: 32px;
+  position: relative;
+  width: 100%;
+}
+
+.modal-box h3 {
+  color: #0f172a;
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin: 0 0 4px;
+}
+
+.modal-subtitle {
+  color: #64748b;
+  font-size: 0.95rem;
+  margin: 0 0 24px;
+}
+
+.modal-box .form-field {
+  margin-bottom: 20px;
+}
+
+.modal-box .form-field label {
+  color: #374151;
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.modal-box .form-field .optional {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.form-textarea {
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  color: #1e293b;
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  padding: 10px 14px;
+  resize: vertical;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+
+.form-textarea:focus {
+  border-color: var(--ftn-primary, #004da3);
+  outline: none;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btn-cancel {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  color: #475569;
+  cursor: pointer;
+  font-weight: 700;
+  min-height: 40px;
+  padding: 8px 20px;
+}
+
+.btn-cancel:hover {
+  background: #e2e8f0;
 }
