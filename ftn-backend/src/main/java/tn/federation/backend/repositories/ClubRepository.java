@@ -20,6 +20,7 @@ public interface ClubRepository extends CrudRepository<Club, Long> {
     List<Club> findByNameContainingIgnoreCaseOrRegionContainingIgnoreCase(String name, String region);
 
     Optional<Club> findFirstByNameIgnoreCase(String name);
+    Optional<Club> findByNameIgnoreCase(String name);
 
     // clubs with coordinates for map
     List<Club> findByLatitudeIsNotNullAndLongitudeIsNotNull();

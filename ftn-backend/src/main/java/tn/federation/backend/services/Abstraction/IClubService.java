@@ -1,5 +1,7 @@
 package tn.federation.backend.services.Abstraction;
 
+import org.springframework.web.multipart.MultipartFile;
+import tn.federation.backend.dto.ImportResult;
 import tn.federation.backend.entities.Club;
 import tn.federation.backend.entities.User;
 
@@ -26,4 +28,5 @@ public interface IClubService {
     Map<String, Object> getClubStatistics(long clubId);
     List<Club> searchClubs(String query);
     List<Club> getTopClubsBySwimmers();
+    public ImportResult importClubsFromCSV(MultipartFile file);
 }

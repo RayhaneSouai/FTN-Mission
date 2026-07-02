@@ -7,7 +7,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import tn.federation.backend.dto.ClubJoinRequestDTO;
+import tn.federation.backend.dto.ImportResult;
 import tn.federation.backend.dto.RegionOptionDto;
 import tn.federation.backend.entities.Club;
 import tn.federation.backend.entities.ClubJoinRequest;
@@ -18,9 +20,15 @@ import tn.federation.backend.entities.User;
 import tn.federation.backend.entities.ClubSeasonValidation;
 import tn.federation.backend.entities.License;
 import tn.federation.backend.repositories.LicenseRepository;
+import tn.federation.backend.entities.*;
 
 import java.util.Arrays;
+
+import tn.federation.backend.repositories.*;
 import tn.federation.backend.services.Abstraction.IClubService;
+import tn.federation.backend.services.Abstraction.INotificationService;
+import tn.federation.backend.dto.ClubAdminReportDTO;
+
 import tn.federation.backend.services.Abstraction.INotificationService;
 import tn.federation.backend.dto.ClubAdminReportDTO;
 import tn.federation.backend.repositories.ClubJoinRequestRepository;
@@ -269,12 +277,12 @@ public class ClubController {
             @AuthenticationPrincipal UserDetails currentUser) {
         User coach = userRepository.findByEmail(currentUser.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("Coach introuvable"));
-        
+
         List<Club> clubs = clubRepository.findByCoachId(coach.getId());
         if (clubs.isEmpty()) {
             throw new IllegalArgumentException("Vous n'êtes assigné à aucun club.");
         }
-        
+
         Club club;
         if (clubId != null) {
             club = clubs.stream()
@@ -323,10 +331,10 @@ public class ClubController {
             @AuthenticationPrincipal UserDetails currentUser) {
         User coach = userRepository.findByEmail(currentUser.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("Coach introuvable"));
-        
+
         List<Club> clubs = clubRepository.findByCoachId(coach.getId());
         List<Map<String, Object>> result = new java.util.ArrayList<>();
-        
+
         String normalizedSeason = season.replace('/', '-').trim();
 
         for (Club club : clubs) {
@@ -334,7 +342,7 @@ public class ClubController {
             Map<String, Object> map = new java.util.HashMap<>();
             map.put("clubId", club.getId());
             map.put("clubName", club.getName());
-            
+
             if (opt.isPresent()) {
                 ClubSeasonValidation validation = opt.get();
                 map.put("isValidated", validation.getIsValidated());
@@ -347,7 +355,7 @@ public class ClubController {
             }
             result.add(map);
         }
-        
+
         return ResponseEntity.ok(result);
     }
 

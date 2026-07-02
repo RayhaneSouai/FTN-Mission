@@ -1,8 +1,9 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule, provideClientHydration } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { provideHttpClient, withFetch, withInterceptors, HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 
 import { AppComponent } from './app.component';
@@ -16,7 +17,6 @@ import { HomeComponent } from './features/home/home.component';
 import { SharedModule } from './shared/shared.module';
 import { AdminUiModule } from './shared/admin-ui/admin-ui.module';
 import { DashboardModule } from './dashboard/dashboard.module';
-
 import { AppRoutingModule } from './app-routing.module';
 
 import { HeaderComponent } from './shared/components/header/header.component';
@@ -37,24 +37,26 @@ import { ToastContainerComponent } from './features/competitions/components/toas
   ],
   imports: [
     BrowserModule,
-    HttpClientModule,
+    BrowserAnimationsModule,
     FormsModule,
     AppRoutingModule,
-    BrowserAnimationsModule,
 
+    // Modules & Standalone Components
+    SharedModule,
+    AdminUiModule,
+    DashboardModule,
     HeaderComponent,
     MyPerformancesComponent,
     RankingComponent,
-    ToastContainerComponent,
-    SharedModule,
-    AdminUiModule,
-    DashboardModule
-
+    ToastContainerComponent
   ],
   providers: [
     provideClientHydration(),
-    provideHttpClient(withFetch(), withInterceptors([authInterceptor]))
+    provideHttpClient(
+      withFetch(),
+      withInterceptors([authInterceptor])   // ← Interceptor bien enregistré
+    )
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule {}
+export class AppModule { }

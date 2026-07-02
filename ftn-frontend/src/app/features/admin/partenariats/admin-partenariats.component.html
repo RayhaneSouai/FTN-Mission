@@ -1,118 +1,221 @@
 <div class="container">
 
-  <!-- HEADER -->
   <div class="header">
-    <h2>Partenariats & Sponsoring</h2>
-    <p>Gestion des demandes de partenariat et de sponsoring</p>
+    <h2>Gestion des Partenariats & Sponsoring</h2>
+    <p>Analyse des propositions et validation des collaborations</p>
   </div>
 
   <!-- TABS -->
-  <div class="tabs">
-    <button (click)="setTab('partnership')"
-            [class.active]="activeTab === 'partnership'">
+  <div class="club-tabs">
+    <button (click)="setTab('partnership')" [class.active]="activeTab === 'partnership'">
       Partenariats
+      <span>{{ filteredPartnerships.length }}</span>
     </button>
-
-    <button (click)="setTab('sponsorship')"
-            [class.active]="activeTab === 'sponsorship'">
+    <button (click)="setTab('sponsorship')" [class.active]="activeTab === 'sponsorship'">
       Sponsoring Nageurs
+      <span>{{ sponsorshipRequests.length }}</span>
     </button>
   </div>
 
-  <!-- ===================== PARTNERSHIP TABLE ===================== -->
+  <!-- PARTNERSHIP SECTION -->
   <div *ngIf="activeTab === 'partnership'">
 
-    <div *ngIf="loadingPartnerships">Chargement...</div>
+    <div class="clubs-controls">
+      <div class="controls-inner">
+        <div class="search-box">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="text"
+                 [(ngModel)]="searchTerm"
+                 (input)="filterRequests()"
+                 placeholder="Rechercher par entreprise, représentant ou valeur ajoutée..."/>
+        </div>
+        <button (click)="loadPartnerships()" class="btn-secondary">↻ Actualiser</button>
+      </div>
+    </div>
 
-    <table *ngIf="!loadingPartnerships">
-      <thead>
-      <tr>
-        <th>Représentant</th>
-        <th>Adresse</th>
-        <th>Contact</th>
-        <th>Type</th>
-        <th>Statut</th>
-        <th>Actions</th>
-      </tr>
-      </thead>
+    <div *ngIf="loadingPartnerships" class="loading-container">
+      <div class="spinner"></div>
+      <p>Chargement des demandes...</p>
+    </div>
 
-      <tbody>
-      <tr *ngFor="let p of partnershipRequests">
-        <td>{{ p.nomRepresentant }}</td>
-        <td>{{ p.adresse }}</td>
-        <td>{{ p.contact }}</td>
-        <td>{{ p.typePartenariat }}</td>
-
-        <td>
-            <span [ngClass]="p.statut">
-              {{ p.statut }}
-            </span>
-        </td>
-
-        <td>
-          <div class="admin-row-actions">
-          <button (click)="approvePartnership(p.id)" class="admin-action-label">
-            <span class="material-symbols-outlined" aria-hidden="true">check</span>
-            Approuver
+    <!-- Table -->
+    <div class="admin-clubs-table" *ngIf="!loadingPartnerships && filteredPartnerships.length > 0">
+      <div class="admin-club-row admin-club-row--head">
+        <span>Entreprise</span>
+        <span>Représentant</span>
+        <span>Type</span>
+        <span>Score</span>
+        <span>Budget</span>
+        <span>Date</span>
+        <span>Statut</span>
+        <span>Actions</span>
+      </div>
+      <div class="admin-club-row" *ngFor="let p of filteredPartnerships">
+        <span class="admin-club-name">{{ p.nomEntreprise }}</span>
+        <span>{{ p.nomRepresentant }}</span>
+        <span>{{ p.typePartenariat }}</span>
+        <span>
+          <span class="score-badge" [ngClass]="{'high': p.addedValueScore >= 70, 'medium': p.addedValueScore >= 50}">
+            {{ p.addedValueScore }}/100
+          </span>
+        </span>
+        <span>{{ p.proposedBudget ? p.proposedBudget.toLocaleString('fr-TN') + ' DT' : '-' }}</span>
+        <span>{{ p.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+        <span>
+          <span class="status-badge" [ngClass]="p.statut">{{ p.statut }}</span>
+        </span>
+        <span class="admin-club-actions">
+          <button class="admin-action-icon" (click)="toggleDetails(p)" title="Voir détails">
+            <span class="material-symbols-outlined">visibility</span>
           </button>
 
-          <button (click)="rejectPartnership(p.id)" class="admin-action-label">
-            <span class="material-symbols-outlined" aria-hidden="true">close</span>
-            Refuser
+                  <!-- Approve Button -->
+          <button class="admin-action-icon"
+                  *ngIf="p.statut !== 'APPROVED'"
+                  (click)="openApproveModal(p)"
+                  title="Approuver">
+            <span class="material-symbols-outlined">check</span>
           </button>
-          </div>
-        </td>
-      </tr>
-      </tbody>
-    </table>
+
+                  <!-- Reject Button -->
+          <button class="admin-action-icon admin-action-icon--danger"
+                  *ngIf="p.statut !== 'REJECTED'"
+                  (click)="openRejectModal(p)"
+                  title="Refuser">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+
+                  <!-- Reset Button -->
+          <button class="admin-action-icon"
+                  *ngIf="p.statut === 'APPROVED' || p.statut === 'REJECTED'"
+                  (click)="resetToPending(p.id)"
+                  title="Remettre en revue (Pending)">
+            <span class="material-symbols-outlined">refresh</span>
+          </button>
+        </span>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!loadingPartnerships && filteredPartnerships.length === 0">
+      <h3>Aucune demande trouvée</h3>
+      <p>Essayez de modifier votre recherche.</p>
+    </div>
   </div>
 
-  <!-- ===================== SPONSORSHIP TABLE ===================== -->
-  <div *ngIf="activeTab === 'sponsorship'">
+  <!-- Details Modal -->
+  <div class="modal-overlay" *ngIf="selectedRequest" (click)="closeDetails()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ selectedRequest.nomEntreprise }}</h2>
+        <button class="modal-close" (click)="closeDetails()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid">
+          <div><strong>Proposition de collaboration</strong></div>
+          <div>{{ selectedRequest.proposition || 'Non renseignée' }}</div>
 
-    <div *ngIf="loadingSponsorships">Chargement...</div>
+          <div><strong>Valeur Ajoutée</strong></div>
+          <div>{{ selectedRequest.addedValue || 'Non renseignée' }}</div>
 
-    <table *ngIf="!loadingSponsorships">
-      <thead>
-      <tr>
-        <th>Nageur</th>
-        <th>Sponsor</th>
-        <th>Type</th>
-        <th>Détails</th>
-        <th>Statut</th>
-        <th>Actions</th>
-      </tr>
-      </thead>
+          <div><strong>Modèles suggérés</strong></div>
+          <div><pre class="suggested-models">{{ selectedRequest.suggestedModels || 'Aucun' }}</pre></div>
 
-      <tbody>
-      <tr *ngFor="let s of sponsorshipRequests">
-        <td>{{ s.swimmer?.firstName }} {{ s.swimmer?.lastName }}</td>
-        <td>{{ s.requester?.email }}</td>
-        <td>{{ s.typeSponsor }}</td>
-        <td>{{ s.details }}</td>
-
-        <td>
-            <span [ngClass]="s.statut">
-              {{ s.statut }}
-            </span>
-        </td>
-
-        <td>
-          <div class="admin-row-actions">
-          <button (click)="approveSponsorship(s.id)" class="admin-action-label">
-            <span class="material-symbols-outlined" aria-hidden="true">check</span>
-            Approuver
-          </button>
-
-          <button (click)="rejectSponsorship(s.id)" class="admin-action-label">
-            <span class="material-symbols-outlined" aria-hidden="true">close</span>
-            Refuser
-          </button>
+          <!-- NEW: Model Selection -->
+          <div><strong>Modèle de collaboration à appliquer</strong></div>
+          <div>
+            <select [(ngModel)]="selectedModel" class="model-select">
+              <option value="">-- Choisir un modèle suggéré --</option>
+              <option *ngFor="let model of getSuggestedModels()" [value]="model">{{ model }}</option>
+            </select>
+            <input type="text" [(ngModel)]="customModel"
+                   placeholder="Ou saisissez un modèle personnalisé..."
+                   class="custom-model-input">
           </div>
-        </td>
-      </tr>
-      </tbody>
-    </table>
+
+          <div><strong>Type de Partenariat</strong></div>
+          <div>{{ selectedRequest.typePartenariat }}</div>
+
+          <div><strong>Budget Proposé</strong></div>
+          <div>{{ selectedRequest.proposedBudget ? selectedRequest.proposedBudget + ' DT' : '-' }}</div>
+
+          <div><strong>Club Cible</strong></div>
+          <div>{{ selectedRequest.targetClub || '-' }}</div>
+
+          <div *ngIf="selectedRequest?.statut === 'REJECTED'">
+            <strong>Raison du rejet :</strong>
+          </div>
+          <div *ngIf="selectedRequest?.statut === 'REJECTED'" style="color: #dc2626; font-weight: 500;">
+            {{ selectedRequest.decisionNotes || 'Aucune raison fournie' }}
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeDetails()">Fermer</button>
+
+        <!-- Fixed Approve Button -->
+        <button class="btn-success" (click)="openApproveModal(selectedRequest); closeDetails()">
+          Approuver
+        </button>
+
+        <button class="btn-danger" (click)="openRejectModal(selectedRequest); closeDetails()">
+          Refuser
+        </button>
+      </div>
+    </div>
   </div>
 
+  <!-- Reject Modal -->
+  <div class="modal-overlay" *ngIf="showRejectModal" (click)="closeRejectModal()">
+    <div class="modal-content reject-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Refuser la demande</h2>
+        <button class="modal-close" (click)="closeRejectModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Entreprise :</strong> {{ requestToReject?.nomEntreprise }}</p>
+
+        <label for="reject-reason">Raison du rejet <span class="required">*</span></label>
+        <textarea
+          id="reject-reason"
+          [(ngModel)]="rejectReason"
+          placeholder="Expliquez pourquoi vous refusez cette proposition..."
+          rows="5"
+          class="reject-textarea"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeRejectModal()">Annuler</button>
+        <button class="btn-danger" (click)="confirmReject()" [disabled]="!rejectReason.trim()">
+          Confirmer le Refus
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Approve Modal -->
+  <div class="modal-overlay" *ngIf="showApproveModal" (click)="closeApproveModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Approuver la demande</h2>
+        <button class="modal-close" (click)="closeApproveModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Entreprise :</strong> {{ requestToApprove?.nomEntreprise }}</p>
+
+        <label for="approve-notes">Notes / Commentaires (optionnel)</label>
+        <textarea
+          id="approve-notes"
+          [(ngModel)]="approveNotes"
+          placeholder="Ajouter des notes ou conditions..."
+          rows="4"
+          class="reject-textarea"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeApproveModal()">Annuler</button>
+        <button class="btn-success" (click)="confirmApprove()">Confirmer l'Approbation</button>
+      </div>
+    </div>
+  </div>
 </div>
