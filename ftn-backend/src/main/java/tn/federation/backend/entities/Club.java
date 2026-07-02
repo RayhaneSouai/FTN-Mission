@@ -23,6 +23,13 @@ public class Club {
     private String contact;
     private String manager;
     private LocalDate affiliationDate;
+    private boolean active = true;
+
+    @Enumerated(EnumType.STRING)
+    private Discipline discipline;
+
+    private int maxCapacity = 30;
+
     private Double latitude;
     private Double longitude;
 
