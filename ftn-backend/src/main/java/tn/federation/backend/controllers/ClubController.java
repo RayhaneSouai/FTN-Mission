@@ -1,5 +1,6 @@
 package tn.federation.backend.controllers;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -10,6 +11,15 @@ import org.springframework.web.multipart.MultipartFile;
 import tn.federation.backend.dto.ClubJoinRequestDTO;
 import tn.federation.backend.dto.ImportResult;
 import tn.federation.backend.dto.RegionOptionDto;
+import tn.federation.backend.entities.Club;
+import tn.federation.backend.entities.ClubJoinRequest;
+import tn.federation.backend.entities.ClubJoinRequestStatus;
+import tn.federation.backend.entities.Region;
+import tn.federation.backend.entities.Role;
+import tn.federation.backend.entities.User;
+import tn.federation.backend.entities.ClubSeasonValidation;
+import tn.federation.backend.entities.License;
+import tn.federation.backend.repositories.LicenseRepository;
 import tn.federation.backend.entities.*;
 
 import java.util.Arrays;
@@ -19,6 +29,12 @@ import tn.federation.backend.services.Abstraction.IClubService;
 import tn.federation.backend.services.Abstraction.INotificationService;
 import tn.federation.backend.dto.ClubAdminReportDTO;
 
+import tn.federation.backend.services.Abstraction.INotificationService;
+import tn.federation.backend.dto.ClubAdminReportDTO;
+import tn.federation.backend.repositories.ClubJoinRequestRepository;
+import tn.federation.backend.repositories.ClubRepository;
+import tn.federation.backend.repositories.UserRepository;
+import tn.federation.backend.repositories.ClubSeasonValidationRepository;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
