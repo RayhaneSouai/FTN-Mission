@@ -96,9 +96,15 @@ button.btn-primary:disabled,
 
 .btn-outline:hover:not(:disabled),
 .btn-outline-primary:hover:not(:disabled) {
-  background: var(--ftn-primary) !important;
-  border-color: var(--ftn-primary) !important;
-  color: #fff !important;
+  background: #eff6ff !important;
+  border-color: #bfdbfe !important;
+  color: #1d4ed8 !important;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #eff6ff !important;
+  border-color: #bfdbfe !important;
+  color: #1d4ed8 !important;
 }
 
 input:focus,

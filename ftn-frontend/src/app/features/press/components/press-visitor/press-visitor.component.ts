@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { PressItem, PressType } from '../../models/press-item.model';
 import { PressService } from '../../services/press.service';
+import { PAGE_HERO_IMAGES } from '../../../../shared/components/page-hero/page-hero.constants';
 
 @Component({
   selector: 'app-press-visitor',
@@ -34,11 +35,46 @@ export class PressVisitorComponent implements OnInit {
 
   get pagedItems(): PressItem[] {
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    return this.getFilteredItems().slice(startIndex, startIndex + this.itemsPerPage);
+    return this.listItemsExcludingHero.slice(startIndex, startIndex + this.itemsPerPage);
   }
 
   get totalPages(): number {
-    return Math.max(1, Math.ceil(this.getFilteredItems().length / this.itemsPerPage));
+    return Math.max(1, Math.ceil(this.listItemsExcludingHero.length / this.itemsPerPage));
+  }
+
+  get heroArticle(): PressItem | null {
+    if (this.activeFilter !== 'ALL' || this.searchTerm.trim()) {
+      return null;
+    }
+    const items = this.getFilteredItems();
+    return items.length > 0 ? items[0] : null;
+  }
+
+  get listItemsExcludingHero(): PressItem[] {
+    const items = this.getFilteredItems();
+    const hero = this.heroArticle;
+    if (!hero) {
+      return items;
+    }
+    const heroId = this.pressItemId(hero);
+    return items.filter((item) => this.pressItemId(item) !== heroId);
+  }
+
+  get heroImageUrl(): string {
+    if (this.heroArticle) {
+      return this.getArticleImage(this.heroArticle, 0);
+    }
+    return PAGE_HERO_IMAGES.actualitesFallback;
+  }
+
+  get heroSubtitle(): string {
+    if (this.heroArticle) {
+      const excerpt = this.plainText(this.heroArticle.summary || this.heroArticle.content);
+      if (excerpt) {
+        return excerpt.length > 180 ? `${excerpt.slice(0, 180)}…` : excerpt;
+      }
+    }
+    return 'Découvrez toute l\'actualité de la natation tunisienne, les résultats officiels, les sélections nationales et les événements de la fédération.';
   }
 
   nextPage() {
@@ -82,7 +118,11 @@ export class PressVisitorComponent implements OnInit {
       next: (data) => {
         this.items = data
           .filter(item => item.status === 'PUBLISHED')
-          .sort((a, b) => (b.idPressItem || 0) - (a.idPressItem || 0));
+          .sort((a, b) => {
+            const dateA = new Date(a.publishedAt || a.createdAt || 0).getTime();
+            const dateB = new Date(b.publishedAt || b.createdAt || 0).getTime();
+            return dateB - dateA;
+          });
         this.loading = false;
         this.loadFavorites();
         this.loadPinned();
@@ -249,10 +289,16 @@ export class PressVisitorComponent implements OnInit {
     if (!itemId) return;
     const userId = this.getCurrentUserId();
     if (!userId) { alert('Vous devez être connecté pour ajouter aux favoris.'); return; }
+    const wasFavorited = !!this.interactions?.isFavoritedByCurrentUser;
+    this.updateFavoriteList(itemId, !wasFavorited);
+    this.updateInteractionFlags({ isFavoritedByCurrentUser: !wasFavorited, totalFavorites: wasFavorited ? -1 : 1 });
     this.pressService.toggleFavorite(itemId, userId).subscribe({
       next: () => {
         this.loadInteractions();
-        this.loadFavorites();
+      },
+      error: () => {
+        this.updateFavoriteList(itemId, wasFavorited);
+        this.updateInteractionFlags({ isFavoritedByCurrentUser: wasFavorited, totalFavorites: wasFavorited ? 1 : -1 });
       }
     });
   }
@@ -262,11 +308,68 @@ export class PressVisitorComponent implements OnInit {
     if (!itemId) return;
     const userId = this.getCurrentUserId();
     if (!userId) { alert('Vous devez être connecté pour épingler.'); return; }
+    const wasPinned = !!this.interactions?.isPinnedByCurrentUser;
+    this.updatePinnedList(itemId, !wasPinned);
+    this.updateInteractionFlags({ isPinnedByCurrentUser: !wasPinned, totalPins: wasPinned ? -1 : 1 });
     this.pressService.togglePin(itemId, userId).subscribe({
       next: () => {
         this.loadInteractions();
+      },
+      error: () => {
+        this.updatePinnedList(itemId, wasPinned);
+        this.updateInteractionFlags({ isPinnedByCurrentUser: wasPinned, totalPins: wasPinned ? 1 : -1 });
       }
     });
+  }
+
+  private updatePinnedList(itemId: number, shouldPin: boolean): void {
+    const item = this.selectedItem || this.items.find(candidate => this.pressItemId(candidate) === itemId);
+    const exists = this.pinnedItems.some(candidate => this.pressItemId(candidate) === itemId);
+    if (shouldPin && item && !exists) {
+      this.pinnedItems = [item, ...this.pinnedItems];
+      return;
+    }
+    if (!shouldPin) {
+      this.pinnedItems = this.pinnedItems.filter(candidate => this.pressItemId(candidate) !== itemId);
+      if (this.activeFilter === 'PINNED' && this.currentPage > this.totalPages) {
+        this.currentPage = this.totalPages;
+      }
+    }
+  }
+
+  private updateFavoriteList(itemId: number, shouldFavorite: boolean): void {
+    const item = this.selectedItem || this.items.find(candidate => this.pressItemId(candidate) === itemId);
+    const exists = this.favoriteItems.some(candidate => this.pressItemId(candidate) === itemId);
+    if (shouldFavorite && item && !exists) {
+      this.favoriteItems = [item, ...this.favoriteItems];
+      return;
+    }
+    if (!shouldFavorite) {
+      this.favoriteItems = this.favoriteItems.filter(candidate => this.pressItemId(candidate) !== itemId);
+      if (this.activeFilter === 'FAVORITES' && this.currentPage > this.totalPages) {
+        this.currentPage = this.totalPages;
+      }
+    }
+  }
+
+  private updateInteractionFlags(flags: {
+    isPinnedByCurrentUser?: boolean;
+    isFavoritedByCurrentUser?: boolean;
+    totalPins?: number;
+    totalFavorites?: number;
+  }): void {
+    if (!this.interactions) return;
+    this.interactions = {
+      ...this.interactions,
+      ...('isPinnedByCurrentUser' in flags ? { isPinnedByCurrentUser: flags.isPinnedByCurrentUser } : {}),
+      ...('isFavoritedByCurrentUser' in flags ? { isFavoritedByCurrentUser: flags.isFavoritedByCurrentUser } : {}),
+      totalPins: Math.max(0, (this.interactions.totalPins || 0) + (flags.totalPins || 0)),
+      totalFavorites: Math.max(0, (this.interactions.totalFavorites || 0) + (flags.totalFavorites || 0))
+    };
+  }
+
+  private pressItemId(item: any): number | undefined {
+    return item?.idPressItem || item?.id;
   }
 
   getReactionCount(type: string): number {

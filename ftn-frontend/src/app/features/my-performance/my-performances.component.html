@@ -1,14 +1,10 @@
-<div class="perf-page">
+<app-page-hero
+  title="Mes performances"
+  subtitle="Suivi de vos chronos et progression."
+  [imageUrl]="heroImage">
+</app-page-hero>
 
-  <div class="page-header">
-    <div class="page-header__icon" aria-hidden="true">
-      <i class="bi bi-activity"></i>
-    </div>
-    <div>
-      <h1 class="page-header__title">Mes performances</h1>
-      <p class="page-header__subtitle">Suivi de vos chronos et progression</p>
-    </div>
-  </div>
+<div class="perf-page">
 
   @if (loading()) {
     <div class="spinner-wrap">

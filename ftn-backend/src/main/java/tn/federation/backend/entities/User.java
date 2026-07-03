@@ -33,7 +33,7 @@ public class User {
     private Role role;
 
     @ManyToOne
-    @JoinColumn(name = "club_id")
+    @JoinColumn(name = "club_id", nullable = true)
     private Club club;
 
     private Boolean active;

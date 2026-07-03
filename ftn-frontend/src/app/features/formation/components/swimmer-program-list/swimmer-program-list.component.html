@@ -1,0 +1,88 @@
+<app-page-hero
+  kicker="Formation FTN"
+  title="Programmes"
+  subtitle="Programmes d'entraînement encadrés par nos coachs, par catégorie d'âge."
+  [imageUrl]="heroImage">
+</app-page-hero>
+
+<main class="program-list-page">
+  <section class="filter-panel" *ngIf="!loadingSeasons && currentSeason">
+    <div class="filter-panel__head">
+      <span class="filter-panel__label">Filtrer par catégorie</span>
+      <span class="filter-panel__season">{{ currentSeason.label }} · Saison en cours</span>
+    </div>
+    <div class="filter-panel__row">
+      <label class="filter-field" for="category-filter">
+        Catégorie
+        <select id="category-filter"
+                [ngModel]="categoryFilter"
+                (ngModelChange)="onCategoryChange($event)">
+          <option value="ALL">Toutes les catégories</option>
+          <option *ngFor="let cat of allCategories" [value]="cat">{{ categoryLabel(cat) }}</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <div class="loading-state" *ngIf="loadingSeasons">Chargement...</div>
+
+  <section class="programs-section" *ngIf="!loadingSeasons && currentSeason">
+    <div class="loading-state" *ngIf="loadingPrograms">Chargement des programmes...</div>
+
+    <div class="formation-grid" *ngIf="!loadingPrograms && filteredPrograms.length > 0">
+      <article class="formation-card" *ngFor="let program of filteredPrograms">
+        <div class="formation-card__top">
+          <span class="brevet-tag">{{ categoryLabel(program.targetCategory!) }}</span>
+          <span class="published-tag" [class.published-tag--closed]="resolveProgramState(program) !== 'OPEN'">
+            {{ resolveProgramStateLabel(program) }}
+          </span>
+        </div>
+
+        <h3>{{ program.title }}</h3>
+
+        <div class="formation-info">
+          <span>Coach</span>
+          <strong>{{ coachName(program) }}</strong>
+        </div>
+
+        <div class="formation-info" *ngIf="program.location">
+          <span>Lieu</span>
+          <strong>{{ program.location }}</strong>
+        </div>
+
+        <div class="formation-info" *ngIf="program.registrationStartDate || program.registrationEndDate">
+          <span>Inscriptions</span>
+          <strong>{{ formatDateRange(program.registrationStartDate, program.registrationEndDate) }}</strong>
+        </div>
+
+        <div class="formation-info" *ngIf="program.pricePerSession !== undefined && program.pricePerSession !== null">
+          <span>Prix par séance</span>
+          <strong>{{ program.pricePerSession }} DT</strong>
+        </div>
+
+        <div class="formation-info" *ngIf="spotsRemaining(program) !== null">
+          <span>Places restantes</span>
+          <strong>{{ spotsRemaining(program) }} / {{ program.maxParticipants }}</strong>
+        </div>
+
+        <p class="conditions" *ngIf="program.registrationConditions">
+          {{ program.registrationConditions }}
+        </p>
+
+        <div class="formation-actions">
+          <a class="btn-outline" [routerLink]="['/formations/programmes', program.id]">Voir les détails</a>
+        </div>
+      </article>
+    </div>
+
+    <div class="empty-state" *ngIf="!loadingPrograms && filteredPrograms.length === 0">
+      <h3>Aucun programme trouvé</h3>
+      <p>Essayez une autre catégorie ou revenez plus tard.</p>
+    </div>
+  </section>
+
+  <div class="empty-state" *ngIf="!loadingSeasons && !currentSeason">
+    <h3>Aucune saison active</h3>
+    <p>Les programmes seront affichés ici dès qu'une nouvelle saison sera ouverte.</p>
+  </div>
+</main>

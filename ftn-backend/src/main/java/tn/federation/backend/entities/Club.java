@@ -30,6 +30,19 @@ public class Club {
 
     private int maxCapacity = 30;
 
+    // ─── Club requirements ──────────────────────────────────────────────────────
+    private Integer minAge;
+    private Integer maxAge;
+
+    @Enumerated(EnumType.STRING)
+    private Niveau requiredLevel;
+
+    @Enumerated(EnumType.STRING)
+    private Discipline requiredDiscipline;
+
+    private boolean medicalCertificateRequired = false;
+    private Integer availableSpots;
+
     private Double latitude;
     private Double longitude;
 

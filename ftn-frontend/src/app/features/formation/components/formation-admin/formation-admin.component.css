@@ -22,6 +22,73 @@
   align-items: start;
 }
 
+.admin-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-tabs button {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 4px;
+  margin-right: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.admin-tabs button.active {
+  color: #1565c0;
+  border-bottom-color: #1565c0;
+}
+
+.registration-filters {
+  display: flex;
+  gap: 10px;
+}
+
+.registration-filters select {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.registrations-table {
+  overflow-x: auto;
+}
+
+.registration-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1.4fr 0.9fr 0.8fr 1.4fr;
+  gap: 14px;
+  align-items: center;
+  min-width: 900px;
+  padding: 12px 4px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 13px;
+  color: #334155;
+}
+
+.registration-row--head {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.registration-row .request-name small {
+  display: block;
+  color: #64748b;
+  font-weight: 400;
+}
+
 .panel {
   background: #fff;
   border: 1px solid #e5e7eb;

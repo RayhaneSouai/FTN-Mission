@@ -1,4 +1,6 @@
 
+<app-toast-container />
+
 <app-page-hero
   [title]="isAdminMode ? 'Gestion des clubs' : 'Clubs affiliés'"
   [subtitle]="isAdminMode ? 'Administration des clubs : ajout, modification et statistiques.' : 'Découvrez les clubs de la fédération.'"
@@ -16,8 +18,8 @@
     <button type="button"
             [class.active]="activeTab === 'mine'"
             (click)="setActiveTab('mine')">
-      Mes clubs
-      <span *ngIf="myClubs.length > 0">{{ myClubs.length }}</span>
+      Mon club
+      <span *ngIf="myClubs.length > 0" class="tab-badge">1</span>
     </button>
   </div>
 </section>
@@ -43,7 +45,7 @@
 <!-- Ranking Section -->
 <section class="ranking-section" *ngIf="!isAdminMode && activeTab === 'browse' && topClubs.length > 0">
   <div class="section-header">
-    <h2><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg> Top 3 Clubs (Par Nageurs)</h2>
+    <h2><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg> Top 3 Clubs</h2>
   </div>
   <div class="top-clubs-grid">
     <div class="top-club-card" *ngFor="let club of topClubs; let i = index">
@@ -53,7 +55,7 @@
         <p>{{ getRegionLabel(club.region) }}</p>
       </div>
       <div class="swimmers-count">
-        <span class="count-val">{{ club.swimmers?.length || 0 }}</span>
+        <span class="count-val">{{ club.swimmerCount }}</span>
         <span class="count-label">Nageurs</span>
       </div>
     </div>
@@ -106,20 +108,28 @@
     Aucune demande en attente.
   </div>
 
-  <div class="join-requests-table" *ngIf="joinRequests.length > 0">
-    <div class="join-request-row join-request-row--head">
-      <span>Nageur</span>
-      <span>Email</span>
-      <span>Club demandé</span>
-      <span>Date</span>
-      <span>Décision</span>
-    </div>
-    <div class="join-request-row" *ngFor="let request of joinRequests">
-      <span class="request-name">{{ request.swimmerName }}</span>
-      <span>{{ request.swimmerEmail }}</span>
-      <span>{{ request.clubName }} <small>{{ getRegionLabel(request.clubRegion) }}</small></span>
-      <span>{{ request.requestedAt | date:'dd/MM/yyyy HH:mm' }}</span>
-      <span class="request-actions admin-row-actions">
+  <div class="join-requests-list" *ngIf="joinRequests.length > 0">
+    <div class="join-request-card" *ngFor="let request of joinRequests">
+      <div class="join-request-card-head">
+        <div>
+          <span class="request-name">{{ request.swimmerName }}</span>
+          <small>{{ request.swimmerEmail }}</small>
+        </div>
+        <span class="request-club">{{ request.clubName }} <small>{{ getRegionLabel(request.clubRegion) }}</small></span>
+        <span class="request-date">{{ request.requestedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+      <div class="join-request-details" *ngIf="request.motivationLetter || request.currentLevel || request.availability || request.eligibilityScore != null">
+        <p *ngIf="request.eligibilityScore != null" class="request-score">
+          <strong>Score d'éligibilité :</strong>
+          {{ request.eligibilityScore }}%
+          <span *ngIf="request.criteriaTotal">({{ request.criteriaMet }}/{{ request.criteriaTotal }} critères)</span>
+        </p>
+        <p *ngIf="request.motivationLetter"><strong>Motivation :</strong> {{ request.motivationLetter }}</p>
+        <p *ngIf="request.currentLevel"><strong>Niveau déclaré :</strong> {{ request.currentLevel }}</p>
+        <p *ngIf="request.previousClub"><strong>Club précédent :</strong> {{ request.previousClub }}</p>
+        <p *ngIf="request.availability"><strong>Disponibilités :</strong> {{ request.availability }}</p>
+      </div>
+      <div class="request-actions admin-row-actions">
         <button class="admin-action-label"
                 type="button"
                 [disabled]="processingJoinRequestId === request.id"
@@ -134,7 +144,7 @@
           <span class="material-symbols-outlined" aria-hidden="true">close</span>
           Refuser
         </button>
-      </span>
+      </div>
     </div>
   </div>
 </section>
@@ -191,34 +201,39 @@
 <!-- Clubs Grid -->
 <section class="clubs-section" *ngIf="!isAdminMode && !loading && activeTab === 'browse' && filteredClubs.length > 0">
   <div class="clubs-grid" [class.list-view]="!isAdminMode && viewMode === 'list'">
-    <div class="club-card" *ngFor="let club of filteredClubs">
-      <div class="card-header">
+    <div class="club-card" *ngFor="let club of filteredClubs" [class.joined-card]="isJoinedClub(club)">
+      <div class="card-header" *ngIf="isAdminMode || viewMode === 'grid'">
         <div class="club-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/>
           </svg>
         </div>
-        <div class="card-actions">
+        <div class="card-actions" *ngIf="isAdminMode && canManage">
           <button class="action-btn stats" (click)="openStats(club)" title="Statistiques">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
           </button>
-          <button class="action-btn edit" *ngIf="isAdminMode && canManage" (click)="openEditForm(club)" title="Modifier">
+          <button class="action-btn edit" (click)="openEditForm(club)" title="Modifier">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
           </button>
-          <button class="action-btn delete" *ngIf="isAdminMode && canManage" (click)="deleteClub(club.id!)" title="Supprimer">
+          <button class="action-btn delete" (click)="deleteClub(club.id!)" title="Supprimer">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
           </button>
         </div>
       </div>
-      <h3 class="club-name">{{ club.name }}</h3>
-      <div class="club-detail"><span class="detail-label">Région</span><span>{{ getRegionLabel(club.region) }}</span></div>
-      <div class="club-detail"><span class="detail-label">Adresse</span><span>{{ club.address }}</span></div>
-      <div class="club-detail"><span class="detail-label">Contact</span><span>{{ club.contact }}</span></div>
-      <div class="club-detail"><span class="detail-label">Manager</span><span>{{ club.manager }}</span></div>
-      <div class="club-detail" *ngIf="club.affiliationDate"><span class="detail-label">Affilié depuis</span><span>{{ club.affiliationDate }}</span></div>
+      <div class="club-name-row">
+        <h3 class="club-name">{{ club.name }}</h3>
+        <span class="refused-badge" *ngIf="!isAdminMode && hasRejectedRequest(club)" title="Votre dernière demande a été refusée">Refusé</span>
+      </div>
+      <div class="club-detail"><span class="detail-label">Région</span><span>{{ getRegionLabel(club.region) || '—' }}</span></div>
+      <div class="club-detail"><span class="detail-label">Adresse</span><span>{{ club.address || '—' }}</span></div>
+      <div class="club-detail"><span class="detail-label">Contact</span><span>{{ club.contact || '—' }}</span></div>
+      <div class="club-detail"><span class="detail-label">Manager</span><span>{{ club.manager || '—' }}</span></div>
+      <div class="club-detail"><span class="detail-label">Affilié depuis</span><span>{{ club.affiliationDate || '—' }}</span></div>
       <div class="club-public-actions" *ngIf="!isAdminMode">
+        <a class="btn-outline details-link" [routerLink]="['/clubs', club.id]">Voir les détails</a>
         <button class="btn-primary join-btn"
                 type="button"
+                *ngIf="shouldShowJoinButton(club)"
                 [class.joined]="isJoinedClub(club)"
                 [disabled]="isJoinButtonDisabled(club)"
                 (click)="openJoinModal(club)">
@@ -229,38 +244,22 @@
   </div>
 </section>
 
-<!-- Join Request Modal -->
-<div class="modal-overlay" *ngIf="showJoinModal" (click)="closeJoinModal()">
-  <div class="modal-box" (click)="$event.stopPropagation()">
-    <button class="modal-close" type="button" (click)="closeJoinModal()">×</button>
-    <h3>Demande d'adhésion</h3>
-    <p class="modal-subtitle">{{ clubToJoin?.name }}</p>
-    <div class="form-field">
-      <label for="joinMessage">Motivation <span class="optional">(facultatif)</span></label>
-      <textarea id="joinMessage" class="form-textarea"
-                [(ngModel)]="joinMessage"
-                placeholder="Présentez-vous et expliquez votre motivation à rejoindre ce club..."
-                rows="4"></textarea>
-    </div>
-    <div class="modal-actions">
-      <button type="button" class="btn-cancel" (click)="closeJoinModal()">Annuler</button>
-      <button type="button" class="btn-primary"
-              [disabled]="joiningClubId === clubToJoin?.id"
-              (click)="submitJoinRequest()">
-        {{ joiningClubId === clubToJoin?.id ? 'Envoi...' : 'Envoyer la demande' }}
-      </button>
-    </div>
-  </div>
-</div>
+<!-- Join Request Form -->
+<app-club-join-form
+  *ngIf="showJoinModal && clubToJoin"
+  [club]="clubToJoin"
+  (closed)="closeJoinModal()"
+  (completed)="onJoinCompleted($event)">
+</app-club-join-form>
 
-<!-- My Clubs -->
-<section class="clubs-section my-clubs-section" *ngIf="!isAdminMode && activeTab === 'mine'">
-  <div class="loading-container compact" *ngIf="loadingMyClubs">
+<!-- Mon club -->
+<section class="clubs-section my-club-section" *ngIf="!isAdminMode && activeTab === 'mine'">
+  <div class="loading-container compact" *ngIf="loadingMyClubs || loadingMyClubDetail">
     <div class="spinner"></div>
-    <p>Chargement de vos clubs...</p>
+    <p>Chargement de votre club...</p>
   </div>
 
-  <div class="empty-state" *ngIf="!loadingMyClubs && myClubs.length === 0">
+  <div class="empty-state" *ngIf="!loadingMyClubs && !loadingMyClubDetail && myClubs.length === 0">
     <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M3 21h18"/><path d="M3 7v1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7H3l2-4h14l2 4"/>
     </svg>
@@ -269,28 +268,91 @@
     <button class="btn-primary" type="button" (click)="setActiveTab('browse')">Parcourir les clubs</button>
   </div>
 
-  <div class="clubs-grid" *ngIf="!loadingMyClubs && myClubs.length > 0">
-    <div class="club-card joined-card" *ngFor="let club of myClubs">
-      <div class="card-header">
-        <div class="club-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 6 9 17l-5-5"/>
-          </svg>
-        </div>
-        <span class="joined-badge">Membre</span>
+  <article class="my-club-panel" *ngIf="!loadingMyClubs && !loadingMyClubDetail && myClubDetail">
+    <div class="my-club-panel__header">
+      <div class="my-club-panel__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/>
+        </svg>
       </div>
-      <h3 class="club-name">{{ club.name }}</h3>
-      <div class="club-detail"><span class="detail-label">Région</span><span>{{ getRegionLabel(club.region) }}</span></div>
-      <div class="club-detail"><span class="detail-label">Adresse</span><span>{{ club.address }}</span></div>
-      <div class="club-detail"><span class="detail-label">Contact</span><span>{{ club.contact }}</span></div>
-      <div class="club-detail"><span class="detail-label">Manager</span><span>{{ club.manager }}</span></div>
-      <div class="club-detail" *ngIf="club.affiliationDate"><span class="detail-label">Affilié depuis</span><span>{{ club.affiliationDate }}</span></div>
-      <div class="club-public-actions">
-        <button class="btn-secondary" type="button" (click)="openStats(club)">Voir statistiques</button>
+      <div>
+        <span class="my-club-panel__kicker">Mon club</span>
+        <h2>{{ myClubDetail.name }}</h2>
+        <p>{{ getRegionLabel(myClubDetail.region) || '—' }}</p>
+      </div>
+      <span class="joined-badge">Membre</span>
+    </div>
+
+    <div class="my-club-info-grid">
+      <div><span>Adresse</span><strong>{{ myClubDetail.address || '—' }}</strong></div>
+      <div><span>Contact</span><strong>{{ myClubDetail.contact || '—' }}</strong></div>
+      <div><span>Manager</span><strong>{{ myClubDetail.manager || '—' }}</strong></div>
+      <div><span>Affilié depuis</span><strong>{{ myClubDetail.affiliationDate || '—' }}</strong></div>
+      <div><span>Discipline</span><strong>{{ myClubDetail.discipline || '—' }}</strong></div>
+      <div><span>Capacité</span><strong>{{ myClubDetail.maxCapacity }} places</strong></div>
+    </div>
+
+    <div class="my-club-stats">
+      <div class="my-club-stat">
+        <span class="my-club-stat__value">{{ myClubDetail.stats.athleteCount }}</span>
+        <span class="my-club-stat__label">Athlètes</span>
+      </div>
+      <div class="my-club-stat">
+        <span class="my-club-stat__value">{{ myClubDetail.stats.coachCount }}</span>
+        <span class="my-club-stat__label">Coachs</span>
+      </div>
+      <div class="my-club-stat">
+        <span class="my-club-stat__value">{{ myClubDetail.stats.totalPerformances }}</span>
+        <span class="my-club-stat__label">Performances</span>
+      </div>
+      <div class="my-club-stat">
+        <span class="my-club-stat__value">{{ myClubDetail.stats.personalRecordsCount }}</span>
+        <span class="my-club-stat__label">Records perso.</span>
       </div>
     </div>
-  </div>
+
+    <section class="my-club-competitions">
+      <div class="section-header">
+        <h3>Compétitions du club</h3>
+        <p>Compétitions auxquelles des nageurs de votre club sont engagés.</p>
+      </div>
+
+      <div class="competition-empty" *ngIf="myClubCompetitions.length === 0">
+        Aucune compétition enregistrée pour le moment.
+      </div>
+
+      <div class="competition-list" *ngIf="myClubCompetitions.length > 0">
+        <a class="competition-item" *ngFor="let competition of myClubCompetitions" [routerLink]="['/competitions', competition.id]">
+          <div>
+            <strong>{{ competition.name }}</strong>
+            <span>{{ formatCompetitionDates(competition.startDate, competition.endDate) }}</span>
+          </div>
+          <div class="competition-item__meta">
+            <span *ngIf="competition.region">{{ getRegionLabel(competition.region) }}</span>
+            <span>{{ competition.engagementCount }} engagement(s)</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <div class="my-club-footer">
+      <a class="btn-outline" [routerLink]="['/clubs', myClubDetail.id]">Voir la fiche publique</a>
+      <button type="button" class="btn-leave" (click)="openLeaveConfirm()" [disabled]="leavingClub">
+        {{ leavingClub ? 'Désinscription...' : 'Quitter le club' }}
+      </button>
+    </div>
+  </article>
 </section>
+
+<app-confirm-dialog
+  *ngIf="showLeaveConfirm"
+  title="Quitter le club"
+  message="Êtes-vous sûr de vouloir quitter votre club ? Vous devrez envoyer une nouvelle demande d'adhésion pour le rejoindre."
+  confirmLabel="Oui, quitter le club"
+  cancelLabel="Annuler"
+  (confirmed)="confirmLeaveClub()"
+  (cancelled)="cancelLeaveClub()">
+</app-confirm-dialog>
 
 <!-- Modal Form (admin only) -->
 <div class="modal-overlay" *ngIf="isAdminMode && showForm" (click)="closeForm()">

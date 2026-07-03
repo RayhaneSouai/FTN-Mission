@@ -18,4 +18,17 @@ public interface FormationRegistrationRepository extends JpaRepository<Formation
     List<FormationRegistration> findBySwimmer_IdAndStatusInOrderByRegisteredAtDesc(
             Long swimmerId,
             Collection<FormationRegistrationStatus> statuses);
+
+    long countByProgram_Id(Long programId);
+
+    // ─── Admin registration workflow ─────────────────────────────────────────────
+
+    List<FormationRegistration> findByProgram_Season_IdOrderByRegisteredAtDesc(Long seasonId);
+
+    List<FormationRegistration> findByStatusOrderByRegisteredAtDesc(FormationRegistrationStatus status);
+
+    List<FormationRegistration> findByProgram_Season_IdAndStatusOrderByRegisteredAtDesc(
+            Long seasonId, FormationRegistrationStatus status);
+
+    List<FormationRegistration> findAllByOrderByRegisteredAtDesc();
 }

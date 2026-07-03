@@ -21,6 +21,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @deprecated Superseded by {@link AiService} (Gemini-backed), wired through
+ * {@link tn.federation.backend.controllers.EligibilityController}. No controller
+ * calls this anymore — kept only pending a cleanup PR that removes the Claude
+ * dependency entirely.
+ */
+@Deprecated
 @Service
 public class EligibilityService {
 

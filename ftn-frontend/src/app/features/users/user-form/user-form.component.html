@@ -158,9 +158,9 @@
                 <option [ngValue]="null">-- Aucun club --</option>
                 <option *ngFor="let club of clubs" [value]="club.id">{{ club.name }} ({{ club.region }})</option>
               </select>
-              <label for="clubId">Sélectionner le club</label>
+              <label for="clubId">Sélectionner le club (optionnel)</label>
             </div>
-            <div class="form-text small mt-2">L'affectation à un club permet au nageur de voir les informations de son club dans son espace.</div>
+            <div class="form-text small mt-2">Le club peut être renseigné plus tard. Un nageur peut demander à rejoindre un club depuis la page Clubs.</div>
           </div>
         </div>
       </div>

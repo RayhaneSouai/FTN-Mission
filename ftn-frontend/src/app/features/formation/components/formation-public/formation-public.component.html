@@ -1,52 +1,39 @@
-<section class="formation-hero">
-  <div class="formation-hero__content">
-    <span class="formation-kicker">Formation FTN</span>
-    <h1>Programmes de formation</h1>
-    <p>
-      Consultez la saison en cours, les formations BF1 / BF2 ouvertes et l'historique
-      des saisons précédentes.
-    </p>
-  </div>
-</section>
+<app-page-hero
+  kicker="Formation FTN"
+  title="Devenir Coach"
+  subtitle="Formations BF1 / BF2 de la saison en cours."
+  [imageUrl]="heroImage">
+</app-page-hero>
 
 <main class="formation-public">
-  <section class="season-tabs" *ngIf="!loadingSeasons && seasons.length > 0">
-    <button
-      type="button"
-      *ngFor="let season of seasons"
-      class="season-tab"
-      [class.active]="selectedSeason?.id === season.id"
-      (click)="selectSeason(season)">
-      <span>{{ season.label }}</span>
-      <small *ngIf="season.active">Saison ouverte</small>
-      <small *ngIf="!season.active">Ancienne saison</small>
-    </button>
-  </section>
+  <div class="catalog-header" *ngIf="!loadingSeasons">
+    <a routerLink="/formations/archives" class="btn-archive-link">Voir archives</a>
+  </div>
 
   <div class="loading-state" *ngIf="loadingSeasons">
     Chargement des saisons...
   </div>
 
-  <section class="current-season" *ngIf="selectedSeason">
+  <section class="current-season" *ngIf="!loadingSeasons && currentSeason">
     <div class="section-heading">
       <div>
-        <span class="section-kicker">{{ selectedSeason.active ? 'Saison en cours' : 'Saison archivée' }}</span>
-        <h2>{{ selectedSeason.label }}</h2>
+        <span class="section-kicker">Saison en cours</span>
+        <h2>{{ currentSeason.label }}</h2>
       </div>
-      <span class="season-status" [class.season-status--open]="selectedSeason.active">
-        {{ selectedSeason.active ? 'Ouverte' : 'Archive' }}
-      </span>
+      <span class="season-status season-status--open">Ouverte</span>
     </div>
 
-    <div class="loading-state" *ngIf="loadingPrograms">
+    <div class="loading-state" *ngIf="loadingCurrentPrograms">
       Chargement des formations...
     </div>
 
-    <div class="formation-grid" *ngIf="!loadingPrograms && programs.length > 0">
-      <article class="formation-card" *ngFor="let program of programs">
+    <div class="formation-grid" *ngIf="!loadingCurrentPrograms && currentPrograms.length > 0">
+      <article class="formation-card" *ngFor="let program of currentPrograms">
         <div class="formation-card__top">
           <span class="brevet-tag">{{ program.brevetType }}</span>
-          <span class="published-tag">Publié</span>
+          <span class="published-tag" [class.published-tag--closed]="resolveProgramState(program) !== 'OPEN'">
+            {{ resolveProgramStateLabel(program) }}
+          </span>
         </div>
 
         <h3>{{ program.title }}</h3>
@@ -66,6 +53,11 @@
           <strong>{{ program.registrationLocation }}</strong>
         </div>
 
+        <div class="formation-info" *ngIf="resolveLocation(program)">
+          <span>Lieu de formation</span>
+          <strong>{{ resolveLocation(program) }}</strong>
+        </div>
+
         <div class="formation-info" *ngIf="program.registrationFee !== undefined && program.registrationFee !== null">
           <span>Cotisation</span>
           <strong>{{ program.registrationFee }} DT</strong>
@@ -75,25 +67,20 @@
           {{ program.registrationConditions }}
         </p>
 
-        <div class="schedule" *ngIf="program.scheduleItems?.length">
-          <h4>Emploi du temps</h4>
-          <div class="schedule-row" *ngFor="let item of program.scheduleItems">
-            <span>{{ item.dayLabel }}</span>
-            <strong>{{ item.timeSlot }}</strong>
-            <p>{{ item.content }}</p>
-          </div>
+        <div class="formation-actions">
+          <a class="btn-outline" [routerLink]="['/formations', program.id]">Voir les détails</a>
         </div>
       </article>
     </div>
 
-    <div class="empty-state" *ngIf="!loadingPrograms && programs.length === 0">
-      <h3>Aucune formation publiée</h3>
-      <p>Cette saison ne contient pas encore de formations visibles.</p>
+    <div class="empty-state" *ngIf="!loadingCurrentPrograms && currentPrograms.length === 0">
+      <h3>Aucune formation disponible</h3>
+      <p>Les formations de la saison en cours seront affichées ici dès leur publication.</p>
     </div>
   </section>
 
-  <div class="empty-state" *ngIf="!loadingSeasons && seasons.length === 0">
-    <h3>Aucune saison disponible</h3>
-    <p>Les formations seront affichées ici dès leur publication.</p>
+  <div class="empty-state" *ngIf="!loadingSeasons && !currentSeason">
+    <h3>Aucune saison active</h3>
+    <p>Les formations seront affichées ici dès qu'une nouvelle saison sera ouverte.</p>
   </div>
 </main>

@@ -243,10 +243,12 @@ public class UserServiceImpl implements IUserService {
         user.setDiscipline(convertToDiscipline(dto.getDiscipline()));
         user.setAnciennete(dto.getAnciennete());
 
-        if (dto.getClubId() != null) {
-            user.setClub(clubRepository.findById(dto.getClubId()).orElse(null));
-        } else if (dto.getClubName() == null) {
-            user.setClub(null);
+        if (isAdmin) {
+            if (dto.getClubId() != null) {
+                user.setClub(clubRepository.findById(dto.getClubId()).orElse(null));
+            } else {
+                user.setClub(null);
+            }
         }
 
         // Sensitive fields (Admin only)
@@ -366,6 +368,7 @@ public class UserServiceImpl implements IUserService {
         dto.setStroke(performance.getStroke());
         dto.setDate(performance.getDate());
         dto.setId(performance.getId());
+        dto.setIsPersonalRecord(Boolean.TRUE.equals(performance.getIsPersonalRecord()));
         return dto;
     }
 

@@ -86,6 +86,31 @@ public class EmailServiceImpl implements IEmailService {
         sendHtml(to, "Mot de passe modifié — FTN", EmailHtmlTemplates.layout("Mot de passe modifié", body));
     }
 
+    @Override
+    public void sendFormationRegistrationPendingAdmin(String swimmerName, String swimmerEmail, String programTitle, String brevetType) {
+        String adminEmail = "admin@ftn.tn";
+        String frontendBase = appProperties.getFrontend().getBaseUrl().replaceAll("/$", "");
+        String body = "<p>Un nageur a demandé à s'inscrire à une formation coach.</p>"
+                + EmailHtmlTemplates.infoBox("Nageur", escape(swimmerName))
+                + EmailHtmlTemplates.infoBox("Email", escape(swimmerEmail))
+                + EmailHtmlTemplates.infoBox("Formation", escape(programTitle))
+                + EmailHtmlTemplates.infoBox("Brevet", escape(brevetType))
+                + EmailHtmlTemplates.primaryButton("Gérer les inscriptions", frontendBase + "/admin/formations");
+        sendHtml(adminEmail, "Nouvelle inscription formation — FTN",
+                EmailHtmlTemplates.layout("Inscription formation en attente", body));
+    }
+
+    @Override
+    public void sendFormationCertificateReady(String to, String programTitle) {
+        String frontendBase = appProperties.getFrontend().getBaseUrl().replaceAll("/$", "");
+        String body = "<p style=\"margin:0 0 12px;\">Bonjour,</p>"
+                + "<p style=\"margin:0 0 12px;\">Votre formation <strong>" + escape(programTitle)
+                + "</strong> est terminée. Votre certificat de participation est disponible.</p>"
+                + EmailHtmlTemplates.primaryButton("Voir mes formations", frontendBase + "/formations/mes-formations");
+        sendHtml(to, "Certificat de formation disponible — FTN",
+                EmailHtmlTemplates.layout("Certificat disponible", body));
+    }
+
     private String buildResetLink(String token, boolean accountSetup) {
         String base = appProperties.getFrontend().getBaseUrl().replaceAll("/$", "");
         String path = accountSetup ? "/auth/reset-password?setup=1&token=" : "/auth/reset-password?token=";

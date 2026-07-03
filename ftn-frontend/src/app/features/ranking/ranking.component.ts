@@ -1,18 +1,21 @@
 import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RankingService } from '../../core/services/ranking.service';
+import { RankingService } from './services/ranking.service';
 import { RankingEntry, STROKE_LABELS, NIVEAU_LABELS } from '../../core/models/performance.model';
+import { PageHeroComponent } from '../../shared/components/page-hero/page-hero.component';
+import { PAGE_HERO_IMAGES } from '../../shared/components/page-hero/page-hero.constants';
 
 @Component({
   selector: 'app-ranking',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PageHeroComponent],
   templateUrl: './ranking.component.html',
   styleUrls: ['./ranking.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RankingComponent implements OnInit {
+  readonly heroImage = PAGE_HERO_IMAGES.classement;
   private readonly rankingService = inject(RankingService);
 
   readonly strokeLabels = STROKE_LABELS;

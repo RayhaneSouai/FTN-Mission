@@ -10,7 +10,7 @@ export class SwimmerPerformancesComponent implements OnInit {
   progress: any = null;
   loading = true;
   strokeFilter = 'all';
-  strokeTypes = ['all', 'FREESTYLE', 'BACKSTROKE', 'BREASTSTROKE', 'BUTTERFLY', 'MEDLEY'];
+  strokeTypes = ['all', 'LIBRE', 'DOS', 'BRASSE', 'PAPILLON', 'QUATRE_NAGES'];
 
   constructor(private svc: SwimmerService) {}
 
@@ -32,5 +32,16 @@ export class SwimmerPerformancesComponent implements OnInit {
     const m = Math.floor(t / 60);
     const s = (t % 60).toFixed(2).padStart(5, '0');
     return m > 0 ? `${m}:${s}` : `${s}s`;
+  }
+
+  strokeLabel(stroke: string): string {
+    const labels: Record<string, string> = {
+      LIBRE: 'Libre',
+      DOS: 'Dos',
+      BRASSE: 'Brasse',
+      PAPILLON: 'Papillon',
+      QUATRE_NAGES: '4 nages'
+    };
+    return labels[stroke] || stroke;
   }
 }

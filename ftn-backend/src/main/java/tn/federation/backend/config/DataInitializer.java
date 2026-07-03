@@ -15,9 +15,13 @@ import tn.federation.backend.repositories.ClubRepository;
 import tn.federation.backend.entities.PressItem;
 import tn.federation.backend.entities.PressStatus;
 import tn.federation.backend.entities.PressType;
+import tn.federation.backend.entities.Performance;
+import tn.federation.backend.entities.StrokeType;
+import tn.federation.backend.repositories.PerformanceRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -25,6 +29,7 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final ClubRepository clubRepository;
     private final IPressItemRepository pressItemRepository;
+    private final PerformanceRepository performanceRepository;
     private final PasswordEncoder passwordEncoder;
 
     private static final String ADMIN_EMAIL = "admin@ftn.tn";
@@ -35,11 +40,16 @@ public class DataInitializer implements CommandLineRunner {
     private static final String SWIMMER_EMAIL = "nageur@ftn.tn";
     private static final String SWIMMER_PASSWORD = "nageur123";
 
-    public DataInitializer(UserRepository userRepository, ClubRepository clubRepository,
-            IPressItemRepository pressItemRepository, PasswordEncoder passwordEncoder) {
+    public DataInitializer(
+            UserRepository userRepository,
+            ClubRepository clubRepository,
+            IPressItemRepository pressItemRepository,
+            PerformanceRepository performanceRepository,
+            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.clubRepository = clubRepository;
         this.pressItemRepository = pressItemRepository;
+        this.performanceRepository = performanceRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -107,8 +117,11 @@ public class DataInitializer implements CommandLineRunner {
         nouveauSwimmer.setPasswordHash(passwordEncoder.encode("azerty123"));
         nouveauSwimmer.setRole(Role.SWIMMER);
         nouveauSwimmer.setActive(true);
+        nouveauSwimmer.setClub(null);
         userRepository.save(nouveauSwimmer);
         System.out.println("✅ Nouveau Compte SWIMMER prêt (nouveau.nageur@ftn.tn / azerty123)");
+
+        initializePerformanceData();
 
         // ── Club par défaut ────────────────────────────────────────
         if (clubRepository.count() == 0) {
@@ -121,6 +134,7 @@ public class DataInitializer implements CommandLineRunner {
             clubRepository.save(club);
             System.out.println("✅ Club par défaut créé avec succès!");
         }
+
         // ── Articles & Vidéos par défaut ────────────────────────────────
         if (pressItemRepository.count() == 0) {
             System.out.println("✅ Initialisation des articles de presse par défaut...");
@@ -186,5 +200,34 @@ public class DataInitializer implements CommandLineRunner {
 
             System.out.println("✅ Articles de presse insérés avec succès!");
         }
+    }
+
+    private void initializePerformanceData() {
+        List<User> swimmers = userRepository.findByRole(Role.SWIMMER);
+        for (User swimmer : swimmers) {
+            if (performanceRepository.countBySwimmerId(swimmer.getId()) > 0) {
+                continue;
+            }
+
+            double offset = (swimmer.getId() % 5) * 0.37;
+            createPerformance(swimmer, 50, StrokeType.LIBRE, 25.92 + offset, LocalDate.of(2026, 3, 12), true);
+            createPerformance(swimmer, 100, StrokeType.LIBRE, 56.34 + offset, LocalDate.of(2026, 4, 7), true);
+            createPerformance(swimmer, 200, StrokeType.LIBRE, 124.87 + offset, LocalDate.of(2026, 4, 21), true);
+            createPerformance(swimmer, 100, StrokeType.DOS, 64.18 + offset, LocalDate.of(2026, 5, 3), true);
+            createPerformance(swimmer, 100, StrokeType.BRASSE, 71.42 + offset, LocalDate.of(2026, 5, 18), true);
+            createPerformance(swimmer, 50, StrokeType.PAPILLON, 27.48 + offset, LocalDate.of(2026, 6, 2), true);
+            System.out.println("✅ Performances de démonstration créées pour " + swimmer.getEmail());
+        }
+    }
+
+    private void createPerformance(User swimmer, Integer distance, StrokeType stroke, Double time, LocalDate date, boolean personalRecord) {
+        Performance performance = new Performance();
+        performance.setSwimmer(swimmer);
+        performance.setDistance(distance);
+        performance.setStroke(stroke);
+        performance.setTime(time);
+        performance.setDate(date);
+        performance.setIsPersonalRecord(personalRecord);
+        performanceRepository.save(performance);
     }
 }

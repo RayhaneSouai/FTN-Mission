@@ -7,6 +7,7 @@ import { PressFormComponent } from './components/press-form/press-form.component
 import { PressVisitorComponent } from './components/press-visitor/press-visitor.component';
 import { SharedModule } from '../../shared/shared.module';
 import { AdminUiModule } from '../../shared/admin-ui/admin-ui.module';
+import { PageHeroComponent } from '../../shared/components/page-hero/page-hero.component';
 
 @NgModule({
   declarations: [
@@ -19,7 +20,8 @@ import { AdminUiModule } from '../../shared/admin-ui/admin-ui.module';
     FormsModule,
     PressRoutingModule,
     SharedModule,
-    AdminUiModule
+    AdminUiModule,
+    PageHeroComponent
   ]
 })
 export class PressModule { }

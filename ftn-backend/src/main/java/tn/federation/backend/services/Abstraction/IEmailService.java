@@ -10,4 +10,8 @@ public interface IEmailService {
     void sendRegistrationDecision(String to, boolean approved);
 
     void sendAdminCreatedUserWelcome(String to, String firstName, String temporaryPassword, String setupToken);
+
+    void sendFormationRegistrationPendingAdmin(String swimmerName, String swimmerEmail, String programTitle, String brevetType);
+
+    void sendFormationCertificateReady(String to, String programTitle);
 }

@@ -72,6 +72,14 @@ export class NavbarComponent implements OnInit {
     return this.user?.role === 'SWIMMER';
   }
 
+  get isCoach(): boolean {
+    return this.user?.role === 'COACH';
+  }
+
+  get showMesFormationsMenu(): boolean {
+    return this.isSwimmer || this.isCoach;
+  }
+
   get avatarUrl(): string {
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(this.displayName)}&background=004da3&size=40&color=fff`;
   }

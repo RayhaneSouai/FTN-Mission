@@ -12,4 +12,6 @@ public interface FormationCertificateRepository extends JpaRepository<FormationC
     List<FormationCertificate> findBySwimmer_IdOrderByIssuedAtDesc(Long swimmerId);
 
     Optional<FormationCertificate> findByVerificationCode(String verificationCode);
+
+    long countByProgram_Id(Long programId);
 }

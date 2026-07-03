@@ -4,6 +4,7 @@ import tn.federation.backend.entities.Role;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class UserDTO {
     private Long id;
@@ -20,6 +21,9 @@ public class UserDTO {
     private String registrationStatus;
     private LocalDateTime createdAt;
     private Boolean mustChangePassword;
+    // AI eligibility extra fields
+    private List<String> certifications;
+    private String licenceActive;
 
     public Boolean getMustChangePassword() {
         return mustChangePassword;
@@ -28,7 +32,13 @@ public class UserDTO {
     public void setMustChangePassword(Boolean mustChangePassword) {
         this.mustChangePassword = mustChangePassword;
     }
-    
+
+    public List<String> getCertifications() { return certifications; }
+    public void setCertifications(List<String> certifications) { this.certifications = certifications; }
+
+    public String getLicenceActive() { return licenceActive; }
+    public void setLicenceActive(String licenceActive) { this.licenceActive = licenceActive; }
+
     // Club related fields
     private Long clubId;
     private String clubName;

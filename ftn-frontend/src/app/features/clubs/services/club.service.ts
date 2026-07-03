@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Club, ClubJoinRequest } from '../models/club.model';
+import { Club, ClubDetail, ClubJoinFormPayload, ClubJoinPreview, ClubJoinRequest, ClubRanking, ClubCompetitionSummary } from '../models/club.model';
 import { apiUrl } from '../../../core/config/api.config';
 
 @Injectable({ providedIn: 'root' })
@@ -18,16 +18,33 @@ export class ClubService {
     return this.http.get<Club | null>(this.apiUrl, { params: { name } });
   }
 
-  getTopClubs(): Observable<Club[]> {
-    return this.http.get<Club[]>(`${this.apiUrl}/ranking`);
+  getTopClubs(): Observable<ClubRanking[]> {
+    return this.http.get<ClubRanking[]>(`${this.apiUrl}/ranking`);
+  }
+
+  getClubCompetitions(clubId: number): Observable<ClubCompetitionSummary[]> {
+    return this.http.get<ClubCompetitionSummary[]>(`${this.apiUrl}/${clubId}/competitions`);
+  }
+
+  leaveClub(): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.apiUrl}/my-membership`);
   }
 
   getStatistics(id: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${id}/stats`);
   }
 
-  requestToJoin(id: number, message?: string): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/${id}/join-request`, { message: message ?? '' });
+  getClubDetails(id: number): Observable<ClubDetail> {
+    return this.http.get<ClubDetail>(`${this.apiUrl}/${id}/details`);
+  }
+
+  joinClub(clubId: number, payload: ClubJoinFormPayload): Observable<ClubJoinRequest> {
+    return this.http.post<ClubJoinRequest>(`${this.apiUrl}/${clubId}/join`, payload);
+  }
+
+  previewJoin(clubId: number, currentLevel?: string): Observable<ClubJoinPreview> {
+    const params = currentLevel ? { currentLevel } : undefined;
+    return this.http.get<ClubJoinPreview>(`${this.apiUrl}/${clubId}/join-preview`, { params });
   }
 
   getMyClubs(): Observable<Club[]> {

@@ -1,14 +1,11 @@
 <app-toast-container />
 
 <main class="dashboard">
-    <!-- ══════ HERO BANNER ══════ -->
-    <section class="comp-hero">
-        <div class="hero-overlay"></div>
-        <div class="hero-content">
-            <h1>Compétitions</h1>
-            <p>Calendrier et suivi de toutes les compétitions de la Fédération Tunisienne de Natation.</p>
-        </div>
-    </section>
+    <app-page-hero
+        title="Compétitions"
+        subtitle="Calendrier et suivi de toutes les compétitions de la Fédération Tunisienne de Natation."
+        [imageUrl]="heroImage">
+    </app-page-hero>
 
     <!-- ══════ STATS ══════ -->
     <section class="stats-section">

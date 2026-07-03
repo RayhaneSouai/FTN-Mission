@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import tn.federation.backend.entities.BrevetType;
 import tn.federation.backend.entities.FormationProgram;
 import tn.federation.backend.entities.FormationProgramStatus;
+import tn.federation.backend.entities.ProgramType;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -58,4 +59,10 @@ public interface FormationProgramRepository extends JpaRepository<FormationProgr
            "FROM FormationProgram fp " +
            "ORDER BY 3 DESC")
     List<Object[]> countRegistrationsPerProgram();
+
+    // ─── Program type filtering (swimmer training vs. coach certification) ─────────
+
+    List<FormationProgram> findByProgramTypeOrderByCreatedAtDesc(ProgramType programType);
+
+    List<FormationProgram> findByProgramTypeAndSeason_IdOrderByCreatedAtDesc(ProgramType programType, Long seasonId);
 }

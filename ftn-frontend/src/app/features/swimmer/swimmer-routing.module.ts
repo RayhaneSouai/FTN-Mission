@@ -6,6 +6,9 @@ import { SwimmerPerformancesComponent } from './components/performances/swimmer-
 import { SwimmerCompetitionsComponent } from './components/competitions/swimmer-competitions.component';
 import { SwimmerActualitesComponent } from './components/actualites/swimmer-actualites.component';
 import { SwimmerClubComponent } from './components/club/swimmer-club.component';
+import { SwimmerFormationCertificatesComponent } from './components/formation-certificates/swimmer-formation-certificates.component';
+import { SwimmerFormationHistoryComponent } from './components/formation-history/swimmer-formation-history.component';
+import { SwimmerFormationsComponent } from './components/formations/swimmer-formations.component';
 
 const routes: Routes = [
   {
@@ -16,6 +19,9 @@ const routes: Routes = [
       { path: 'dashboard', component: SwimmerDashboardComponent },
       { path: 'performances', component: SwimmerPerformancesComponent },
       { path: 'competitions', component: SwimmerCompetitionsComponent },
+      { path: 'formations', component: SwimmerFormationsComponent },
+      { path: 'formations/historique', component: SwimmerFormationHistoryComponent },
+      { path: 'formations/certificats', component: SwimmerFormationCertificatesComponent },
       { path: 'actualites', component: SwimmerActualitesComponent },
       { path: 'mon-club', component: SwimmerClubComponent },
       { 

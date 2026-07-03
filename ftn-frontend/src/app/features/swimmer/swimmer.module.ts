@@ -10,6 +10,9 @@ import { SwimmerPerformancesComponent } from './components/performances/swimmer-
 import { SwimmerCompetitionsComponent } from './components/competitions/swimmer-competitions.component';
 import { SwimmerActualitesComponent } from './components/actualites/swimmer-actualites.component';
 import { SwimmerClubComponent } from './components/club/swimmer-club.component';
+import { SwimmerFormationCertificatesComponent } from './components/formation-certificates/swimmer-formation-certificates.component';
+import { SwimmerFormationHistoryComponent } from './components/formation-history/swimmer-formation-history.component';
+import { SwimmerFormationsComponent } from './components/formations/swimmer-formations.component';
 import { SharedModule } from '../../shared/shared.module';
 
 @NgModule({
@@ -19,7 +22,9 @@ import { SharedModule } from '../../shared/shared.module';
     SwimmerPerformancesComponent,
     SwimmerCompetitionsComponent,
     SwimmerActualitesComponent,
-    SwimmerClubComponent
+    SwimmerClubComponent,
+    SwimmerFormationHistoryComponent,
+    SwimmerFormationCertificatesComponent
   ],
   imports: [
     CommonModule,
@@ -27,7 +32,8 @@ import { SharedModule } from '../../shared/shared.module';
     FormsModule,
     HttpClientModule,
     SwimmerRoutingModule,
-    SharedModule
+    SharedModule,
+    SwimmerFormationsComponent
   ]
 })
 export class SwimmerModule {}

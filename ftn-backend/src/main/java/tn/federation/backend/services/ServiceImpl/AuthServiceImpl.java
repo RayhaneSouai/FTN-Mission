@@ -198,6 +198,14 @@ public class AuthServiceImpl implements IAuthService {
         dto.setAnciennete(user.getAnciennete());
         dto.setRegistrationStatus(user.getRegistrationStatus() != null ? user.getRegistrationStatus().name() : null);
         dto.setMustChangePassword(user.getMustChangePassword());
+        if (user.getClub() != null) {
+            dto.setClubId(user.getClub().getId());
+            dto.setClubName(user.getClub().getName());
+            dto.setClubRegion(user.getClub().getRegion());
+            dto.setClubManager(user.getClub().getManager());
+            dto.setClubContact(user.getClub().getContact());
+            dto.setClubAffiliationDate(user.getClub().getAffiliationDate());
+        }
         return dto;
     }
 

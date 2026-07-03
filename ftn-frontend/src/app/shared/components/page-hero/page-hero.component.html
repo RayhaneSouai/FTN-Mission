@@ -1,0 +1,15 @@
+<section
+  class="page-hero"
+  [class.page-hero--center]="align === 'center'"
+  [class.page-hero--compact]="size === 'compact'">
+  <div
+    class="page-hero__bg"
+    [style.background-image]="imageUrl ? 'url(' + imageUrl + ')' : null"></div>
+  <div class="page-hero__overlay"></div>
+  <div class="page-hero__content">
+    <span class="page-hero__kicker" *ngIf="kicker">{{ kicker }}</span>
+    <h1>{{ title }}</h1>
+    <p *ngIf="subtitle">{{ subtitle }}</p>
+    <ng-content></ng-content>
+  </div>
+</section>

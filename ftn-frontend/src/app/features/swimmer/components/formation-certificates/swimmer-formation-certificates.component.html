@@ -1,0 +1,47 @@
+<section class="formation-space">
+  <div class="page-header">
+    <div>
+      <span class="kicker">Formation</span>
+      <h1>Mes certificats</h1>
+      <p>Consultez vos certificats obtenus, téléchargez les PDF disponibles et vérifiez un code de certificat.</p>
+    </div>
+    <a routerLink="/espace-nageur/formations/historique" class="btn-primary">Historique des formations</a>
+  </div>
+
+  <div class="state-card" *ngIf="loading">Chargement de vos certificats...</div>
+  <div class="state-card state-card--error" *ngIf="!loading && errorMessage">{{ errorMessage }}</div>
+
+  <section class="formation-list" *ngIf="!loading && !errorMessage">
+    <h2>Certificats obtenus</h2>
+    <article class="formation-card" *ngFor="let certificate of certificates">
+      <span class="status-pill">{{ certificate.verified ? 'VÉRIFIÉ' : 'EN ATTENTE' }}</span>
+      <h3>{{ certificate.program.title }}</h3>
+      <p>Délivré le : {{ formatDate(certificate.issuedAt) }}</p>
+      <p>Code de vérification : {{ certificate.verificationCode }}</p>
+      <button type="button" class="btn-certificate" *ngIf="canDownloadCertificate(certificate)"
+              [disabled]="downloadingCertificateId === certificate.id"
+              (click)="downloadCertificate(certificate)">
+        {{ downloadingCertificateId === certificate.id ? 'Téléchargement...' : 'Télécharger le PDF' }}
+      </button>
+      <small *ngIf="certificate.registrationId && !canDownloadCertificate(certificate)">
+        Le téléchargement sera disponible une fois les périodes théorique et pratique terminées.
+      </small>
+      <small *ngIf="!certificate.registrationId">Le téléchargement sera disponible une fois la formation terminée.</small>
+    </article>
+    <p class="empty-text" *ngIf="certificates.length === 0">Aucun certificat disponible pour le moment.</p>
+  </section>
+
+  <section class="formation-list">
+    <h2>Vérifier un certificat</h2>
+    <div class="verify-row">
+      <input type="text" [(ngModel)]="verificationCode" placeholder="Entrez le code de vérification" />
+      <button type="button" class="btn-primary" (click)="verifyCertificate()">Vérifier</button>
+    </div>
+    <p class="empty-text" *ngIf="verificationMessage">{{ verificationMessage }}</p>
+    <article class="formation-card" *ngIf="verifiedCertificate">
+      <h3>{{ verifiedCertificate.program.title }}</h3>
+      <p>Délivré le : {{ formatDate(verifiedCertificate.issuedAt) }}</p>
+      <p>Code : {{ verifiedCertificate.verificationCode }}</p>
+    </article>
+  </section>
+</section>

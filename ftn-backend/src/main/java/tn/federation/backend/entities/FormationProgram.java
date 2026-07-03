@@ -26,7 +26,30 @@ public class FormationProgram {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    private ProgramType programType = ProgramType.COACH_CERTIFICATION;
+
+    // Required when programType == COACH_CERTIFICATION; null for SWIMMER_TRAINING.
+    @Enumerated(EnumType.STRING)
     private BrevetType brevetType;
+
+    // ─── Swimmer training fields (required when programType == SWIMMER_TRAINING) ───
+    @Enumerated(EnumType.STRING)
+    private TargetCategory targetCategory;
+
+    private Integer maxParticipants;
+
+    // EAGER to match the existing `season` field on this entity — open-in-view is
+    // disabled, so a LAZY proxy here throws when Jackson serializes read-only
+    // listing responses outside the (non-transactional) service method boundary.
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "coach_id")
+    @JsonIgnoreProperties({"passwordHash", "participations", "performances", "clubs", "club"})
+    private User coach;
+
+    @Column(length = 255)
+    private String location;
+
+    private java.math.BigDecimal pricePerSession;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "season_id", nullable = false)
@@ -78,8 +101,16 @@ public class FormationProgram {
     @OrderBy("sortOrder ASC")
     private List<FormationScheduleItem> scheduleItems = new ArrayList<>();
 
+    @OneToMany(mappedBy = "program", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OrderBy("sortOrder ASC")
+    private List<FormationDocument> documents = new ArrayList<>();
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    // Populated on-demand by the service layer (via countRegistrationsPerProgram) — not persisted.
+    @Transient
+    private Integer registeredCount;
 
     @PrePersist
     void onCreate() {

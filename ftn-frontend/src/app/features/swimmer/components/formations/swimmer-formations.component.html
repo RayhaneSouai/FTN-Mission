@@ -1,0 +1,70 @@
+<section class="formation-space">
+  <div class="page-header">
+    <div>
+      <span class="kicker">Formation</span>
+      <h1>Mes formations</h1>
+      <p>Suivez vos inscriptions aux formations et programmes, de l'attente à la completion.</p>
+    </div>
+  </div>
+
+  <div class="state-card" *ngIf="loading">Chargement de vos formations...</div>
+  <div class="state-card state-card--error" *ngIf="!loading && errorMessage">{{ errorMessage }}</div>
+
+  <div class="stats-grid" *ngIf="!loading && !errorMessage">
+    <article>
+      <span>À venir</span>
+      <strong>{{ upcoming.length }}</strong>
+    </article>
+    <article>
+      <span>En cours</span>
+      <strong>{{ ongoing.length }}</strong>
+    </article>
+    <article>
+      <span>Terminées</span>
+      <strong>{{ completed.length }}</strong>
+    </article>
+  </div>
+
+  <div class="formation-columns" *ngIf="!loading && !errorMessage">
+    <section class="formation-list">
+      <h2>Formations à venir</h2>
+      <article class="formation-card" *ngFor="let item of upcoming">
+        <span class="status-pill">{{ statusLabel(item.status) }}</span>
+        <h3>{{ item.program.title }}</h3>
+        <p>{{ programMeta(item) }}</p>
+        <small>Inscrit le {{ formatDate(item.registeredAt) }}</small>
+      </article>
+      <p class="empty-text" *ngIf="upcoming.length === 0">Aucune formation à venir.</p>
+    </section>
+
+    <section class="formation-list">
+      <h2>Formations en cours</h2>
+      <article class="formation-card" *ngFor="let item of ongoing">
+        <span class="status-pill">{{ statusLabel(item.status) }}</span>
+        <h3>{{ item.program.title }}</h3>
+        <p>{{ item.program.theoreticalLocation || item.program.location || item.program.registrationLocation || 'Lieu à confirmer' }}</p>
+        <small>Début le {{ formatDate(item.program.theoreticalStartDate || item.program.practicalPeriodStart) }}</small>
+      </article>
+      <p class="empty-text" *ngIf="ongoing.length === 0">Aucune formation en cours.</p>
+    </section>
+
+    <section class="formation-list">
+      <h2>Formations terminées</h2>
+      <article class="formation-card" *ngFor="let item of completed">
+        <span class="status-pill">{{ statusLabel(item.status) }}</span>
+        <h3>{{ item.program.title }}</h3>
+        <p>{{ programMeta(item) }}</p>
+        <small>Terminée le {{ formatDate(item.program.practicalPeriodEnd || item.program.theoreticalEndDate) }}</small>
+        <button type="button" class="btn-certificate" *ngIf="canDownloadCertificate(item)"
+                [disabled]="downloadingRegistrationId === item.id"
+                (click)="downloadCertificate(item)">
+          {{ downloadingRegistrationId === item.id ? 'Téléchargement...' : 'Télécharger mon certificat' }}
+        </button>
+        <small class="cert-hint" *ngIf="item.status === 'APPROVED' && !canDownloadCertificate(item)">
+          Certificat disponible une fois les périodes théorique et pratique terminées.
+        </small>
+      </article>
+      <p class="empty-text" *ngIf="completed.length === 0">Aucune formation terminée.</p>
+    </section>
+  </div>
+</section>

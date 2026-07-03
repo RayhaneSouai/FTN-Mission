@@ -1,0 +1,26 @@
+<section class="formation-space">
+  <div class="page-header">
+    <div>
+      <span class="kicker">Formation</span>
+      <h1>Training history</h1>
+      <p>Completed formations, results, and certificate availability.</p>
+    </div>
+    <a routerLink="/espace-nageur/formations/certificats" class="btn-primary">View certificates</a>
+  </div>
+
+  <div class="state-card" *ngIf="loading">Loading your history...</div>
+  <div class="state-card state-card--error" *ngIf="!loading && errorMessage">{{ errorMessage }}</div>
+
+  <section class="formation-list" *ngIf="!loading && !errorMessage">
+    <h2>Completed formations</h2>
+    <article class="formation-card" *ngFor="let item of history">
+      <span class="status-pill">{{ item.status }}</span>
+      <h3>{{ item.program.title }}</h3>
+      <p>Category: {{ item.program.brevetType }}</p>
+      <p>Completion date: {{ formatDate(item.program.practicalPeriodEnd || item.program.theoreticalEndDate) }}</p>
+      <p>Result: {{ item.decisionNote || item.program.resultAnnouncementNote || 'Result not published yet' }}</p>
+      <small>Certificate availability is shown in the certificates section.</small>
+    </article>
+    <p class="empty-text" *ngIf="history.length === 0">No completed formations yet.</p>
+  </section>
+</section>

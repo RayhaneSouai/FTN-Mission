@@ -12,9 +12,14 @@ public record FormationCertificateDTO(
         String pdfUrl,
         boolean downloadable,
         boolean verified,
-        FormationProgram program
+        FormationProgram program,
+        Long registrationId
 ) {
     public static FormationCertificateDTO fromEntity(FormationCertificate certificate) {
+        return fromEntity(certificate, null);
+    }
+
+    public static FormationCertificateDTO fromEntity(FormationCertificate certificate, Long registrationId) {
         return new FormationCertificateDTO(
                 certificate.getId(),
                 certificate.getVerificationCode(),
@@ -22,6 +27,7 @@ public record FormationCertificateDTO(
                 certificate.getPdfUrl(),
                 certificate.isDownloadable(),
                 certificate.isVerified(),
-                certificate.getProgram());
+                certificate.getProgram(),
+                registrationId);
     }
 }

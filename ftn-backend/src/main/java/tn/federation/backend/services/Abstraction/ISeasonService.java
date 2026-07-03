@@ -3,9 +3,12 @@ package tn.federation.backend.services.Abstraction;
 import tn.federation.backend.entities.Season;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ISeasonService {
     List<Season> findAll();
+
+    Optional<Season> findActive();
 
     Season findById(Long id);
 

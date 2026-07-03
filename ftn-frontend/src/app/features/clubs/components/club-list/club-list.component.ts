@@ -1,9 +1,9 @@
 import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ClubService } from '../../services/club.service';
-import { Club, ClubJoinRequest } from '../../models/club.model';
+import { Club, ClubJoinRequest, ClubDetail, ClubCompetitionSummary, ClubRanking } from '../../models/club.model';
 import { RegionOption } from '../../models/region.model';
 import {
   ALL_GOVERNORATES,
@@ -12,7 +12,10 @@ import {
 } from '../../models/club-location.constants';
 import { ToastService } from '../../../competitions/services/toast.service';
 import { PAGE_HERO_IMAGES } from '../../../../shared/components/page-hero/page-hero.constants';
+import { ToastContainerComponent } from '../../../competitions/components/toast-container/toast-container.component';
 import { PageHeroComponent } from '../../../../shared/components/page-hero/page-hero.component';
+import { ClubJoinFormComponent } from '../club-join-form/club-join-form.component';
+import { ConfirmDialogComponent } from '../../../competitions/components/confirm-dialog/confirm-dialog.component';
 
 export type ClubListMode = 'public' | 'admin';
 type ClubViewMode = 'grid' | 'list';
@@ -21,14 +24,14 @@ type ClubTab = 'browse' | 'mine' | 'requests';
 @Component({
   selector: 'app-club-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, PageHeroComponent],
+  imports: [CommonModule, FormsModule, RouterLink, PageHeroComponent, ClubJoinFormComponent, ToastContainerComponent, ConfirmDialogComponent],
   templateUrl: './club-list.component.html',
   styleUrl: './club-list.component.css'
 })
 export class ClubListComponent implements OnInit {
   readonly heroImage = PAGE_HERO_IMAGES.clubs;
   clubs: Club[] = [];
-  topClubs: Club[] = [];
+  topClubs: ClubRanking[] = [];
   filteredClubs: Club[] = [];
   searchTerm = '';
   loading = true;
@@ -41,15 +44,19 @@ export class ClubListComponent implements OnInit {
   canManage = false;
   savingClub = false;
   viewMode: ClubViewMode = 'grid';
-  joiningClubId: number | null = null;
   requestedClubIds = new Set<number>();
   rejectedClubIds = new Set<number>();
+  rejectedRequestsByClubId = new Map<number, ClubJoinRequest>();
   showJoinModal = false;
-  joinMessage = '';
   clubToJoin: Club | null = null;
   currentUser: any = null;
   activeTab: ClubTab = 'browse';
   myClubs: Club[] = [];
+  myClubDetail: ClubDetail | null = null;
+  myClubCompetitions: ClubCompetitionSummary[] = [];
+  loadingMyClubDetail = false;
+  showLeaveConfirm = false;
+  leavingClub = false;
   loadingMyClubs = false;
   joinRequests: ClubJoinRequest[] = [];
   loadingJoinRequests = false;
@@ -75,7 +82,13 @@ export class ClubListComponent implements OnInit {
   }
 
   get canRequestClubJoin(): boolean {
-    return !this.isAdminMode && this.currentUser?.role === 'SWIMMER' && !this.currentUser?.clubId;
+    if (this.isAdminMode || !this.currentUser) {
+      return false;
+    }
+    if (this.currentUser.role !== 'SWIMMER') {
+      return false;
+    }
+    return !this.currentUser.clubId && this.myClubs.length === 0;
   }
 
   ngOnInit(): void {
@@ -85,7 +98,7 @@ export class ClubListComponent implements OnInit {
     this.loadTopClubs();
     if (this.isAdminMode && this.canManage) {
       this.loadJoinRequests();
-    } else {
+    } else if (!this.isAdminMode) {
       this.loadMyClubData();
     }
   }
@@ -152,7 +165,7 @@ export class ClubListComponent implements OnInit {
 
   loadTopClubs(): void {
     this.clubService.getTopClubs().subscribe({
-      next: (data) => (this.topClubs = data.slice(0, 3)),
+      next: (data) => (this.topClubs = data),
       error: () => {}
     });
   }
@@ -172,7 +185,11 @@ export class ClubListComponent implements OnInit {
   }
 
   loadMyClubData(): void {
-    if (this.isAdminMode || !this.currentUser) {
+    if (this.isAdminMode) {
+      return;
+    }
+    this.refreshAuthState();
+    if (!this.currentUser) {
       return;
     }
     this.loadingMyClubs = true;
@@ -180,8 +197,12 @@ export class ClubListComponent implements OnInit {
       next: (clubs) => {
         this.myClubs = clubs;
         this.loadingMyClubs = false;
-        if (clubs.length > 0) {
+        if (clubs.length > 0 && clubs[0].id) {
           this.syncCurrentUserClub(clubs[0]);
+          this.loadMyClubDetail(clubs[0].id);
+        } else {
+          this.myClubDetail = null;
+          this.myClubCompetitions = [];
         }
       },
       error: () => {
@@ -193,12 +214,89 @@ export class ClubListComponent implements OnInit {
         this.requestedClubIds = new Set(
           requests.filter((r) => r.status === 'PENDING').map((r) => r.clubId)
         );
-        this.rejectedClubIds = new Set(
-          requests.filter((r) => r.status === 'REJECTED').map((r) => r.clubId)
+        const rejected = requests.filter((r) => r.status === 'REJECTED');
+        this.rejectedClubIds = new Set(rejected.map((r) => r.clubId));
+        this.rejectedRequestsByClubId = new Map(
+          rejected.map((r) => [r.clubId, r])
         );
       },
+      error: () => {
+        this.toast.showError('Impossible de charger vos demandes d\'adhésion.');
+      }
+    });
+  }
+
+  private clearCurrentUserClub(): void {
+    if (!isPlatformBrowser(this.platformId) || !this.currentUser) {
+      return;
+    }
+    this.currentUser = {
+      ...this.currentUser,
+      clubId: null,
+      clubName: null,
+      clubRegion: null
+    };
+    localStorage.setItem('user', JSON.stringify(this.currentUser));
+  }
+
+  loadMyClubDetail(clubId: number): void {
+    this.loadingMyClubDetail = true;
+    this.myClubDetail = null;
+    this.myClubCompetitions = [];
+
+    this.clubService.getClubDetails(clubId).subscribe({
+      next: (detail) => {
+        this.myClubDetail = detail;
+        this.loadingMyClubDetail = false;
+      },
+      error: () => {
+        this.loadingMyClubDetail = false;
+        this.toast.showError('Impossible de charger les détails de votre club.');
+      }
+    });
+
+    this.clubService.getClubCompetitions(clubId).subscribe({
+      next: (competitions) => (this.myClubCompetitions = competitions),
       error: () => {}
     });
+  }
+
+  openLeaveConfirm(): void {
+    this.showLeaveConfirm = true;
+  }
+
+  cancelLeaveClub(): void {
+    this.showLeaveConfirm = false;
+  }
+
+  confirmLeaveClub(): void {
+    this.leavingClub = true;
+    this.clubService.leaveClub().subscribe({
+      next: () => {
+        this.leavingClub = false;
+        this.showLeaveConfirm = false;
+        this.myClubs = [];
+        this.myClubDetail = null;
+        this.myClubCompetitions = [];
+        this.clearCurrentUserClub();
+        this.toast.showSuccess('Vous avez quitté votre club.');
+        this.loadClubs();
+        this.loadTopClubs();
+      },
+      error: (err) => {
+        this.leavingClub = false;
+        const message = err?.error?.message?.replace(/^Erreur:\s*/, '') || 'Impossible de quitter le club.';
+        this.toast.showError(message);
+      }
+    });
+  }
+
+  formatCompetitionDates(start?: string, end?: string): string {
+    if (!start && !end) return 'Dates à confirmer';
+    const fmt = (value: string) =>
+      new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value));
+    if (start && end && start !== end) return `${fmt(start)} – ${fmt(end)}`;
+    return fmt(start || end!);
   }
 
   private syncCurrentUserClub(club: Club): void {
@@ -259,6 +357,21 @@ export class ClubListComponent implements OnInit {
     }
   }
 
+  hasJoinedAnyClub(): boolean {
+    return this.myClubs.length > 0 || !!this.currentUser?.clubId;
+  }
+
+  shouldShowJoinButton(club: Club): boolean {
+    if (this.isJoinedClub(club)) {
+      return true;
+    }
+    return !this.hasJoinedAnyClub();
+  }
+
+  hasRejectedRequest(club: Club): boolean {
+    return !!club.id && this.rejectedClubIds.has(club.id);
+  }
+
   isJoinedClub(club: Club): boolean {
     return !!club.id && this.myClubs.some((joined) => joined.id === club.id);
   }
@@ -270,63 +383,66 @@ export class ClubListComponent implements OnInit {
     if (club.id && this.requestedClubIds.has(club.id)) {
       return 'Demande envoyée';
     }
-    if (this.joiningClubId === club.id) {
-      return 'Envoi...';
-    }
     return 'Demander à rejoindre';
   }
 
   isJoinButtonDisabled(club: Club): boolean {
     return this.isJoinedClub(club)
-      || this.joiningClubId === club.id
       || (!!club.id && this.requestedClubIds.has(club.id));
   }
 
   openJoinModal(club: Club): void {
     this.refreshAuthState();
     if (!club.id) return;
-    if (!this.currentUser) {
+
+    const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : null;
+    if (!this.currentUser || !token) {
       this.toast.showError('Connectez-vous pour demander à rejoindre un club.');
       this.router.navigate(['/auth/login'], { queryParams: { returnUrl: '/clubs' } });
       return;
     }
-    if (!this.canRequestClubJoin) {
-      this.toast.showError('Votre compte ne peut pas envoyer une demande d\'adhésion club.');
+
+    if (this.currentUser.role !== 'SWIMMER') {
+      this.toast.showError('Seuls les comptes nageur peuvent demander à rejoindre un club.');
       return;
     }
+
+    if (this.currentUser.clubId || this.myClubs.length > 0) {
+      this.toast.showInfo('Vous êtes déjà affilié(e) à un club.');
+      return;
+    }
+
+    if (this.requestedClubIds.has(club.id)) {
+      this.toast.showInfo('Votre demande pour ce club est déjà en cours d\'examen.');
+      return;
+    }
+
     this.clubToJoin = club;
-    this.joinMessage = '';
     this.showJoinModal = true;
   }
 
   closeJoinModal(): void {
     this.showJoinModal = false;
     this.clubToJoin = null;
-    this.joinMessage = '';
   }
 
-  submitJoinRequest(): void {
-    if (!this.clubToJoin?.id) return;
-    const clubId = this.clubToJoin.id;
-    this.joiningClubId = clubId;
-    this.clubService.requestToJoin(clubId, this.joinMessage.trim()).subscribe({
-      next: (res) => {
-        this.requestedClubIds.add(clubId);
-        this.joiningClubId = null;
-        this.toast.showSuccess(res.message || 'Demande envoyée.');
-        this.closeJoinModal();
-        this.loadMyClubData();
-      },
-      error: (err) => {
-        this.joiningClubId = null;
-        if (err?.status === 401 || err?.status === 403) {
-          this.toast.showError('Session expirée. Veuillez vous reconnecter.');
-          this.router.navigate(['/auth/login'], { queryParams: { returnUrl: '/clubs' } });
-          return;
-        }
-        this.toast.showError(err?.error?.message || 'Impossible d\'envoyer la demande.');
-      }
-    });
+  onJoinCompleted(result: ClubJoinRequest): void {
+    if (result.status === 'APPROVED') {
+      this.rejectedClubIds.delete(result.clubId);
+      this.rejectedRequestsByClubId.delete(result.clubId);
+      this.myClubs = this.clubToJoin ? [...this.myClubs, this.clubToJoin] : this.myClubs;
+      this.loadClubs();
+      this.loadTopClubs();
+      this.loadMyClubData();
+    } else if (result.status === 'PENDING') {
+      this.rejectedClubIds.delete(result.clubId);
+      this.rejectedRequestsByClubId.delete(result.clubId);
+      this.requestedClubIds.add(result.clubId);
+    } else if (result.status === 'REJECTED') {
+      this.rejectedClubIds.add(result.clubId);
+      this.rejectedRequestsByClubId.set(result.clubId, result);
+      this.requestedClubIds.delete(result.clubId);
+    }
   }
 
   onSearch(): void {

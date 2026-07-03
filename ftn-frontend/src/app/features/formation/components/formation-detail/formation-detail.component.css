@@ -118,6 +118,18 @@
   margin: 0 0 10px;
 }
 
+.empty-text {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  margin: 8px 0;
+}
+
+.loading-inline {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 8px 0;
+}
+
 .schedule-row {
   background: #f8fafc;
   border: 1px solid #eef2f7;
@@ -190,8 +202,36 @@
 
 .detail-actions {
   border-top: 1px solid #eef2f7;
+  flex-direction: column;
+  align-items: flex-start;
   margin-top: 28px;
   padding-top: 24px;
+}
+
+.detail-actions .btn-primary,
+.detail-actions .btn-outline {
+  min-width: 220px;
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.registration-status {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 14px;
+  color: #92400e;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+}
+
+.registration-status p {
+  color: #78350f;
+  font-size: 0.9rem;
+  margin: 6px 0 0;
 }
 
 .feedback,
@@ -273,34 +313,46 @@
   cursor: not-allowed;
 }
 
-.eligibility-result {
-  border-radius: 14px;
-  margin-top: 16px;
-  padding: 16px 20px;
+.btn-ai-check {
+  align-items: center;
+  background: linear-gradient(135deg, #7c3aed, #4338ca);
+  border: none;
+  border-radius: 999px;
+  box-shadow: 0 10px 24px rgba(67, 56, 202, 0.35);
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 900;
+  gap: 8px;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 22px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.eligibility-result.eligible {
-  background: #dcfce7;
-  border: 1px solid #86efac;
-  color: #166534;
+.btn-ai-check:hover:not(:disabled) {
+  box-shadow: 0 14px 30px rgba(67, 56, 202, 0.45);
+  transform: translateY(-1px);
 }
 
-.eligibility-result.not-eligible {
-  background: #fee2e2;
-  border: 1px solid #fca5a5;
-  color: #991b1b;
+.btn-ai-check:disabled {
+  background: #c7c9f5;
+  box-shadow: none;
+  cursor: not-allowed;
 }
 
-.eligibility-result strong {
-  display: block;
-  font-size: 1rem;
-  margin-bottom: 6px;
+.spinner-inline {
+  animation: spin 0.7s linear infinite;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  border-top-color: #fff;
+  display: inline-block;
+  height: 14px;
+  width: 14px;
 }
 
-.eligibility-result p {
-  font-size: 0.93rem;
-  line-height: 1.55;
-  margin: 0;
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 @media (max-width: 768px) {

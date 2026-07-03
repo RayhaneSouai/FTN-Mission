@@ -1,14 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
-import { FormationProgram } from '../../models/formation.model';
+import { FormationProgram, FormationRegistration } from '../../models/formation.model';
 import { FormationProgramService } from '../../services/formation-program.service';
 import { AuthService } from '../../../auth/services/auth.service';
+import { AiEligibilityPanelComponent } from '../ai-eligibility-panel/ai-eligibility-panel.component';
 
 @Component({
   selector: 'app-formation-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, AiEligibilityPanelComponent],
   templateUrl: './formation-detail.component.html',
   styleUrl: './formation-detail.component.css'
 })
@@ -17,11 +18,14 @@ export class FormationDetailComponent implements OnInit {
   loading = true;
   isLoggedIn = false;
   isSwimmer = false;
+  currentUserId: number | null = null;
   showGuestPrompt = false;
   feedbackMessage = '';
   feedbackType: 'success' | 'error' | '' = '';
-  eligibilityResult: { eligible: boolean; explanation: string } | null = null;
+  eligibilityResult: { eligible: boolean; message: string; error?: boolean } | null = null;
   isCheckingEligibility = false;
+  existingRegistration: FormationRegistration | null = null;
+  isRegistering = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -33,6 +37,10 @@ export class FormationDetailComponent implements OnInit {
     this.authService.currentUser$.subscribe((user) => {
       this.isLoggedIn = !!user;
       this.isSwimmer = user?.role === 'SWIMMER';
+      this.currentUserId = user?.id ?? null;
+      if (this.isSwimmer && this.program?.id) {
+        this.loadMyRegistration(this.program.id);
+      }
     });
 
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -40,6 +48,9 @@ export class FormationDetailComponent implements OnInit {
       next: (program) => {
         this.program = program;
         this.loading = false;
+        if (this.isSwimmer) {
+          this.loadMyRegistration(id);
+        }
       },
       error: () => {
         this.loading = false;
@@ -47,20 +58,37 @@ export class FormationDetailComponent implements OnInit {
     });
   }
 
+  private loadMyRegistration(programId: number): void {
+    this.programService.getMyRegistrations().subscribe({
+      next: (registrations) => {
+        this.existingRegistration = registrations.find((item) => item.program.id === programId) ?? null;
+      },
+      error: () => {}
+    });
+  }
+
   checkEligibility(): void {
-    if (!this.program?.id || !this.isLoggedIn) {
+    if (!this.program?.id || !this.currentUserId) {
       this.showGuestPrompt = true;
       return;
     }
     this.isCheckingEligibility = true;
     this.eligibilityResult = null;
-    this.programService.checkEligibility(this.program.id).subscribe({
+    this.programService.checkEligibility(this.currentUserId, this.program.id).subscribe({
       next: (result) => {
-        this.eligibilityResult = result;
+        this.eligibilityResult = {
+          eligible: !!result?.eligible,
+          message: result?.message ?? '',
+          error: !!result?.error
+        };
         this.isCheckingEligibility = false;
       },
       error: () => {
-        this.eligibilityResult = { eligible: false, explanation: 'Impossible de contacter le service de vérification.' };
+        this.eligibilityResult = {
+          eligible: false,
+          message: 'Impossible de contacter le service de vérification. Réessayez plus tard.',
+          error: true
+        };
         this.isCheckingEligibility = false;
       }
     });
@@ -80,23 +108,53 @@ export class FormationDetailComponent implements OnInit {
       return;
     }
 
+    this.isRegistering = true;
     this.programService.register(this.program.id).subscribe({
-      next: () => {
-        this.feedbackMessage = 'Your registration request has been submitted and is pending review.';
+      next: (registration) => {
+        this.existingRegistration = registration;
+        this.feedbackMessage = 'Votre demande d\'inscription a été envoyée. L\'administration l\'examinera avant le début de la formation.';
         this.feedbackType = 'success';
+        this.isRegistering = false;
       },
       error: (error) => {
-        this.feedbackMessage = error?.error?.message || error?.error?.error || 'Registration could not be completed.';
+        this.feedbackMessage = error?.error?.message || error?.error?.error || 'L\'inscription n\'a pas pu être effectuée.';
         this.feedbackType = 'error';
+        this.isRegistering = false;
       }
     });
   }
 
   canRegister(): boolean {
-    if (!this.program?.season?.active || this.program.status !== 'PUBLISHED') {
+    if (!this.program || this.program.status !== 'PUBLISHED') {
       return false;
     }
-    return !this.isPastFormation();
+    if (this.existingRegistration) {
+      return false;
+    }
+    return this.resolveProgramState() === 'OPEN';
+  }
+
+  get registrationStatusLabel(): string {
+    if (!this.existingRegistration) {
+      return '';
+    }
+    const labels: Record<string, string> = {
+      PENDING: 'Demande en attente de validation',
+      APPROVED: 'Inscription approuvée',
+      REJECTED: 'Demande refusée',
+      WAITING_LIST: 'En liste d\'attente'
+    };
+    return labels[this.existingRegistration.status] ?? this.existingRegistration.status;
+  }
+
+  resolveProgramStateLabel(): string {
+    const labels: Record<string, string> = {
+      OPEN: 'Inscriptions ouvertes',
+      UPCOMING: 'À venir',
+      CLOSED: 'Inscriptions fermées',
+      ARCHIVED: 'Archivée'
+    };
+    return labels[this.resolveProgramState()];
   }
 
   isPastFormation(): boolean {
@@ -117,11 +175,15 @@ export class FormationDetailComponent implements OnInit {
     if (start && start > today) {
       return 'UPCOMING';
     }
+    const end = this.program.registrationEndDate ? this.startOfDay(new Date(this.program.registrationEndDate)) : null;
+    if (end && end < today) {
+      return 'CLOSED';
+    }
     return 'OPEN';
   }
 
   formatDate(value?: string): string {
-    if (!value) return 'To be confirmed';
+    if (!value) return 'À confirmer';
     return new Intl.DateTimeFormat('fr-FR', {
       day: '2-digit',
       month: 'short',
@@ -130,7 +192,7 @@ export class FormationDetailComponent implements OnInit {
   }
 
   formatDateRange(start?: string, end?: string): string {
-    if (!start && !end) return 'Dates to be confirmed';
+    if (!start && !end) return 'Dates à confirmer';
     if (start && end) return `${this.formatDate(start)} - ${this.formatDate(end)}`;
     return this.formatDate(start || end);
   }

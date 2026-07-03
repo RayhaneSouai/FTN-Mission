@@ -1,0 +1,32 @@
+.tracking-section {
+  margin: 0 auto;
+  max-width: 960px;
+  padding: 32px 24px 48px;
+}
+
+.tracking-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+  padding: 28px;
+}
+
+.tracking-card h2 {
+  color: #0f172a;
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin: 0 0 12px;
+}
+
+.tracking-card p {
+  color: #475569;
+  line-height: 1.6;
+  margin: 0 0 10px;
+}
+
+.tracking-hint {
+  color: #64748b;
+  font-size: 0.9rem;
+  font-style: italic;
+}

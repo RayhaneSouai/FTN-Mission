@@ -10,12 +10,8 @@ import { NavbarComponent } from './layout/navbar/navbar.component';
 import { FooterComponent } from './layout/footer/footer.component';
 import { PublicLayoutComponent } from './layout/public/public-layout.component';
 import { AdminLayoutComponent } from './layout/admin/admin-layout.component';
-import { DashboardComponent } from './features/admin/dashboard/dashboard.component';
-import { ClubListComponent } from './features/clubs/components/club-list/club-list.component';
-import { HomeComponent } from './features/home/home.component';
 import { SharedModule } from './shared/shared.module';
 import { AdminUiModule } from './shared/admin-ui/admin-ui.module';
-import { DashboardModule } from './dashboard/dashboard.module';
 
 import { AppRoutingModule } from './app-routing.module';
 
@@ -23,6 +19,7 @@ import { HeaderComponent } from './shared/components/header/header.component';
 import { MyPerformancesComponent } from './features/my-performance/my-performances.component';
 import { RankingComponent } from './features/ranking/ranking.component';
 import { ToastContainerComponent } from './features/competitions/components/toast-container/toast-container.component';
+import { PageHeroComponent } from './shared/components/page-hero/page-hero.component';
 
 @NgModule({
   declarations: [
@@ -31,9 +28,6 @@ import { ToastContainerComponent } from './features/competitions/components/toas
     FooterComponent,
     PublicLayoutComponent,
     AdminLayoutComponent,
-    DashboardComponent,
-    ClubListComponent,
-    HomeComponent
   ],
   imports: [
     BrowserModule,
@@ -46,10 +40,9 @@ import { ToastContainerComponent } from './features/competitions/components/toas
     MyPerformancesComponent,
     RankingComponent,
     ToastContainerComponent,
+    PageHeroComponent,
     SharedModule,
     AdminUiModule,
-    DashboardModule
-
   ],
   providers: [
     provideClientHydration(),

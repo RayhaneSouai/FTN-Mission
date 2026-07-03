@@ -1,0 +1,86 @@
+<div class="modal-overlay" (click)="close()">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <button class="modal-close" type="button" (click)="close()">×</button>
+
+    <ng-container *ngIf="!result">
+      <h3>Demande d'adhésion</h3>
+      <p class="modal-subtitle">{{ club.name }}</p>
+
+      <section class="requirements-panel" *ngIf="preview" [ngClass]="previewClass">
+        <div class="requirements-head">
+          <div>
+            <span class="requirements-kicker">Critères du club</span>
+            <strong>{{ preview.predictedLabel }}</strong>
+          </div>
+          <div class="score-badge">{{ preview.eligibilityScore }}%</div>
+        </div>
+        <p class="requirements-summary">{{ preview.summary }}</p>
+        <ul class="requirements-list">
+          <li *ngFor="let req of preview.requirements" [class.met]="req.met" [class.manual]="req.manualReview">
+            <span class="req-icon">{{ req.manualReview ? '◌' : (req.met ? '✓' : '✕') }}</span>
+            <div>
+              <strong>{{ req.label }}</strong>
+              <small>Attendu : {{ req.expected }} · Vous : {{ req.actual }}</small>
+            </div>
+          </li>
+        </ul>
+      </section>
+      <p class="requirements-loading" *ngIf="loadingPreview && !preview">Analyse de votre éligibilité...</p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="join-form-compact">
+        <div class="form-row-2">
+          <div class="form-field">
+            <label for="currentLevel">Niveau actuel *</label>
+            <select id="currentLevel" class="form-select"
+                    formControlName="currentLevel"
+                    [class.input-invalid]="isInvalid('currentLevel')">
+              <option value="" disabled>Sélectionner</option>
+              <option *ngFor="let level of levelOptions" [value]="level">{{ level }}</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="previousClub">Club précédent</label>
+            <input id="previousClub" type="text" class="form-input"
+                   formControlName="previousClub"
+                   placeholder="Facultatif"/>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="motivationLetter">Lettre de motivation *</label>
+          <textarea id="motivationLetter" class="form-textarea"
+                    formControlName="motivationLetter"
+                    [class.input-invalid]="isInvalid('motivationLetter')"
+                    placeholder="Présentez-vous brièvement..."
+                    rows="2"></textarea>
+        </div>
+
+        <div class="form-field" formGroupName="availability">
+          <label>Disponibilités</label>
+          <div class="availability-grid">
+            <label class="checkbox-pill" *ngFor="let day of availabilityDays">
+              <input type="checkbox" [formControlName]="day"/>
+              {{ day }}
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="close()" [disabled]="submitting">Annuler</button>
+          <button type="submit" class="btn-primary" [disabled]="submitting">
+            {{ submitting ? 'Envoi...' : 'Envoyer la demande' }}
+          </button>
+        </div>
+      </form>
+    </ng-container>
+
+    <ng-container *ngIf="result">
+      <div class="result-panel" [ngClass]="resultClass">
+        <p>{{ resultMessage }}</p>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-primary" (click)="close()">Fermer</button>
+      </div>
+    </ng-container>
+  </div>
+</div>
