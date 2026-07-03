@@ -1,0 +1,3 @@
+# Copier ce fichier vers application-local.properties (même dossier) et renseigner votre clé.
+# application-local.properties est gitignored — ne pas committer la clé.
+gemini.api.key=votre_cle_api_gemini

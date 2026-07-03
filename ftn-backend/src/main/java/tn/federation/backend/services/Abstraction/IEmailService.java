@@ -11,6 +11,10 @@ public interface IEmailService {
 
     void sendAdminCreatedUserWelcome(String to, String firstName, String temporaryPassword, String setupToken);
 
+    void sendFormationRegistrationPendingAdmin(String swimmerName, String swimmerEmail, String programTitle, String brevetType);
+
+    void sendFormationCertificateReady(String to, String programTitle);
+
     void sendClubAdminErrorReportToAdmin(
             String adminEmail,
             String coachName,

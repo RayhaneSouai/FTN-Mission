@@ -23,6 +23,26 @@ public class Club {
     private String contact;
     private String manager;
     private LocalDate affiliationDate;
+    private boolean active = true;
+
+    @Enumerated(EnumType.STRING)
+    private Discipline discipline;
+
+    private int maxCapacity = 30;
+
+    // ─── Club requirements ──────────────────────────────────────────────────────
+    private Integer minAge;
+    private Integer maxAge;
+
+    @Enumerated(EnumType.STRING)
+    private Niveau requiredLevel;
+
+    @Enumerated(EnumType.STRING)
+    private Discipline requiredDiscipline;
+
+    private boolean medicalCertificateRequired = false;
+    private Integer availableSpots;
+
     private Double latitude;
     private Double longitude;
 

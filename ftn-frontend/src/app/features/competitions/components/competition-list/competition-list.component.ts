@@ -18,6 +18,8 @@ import {
 } from '../../models/competition.model';
 import { CompetitionStateService } from '../../services/competition-state.service';
 import { ToastContainerComponent } from '../toast-container/toast-container.component';
+import { PageHeroComponent } from '../../../../shared/components/page-hero/page-hero.component';
+import { PAGE_HERO_IMAGES } from '../../../../shared/components/page-hero/page-hero.constants';
 
 type CalendarView = 'month' | 'week';
 
@@ -43,12 +45,13 @@ interface WeekEvent {
 @Component({
   selector: 'app-competition-list',
   standalone: true,
-  imports: [DatePipe, NgStyle, ToastContainerComponent],
+  imports: [DatePipe, NgStyle, ToastContainerComponent, PageHeroComponent],
   templateUrl: './competition-list.component.html',
   styleUrl: './competition-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompetitionListComponent implements OnInit {
+  readonly heroImage = PAGE_HERO_IMAGES.competitions;
   protected readonly state = inject(CompetitionStateService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly router = inject(Router);

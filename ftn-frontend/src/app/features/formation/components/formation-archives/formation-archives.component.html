@@ -1,0 +1,66 @@
+<main class="archives-page">
+  <nav class="breadcrumb" aria-label="Fil d'Ariane">
+    <a routerLink="/formations/devenir-coach">Devenir Coach</a>
+    <span class="breadcrumb__sep">›</span>
+    <span class="breadcrumb__current">Archives</span>
+  </nav>
+
+  <header class="archives-page__header">
+    <h1>Archives des formations</h1>
+    <p>Consultez les formations BF1 / BF2 des saisons précédentes.</p>
+  </header>
+
+  <div class="archives-loading" *ngIf="loadingSeasons">
+    Chargement des saisons archivées...
+  </div>
+
+  <p class="archives-empty" *ngIf="!loadingSeasons && archivedSeasons.length === 0">
+    Aucune saison archivée pour le moment.
+  </p>
+
+  <div class="archives-accordion" *ngIf="!loadingSeasons && archivedSeasons.length > 0">
+    <section class="archives-item" *ngFor="let season of archivedSeasons">
+      <button
+        type="button"
+        class="archives-item__trigger"
+        [attr.aria-expanded]="isExpanded(season.id)"
+        (click)="toggleSeason(season)">
+        <span class="archives-item__title">{{ season.label }}</span>
+        <span class="archives-item__toggle" aria-hidden="true">
+          {{ isExpanded(season.id) ? '−' : '+' }}
+        </span>
+      </button>
+
+      <div class="archives-item__panel" *ngIf="isExpanded(season.id)">
+        <p class="archives-item__loading" *ngIf="loadingSeasonId === season.id">
+          Chargement des formations...
+        </p>
+
+        <p class="archives-item__empty" *ngIf="loadingSeasonId !== season.id && programsFor(season.id).length === 0">
+          Aucune formation publiée pour cette saison.
+        </p>
+
+        <article class="archive-program" *ngFor="let program of programsFor(season.id)">
+          <h3>{{ program.title }}</h3>
+          <p><strong>Brevet :</strong> {{ program.brevetType }}</p>
+          <p><strong>Inscriptions :</strong> {{ formatDateRange(program.registrationStartDate, program.registrationEndDate) }}</p>
+          <p *ngIf="program.theoreticalStartDate || program.theoreticalEndDate">
+            <strong>Formation théorique :</strong>
+            {{ formatDateRange(program.theoreticalStartDate, program.theoreticalEndDate) }}
+          </p>
+          <p *ngIf="program.practicalPeriodStart || program.practicalPeriodEnd">
+            <strong>Formation pratique :</strong>
+            {{ formatDateRange(program.practicalPeriodStart, program.practicalPeriodEnd) }}
+          </p>
+          <p *ngIf="resolveLocation(program)">
+            <strong>Lieu :</strong> {{ resolveLocation(program) }}
+          </p>
+          <p *ngIf="program.registrationConditions">
+            <strong>Conditions :</strong> {{ program.registrationConditions }}
+          </p>
+          <a class="archive-program__link" [routerLink]="['/formations', program.id]">Voir les détails</a>
+        </article>
+      </div>
+    </section>
+  </div>
+</main>

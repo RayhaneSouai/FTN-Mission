@@ -50,4 +50,9 @@ public interface PerformanceRepository extends JpaRepository<Performance, Long> 
     Optional<Performance> findNationalRecordDetailed(@Param("distance") Integer distance,
                                                     @Param("stroke") StrokeType stroke,
                                                     @Param("gender") Gender gender);
+
+    // ─── Club detail page stats ──────────────────────────────────────────────────
+    long countBySwimmer_Club_Id(Long clubId);
+
+    long countBySwimmer_Club_IdAndIsPersonalRecordTrue(Long clubId);
 }

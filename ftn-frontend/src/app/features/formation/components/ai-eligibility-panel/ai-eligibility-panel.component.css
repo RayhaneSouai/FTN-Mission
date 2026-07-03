@@ -1,0 +1,244 @@
+.ai-eligibility {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.btn-ai-eligibility {
+  align-items: center;
+  background: linear-gradient(135deg, #f8faff 0%, #eef4ff 55%, #f3efff 100%);
+  border: 1px solid #c7d7fe;
+  border-radius: 14px;
+  color: #1e3a8a;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 12px;
+  max-width: 100%;
+  padding: 12px 18px;
+  text-align: left;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+
+.btn-ai-eligibility:hover:not(:disabled) {
+  border-color: #818cf8;
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.15);
+  transform: translateY(-1px);
+}
+
+.btn-ai-eligibility:disabled {
+  cursor: wait;
+  opacity: 0.85;
+}
+
+.btn-ai-eligibility__icon {
+  align-items: center;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 12px;
+  color: #fff;
+  display: flex;
+  flex-shrink: 0;
+  font-size: 1.15rem;
+  height: 42px;
+  justify-content: center;
+  width: 42px;
+}
+
+.btn-ai-eligibility__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.btn-ai-eligibility__label {
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.btn-ai-eligibility__hint {
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.btn-ai-eligibility__spinner {
+  animation: ai-spin 0.7s linear infinite;
+  border: 2px solid rgba(99, 102, 241, 0.25);
+  border-radius: 50%;
+  border-top-color: #6366f1;
+  flex-shrink: 0;
+  height: 18px;
+  width: 18px;
+}
+
+@keyframes ai-spin {
+  to { transform: rotate(360deg); }
+}
+
+.eligibility-result {
+  border-radius: 16px;
+  overflow: hidden;
+  padding: 0;
+}
+
+.eligibility-result--warn {
+  background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%);
+  border: 1px solid #fcd34d;
+  color: #92400e;
+}
+
+.eligibility-result--warn .eligibility-result__header {
+  border-bottom-color: rgba(146, 64, 14, 0.12);
+}
+
+.eligibility-result--warn .eligibility-result__verdict {
+  background: #fde68a;
+  color: #b45309;
+}
+
+.eligibility-result--warn .eligibility-result__ai-badge {
+  color: #d97706;
+}
+
+.eligibility-result__retry {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #fbbf24;
+  border-radius: 10px;
+  color: #92400e;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.88rem;
+  font-weight: 600;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 8px 14px;
+}
+
+.eligibility-result__retry:hover:not(:disabled) {
+  background: #fffbeb;
+}
+
+.eligibility-result__retry:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.eligibility-result--ok {
+  background: linear-gradient(180deg, #f0fdf4 0%, #ecfdf5 100%);
+  border: 1px solid #86efac;
+  color: #14532d;
+}
+
+.eligibility-result--ko {
+  background: linear-gradient(180deg, #fff1f2 0%, #fef2f2 100%);
+  border: 1px solid #fca5a5;
+  color: #7f1d1d;
+}
+
+.eligibility-result__header {
+  align-items: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  gap: 14px;
+  padding: 16px 18px;
+}
+
+.eligibility-result--ok .eligibility-result__header {
+  border-bottom-color: rgba(22, 101, 52, 0.12);
+}
+
+.eligibility-result--ko .eligibility-result__header {
+  border-bottom-color: rgba(153, 27, 27, 0.12);
+}
+
+.eligibility-result__verdict {
+  align-items: center;
+  border-radius: 999px;
+  display: flex;
+  flex-shrink: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  height: 40px;
+  justify-content: center;
+  width: 40px;
+}
+
+.eligibility-result--ok .eligibility-result__verdict {
+  background: #bbf7d0;
+  color: #166534;
+}
+
+.eligibility-result--ko .eligibility-result__verdict {
+  background: #fecaca;
+  color: #991b1b;
+}
+
+.eligibility-result__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.eligibility-result__ai-badge {
+  align-items: center;
+  color: #6366f1;
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 700;
+  gap: 4px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.eligibility-result--ok .eligibility-result__ai-badge {
+  color: #059669;
+}
+
+.eligibility-result--ko .eligibility-result__ai-badge {
+  color: #dc2626;
+}
+
+.eligibility-result__titles strong {
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+}
+
+.eligibility-result__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 18px 18px;
+}
+
+.eligibility-result__section h4 {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin: 0 0 6px;
+  opacity: 0.85;
+  text-transform: uppercase;
+}
+
+.eligibility-result__section h4 i {
+  margin-right: 4px;
+}
+
+.eligibility-result__section p,
+.eligibility-result__fallback {
+  font-size: 0.94rem;
+  line-height: 1.65;
+  margin: 0;
+}
+
+.eligibility-result__section--tip {
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.eligibility-result--ko .eligibility-result__section--tip {
+  background: rgba(255, 255, 255, 0.45);
+}

@@ -1,0 +1,123 @@
+<app-page-hero
+  kicker="Club affilié"
+  [title]="club?.name || 'Détails du club'"
+  subtitle="Effectif, encadrement et statistiques du club."
+  [imageUrl]="heroImage">
+</app-page-hero>
+
+<main class="club-detail">
+  <a routerLink="/clubs" class="back-link">← Retour aux clubs</a>
+
+  <div class="loading-state" *ngIf="loading">Chargement du club...</div>
+  <div class="empty-state" *ngIf="!loading && notFound">
+    <h3>Club introuvable</h3>
+    <p>Ce club n'existe pas ou a été supprimé.</p>
+  </div>
+
+  <section class="detail-card" *ngIf="!loading && club">
+    <!-- Header -->
+    <div class="detail-header">
+      <div class="club-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/>
+        </svg>
+      </div>
+      <div class="header-info">
+        <h1>{{ club.name }}</h1>
+        <span class="status-pill" [class.inactive]="!club.active">{{ club.active ? 'Actif' : 'Inactif' }}</span>
+      </div>
+    </div>
+
+    <div class="info-grid">
+      <article *ngIf="club.region">
+        <span>Région</span>
+        <strong>{{ getRegionLabel(club.region) }}</strong>
+      </article>
+      <article *ngIf="club.address">
+        <span>Adresse</span>
+        <strong>{{ club.address }}</strong>
+      </article>
+      <article *ngIf="club.contact">
+        <span>Téléphone</span>
+        <strong>{{ club.contact }}</strong>
+      </article>
+      <article *ngIf="club.manager">
+        <span>Manager</span>
+        <strong>{{ club.manager }}</strong>
+      </article>
+      <article *ngIf="club.discipline">
+        <span>Discipline</span>
+        <strong>{{ club.discipline }}</strong>
+      </article>
+      <article *ngIf="club.affiliationDate">
+        <span>Affilié depuis</span>
+        <strong>{{ club.affiliationDate }}</strong>
+      </article>
+    </div>
+
+    <!-- Stats summary -->
+    <div class="stats-summary">
+      <div class="stat-tile">
+        <span class="stat-value">{{ club.stats.athleteCount }}</span>
+        <span class="stat-label">Athlètes</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-value">{{ club.stats.coachCount }}</span>
+        <span class="stat-label">Coachs</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-value">{{ club.stats.totalPerformances }}</span>
+        <span class="stat-label">Performances enregistrées</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-value">{{ club.stats.personalRecordsCount }}</span>
+        <span class="stat-label">Records personnels</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-value">{{ club.maxCapacity }}</span>
+        <span class="stat-label">Capacité max.</span>
+      </div>
+    </div>
+
+    <!-- Roster -->
+    <div class="detail-section">
+      <div class="roster-tabs">
+        <button type="button" [class.active]="activeRosterTab === 'athletes'" (click)="setRosterTab('athletes')">
+          Athlètes <span class="count-badge">{{ club.athletes.length }}</span>
+        </button>
+        <button type="button" [class.active]="activeRosterTab === 'coaches'" (click)="setRosterTab('coaches')">
+          Coachs <span class="count-badge">{{ club.coaches.length }}</span>
+        </button>
+      </div>
+
+      <div class="roster-search" *ngIf="(activeRosterTab === 'athletes' ? club.athletes : club.coaches).length > 0">
+        <input type="text" [(ngModel)]="searchTerm"
+               [placeholder]="activeRosterTab === 'athletes' ? 'Rechercher un athlète...' : 'Rechercher un coach...'" />
+      </div>
+
+      <div class="roster-table" *ngIf="filteredRoster.length > 0">
+        <div class="roster-row roster-row--head">
+          <span>Nom</span>
+          <span>Email</span>
+          <span *ngIf="activeRosterTab === 'athletes'">Âge</span>
+          <span>{{ activeRosterTab === 'athletes' ? 'Catégorie' : 'Expérience' }}</span>
+          <span>Discipline</span>
+        </div>
+        <div class="roster-row" *ngFor="let member of filteredRoster">
+          <span class="member-name">{{ member.fullName }}</span>
+          <span>{{ member.email }}</span>
+          <span *ngIf="activeRosterTab === 'athletes'">{{ member.age ?? '—' }}</span>
+          <span>{{ member.category || '—' }}</span>
+          <span>{{ member.discipline || '—' }}</span>
+        </div>
+      </div>
+
+      <div class="empty-text" *ngIf="(activeRosterTab === 'athletes' ? club.athletes : club.coaches).length === 0">
+        {{ activeRosterTab === 'athletes' ? 'Aucun athlète pour le moment.' : 'Aucun coach ajouté pour le moment.' }}
+      </div>
+      <div class="empty-text" *ngIf="(activeRosterTab === 'athletes' ? club.athletes : club.coaches).length > 0 && filteredRoster.length === 0">
+        Aucun résultat pour « {{ searchTerm }} ».
+      </div>
+    </div>
+  </section>
+</main>

@@ -117,7 +117,13 @@
       <a routerLink="/clubs" routerLinkActive="active" class="nav-link">CLUBS</a>
       <a routerLink="/licences" routerLinkActive="active" class="nav-link">LICENCES</a>
       <div class="nav-dropdown">
-        <a routerLink="/formations" routerLinkActive="active" class="nav-link has-dropdown">FORMATION <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
+        <button type="button" class="nav-link has-dropdown nav-dropdown-trigger">FORMATION <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></button>
+        <div class="dropdown-content">
+          <a routerLink="/formations/devenir-coach">Devenir Coach</a>
+          <a routerLink="/formations/programmes">Programmes</a>
+          <a *ngIf="showMesFormationsMenu" routerLink="/formations/mes-formations">Mes formations</a>
+          <a *ngIf="isCoach" routerLink="/formations/suivi-nageurs">Suivi Nageurs</a>
+        </div>
       </div>
       <div class="nav-dropdown">
         <a class="nav-link has-dropdown">CLASSEMENTS <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></a>

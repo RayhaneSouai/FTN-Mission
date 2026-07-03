@@ -7,6 +7,7 @@ import { PressListComponent } from './components/press-list/press-list.component
 import { PressVisitorModule } from './press-visitor.module';
 import { SharedModule } from '../../shared/shared.module';
 import { AdminUiModule } from '../../shared/admin-ui/admin-ui.module';
+import { PageHeroComponent } from '../../shared/components/page-hero/page-hero.component';
 
 @NgModule({
   declarations: [
@@ -18,6 +19,7 @@ import { AdminUiModule } from '../../shared/admin-ui/admin-ui.module';
     PressRoutingModule,
     SharedModule,
     AdminUiModule,
+    PageHeroComponent,
     PressVisitorModule
   ]
 })

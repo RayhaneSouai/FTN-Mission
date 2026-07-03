@@ -10,6 +10,7 @@ public class PerformanceDTO {
     private Integer distance;
     private StrokeType stroke;
     private LocalDate date;
+    private Boolean isPersonalRecord;
 
     public Long getId() {
         return id;
@@ -49,5 +50,13 @@ public class PerformanceDTO {
 
     public void setDate(LocalDate date) {
         this.date = date;
+    }
+
+    public Boolean getIsPersonalRecord() {
+        return isPersonalRecord;
+    }
+
+    public void setIsPersonalRecord(Boolean isPersonalRecord) {
+        this.isPersonalRecord = isPersonalRecord;
     }
 }

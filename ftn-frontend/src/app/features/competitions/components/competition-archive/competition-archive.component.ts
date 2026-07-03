@@ -4,15 +4,18 @@ import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CompetitionApiService } from '../../services/competition-api.service';
 import { Competition, Discipline } from '../../models/competition.model';
+import { PageHeroComponent } from '../../../../shared/components/page-hero/page-hero.component';
+import { PAGE_HERO_IMAGES } from '../../../../shared/components/page-hero/page-hero.constants';
 
 @Component({
   selector: 'app-competition-archive',
   standalone: true,
-  imports: [CommonModule, DatePipe, RouterLink, FormsModule],
+  imports: [CommonModule, DatePipe, RouterLink, FormsModule, PageHeroComponent],
   templateUrl: './competition-archive.component.html',
   styleUrl: './competition-archive.component.scss',
 })
 export class CompetitionArchiveComponent implements OnInit {
+  readonly heroImage = PAGE_HERO_IMAGES.competitions;
   private readonly api = inject(CompetitionApiService);
 
   readonly archives = signal<Competition[]>([]);

@@ -404,6 +404,7 @@ public class UserServiceImpl implements IUserService {
         dto.setStroke(performance.getStroke());
         dto.setDate(performance.getDate());
         dto.setId(performance.getId());
+        dto.setIsPersonalRecord(Boolean.TRUE.equals(performance.getIsPersonalRecord()));
         return dto;
     }
 

@@ -8,7 +8,16 @@
     </div>
   </header>
 
-  <div class="admin-grid">
+  <div class="admin-tabs">
+    <button type="button" [class.active]="activeTab === 'programs'" (click)="setActiveTab('programs')">
+      Programmes
+    </button>
+    <button type="button" [class.active]="activeTab === 'registrations'" (click)="setActiveTab('registrations')">
+      Inscriptions
+    </button>
+  </div>
+
+  <div class="admin-grid" *ngIf="activeTab === 'programs'">
     <section class="panel seasons-panel">
       <div class="panel-head">
         <h2>Saisons</h2>
@@ -76,6 +85,68 @@
       </div>
     </section>
   </div>
+
+  <section class="panel registrations-panel" *ngIf="activeTab === 'registrations'">
+    <div class="panel-head">
+      <h2>Inscriptions <span *ngIf="selectedSeason">— {{ selectedSeason.label }}</span></h2>
+      <div class="registration-filters">
+        <select [ngModel]="selectedSeason?.id" (ngModelChange)="selectSeasonById($event)">
+          <option [ngValue]="null">Toutes les saisons</option>
+          <option *ngFor="let s of seasons" [ngValue]="s.id">{{ s.label }}</option>
+        </select>
+        <select [(ngModel)]="registrationStatusFilter" (ngModelChange)="onRegistrationStatusFilterChange()">
+          <option value="ALL">Tous les statuts</option>
+          <option *ngFor="let s of registrationStatuses" [value]="s">{{ s }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="loading-inline" *ngIf="loadingRegistrations">Chargement...</div>
+
+    <div class="registrations-table" *ngIf="!loadingRegistrations">
+      <div class="registration-row registration-row--head">
+        <span>Nageur</span>
+        <span>Programme</span>
+        <span>Statut</span>
+        <span>Date</span>
+        <span>Actions</span>
+      </div>
+      <div class="registration-row" *ngFor="let r of registrations">
+        <span class="request-name">{{ r.swimmerName }} <small>{{ r.swimmerEmail }}</small></span>
+        <span>{{ r.program.title }}</span>
+        <span class="status-tag" [class.published]="r.status === 'APPROVED'">{{ r.status }}</span>
+        <span>{{ r.registeredAt | date:'dd/MM/yyyy' }}</span>
+        <span class="admin-row-actions">
+          <button type="button" class="admin-action-label"
+                  [disabled]="processingRegistrationId === r.id"
+                  (click)="approveRegistration(r)">
+            <span class="material-symbols-outlined" aria-hidden="true">check</span>
+            Approuver
+          </button>
+          <button type="button" class="admin-action-label"
+                  [disabled]="processingRegistrationId === r.id"
+                  (click)="waitlistRegistration(r)">
+            <span class="material-symbols-outlined" aria-hidden="true">schedule</span>
+            Attente
+          </button>
+          <button type="button" class="admin-action-label admin-action-label--danger"
+                  [disabled]="processingRegistrationId === r.id"
+                  (click)="rejectRegistration(r)">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+            Refuser
+          </button>
+          <button type="button" class="admin-action-label"
+                  *ngIf="canGenerateCertificate(r)"
+                  [disabled]="processingRegistrationId === r.id"
+                  (click)="generateCertificate(r)">
+            <span class="material-symbols-outlined" aria-hidden="true">workspace_premium</span>
+            Générer certificat
+          </button>
+        </span>
+      </div>
+      <p class="empty" *ngIf="registrations.length === 0">Aucune inscription pour ce filtre.</p>
+    </div>
+  </section>
 </div>
 
 <div class="modal-overlay" *ngIf="showSeasonForm" (click)="closeSeasonForm()">
@@ -112,9 +183,10 @@
                    placeholder="Calendrier BF1 promotion février 2024" required />
           </div>
           <div class="form-group">
-            <label>Brevet *</label>
-            <select [(ngModel)]="programForm.brevetType" name="brevetType">
-              <option *ngFor="let b of brevetTypes" [value]="b">{{ b }}</option>
+            <label>Type de programme *</label>
+            <select [(ngModel)]="programForm.programType" name="programType" (ngModelChange)="onProgramTypeChange()">
+              <option value="COACH_CERTIFICATION">Certification coach (BF1/BF2)</option>
+              <option value="SWIMMER_TRAINING">Programme nageurs</option>
             </select>
           </div>
           <div class="form-group">
@@ -122,6 +194,44 @@
             <select [(ngModel)]="programForm.status" name="status">
               <option *ngFor="let st of statuses" [value]="st">{{ statusLabel(st) }}</option>
             </select>
+          </div>
+        </div>
+
+        <div class="form-row" *ngIf="programForm.programType !== 'SWIMMER_TRAINING'">
+          <div class="form-group">
+            <label>Brevet *</label>
+            <select [(ngModel)]="programForm.brevetType" name="brevetType">
+              <option *ngFor="let b of brevetTypes" [value]="b">{{ b }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row" *ngIf="programForm.programType === 'SWIMMER_TRAINING'">
+          <div class="form-group">
+            <label>Catégorie visée *</label>
+            <select [(ngModel)]="programForm.targetCategory" name="targetCategory">
+              <option *ngFor="let cat of targetCategories" [value]="cat">{{ cat }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>ID du coach *</label>
+            <input type="number" [ngModel]="programForm.coach?.id" (ngModelChange)="programForm.coach = { id: $event }"
+                   name="coachId" placeholder="Identifiant utilisateur du coach" />
+          </div>
+          <div class="form-group">
+            <label>Places max</label>
+            <input type="number" [(ngModel)]="programForm.maxParticipants" name="maxParticipants" min="1" />
+          </div>
+        </div>
+
+        <div class="form-row" *ngIf="programForm.programType === 'SWIMMER_TRAINING'">
+          <div class="form-group">
+            <label>Lieu</label>
+            <input type="text" [(ngModel)]="programForm.location" name="location" placeholder="Piscine municipale..." />
+          </div>
+          <div class="form-group">
+            <label>Prix par séance (DT)</label>
+            <input type="number" [(ngModel)]="programForm.pricePerSession" name="pricePerSession" min="0" step="1" />
           </div>
         </div>
       </fieldset>
@@ -176,7 +286,7 @@
         </div>
       </fieldset>
 
-      <fieldset>
+      <fieldset *ngIf="programForm.programType !== 'SWIMMER_TRAINING'">
         <legend>Formation théorique</legend>
         <div class="form-row">
           <div class="form-group">
@@ -210,7 +320,7 @@
         </div>
       </fieldset>
 
-      <fieldset>
+      <fieldset *ngIf="programForm.programType !== 'SWIMMER_TRAINING'">
         <legend>Emploi du temps théorique (présence obligatoire)</legend>
         <div class="schedule-rows">
           <div class="schedule-row" *ngFor="let row of programForm.scheduleItems; let i = index">
@@ -226,7 +336,46 @@
         <button type="button" class="btn-sm btn-secondary" (click)="addScheduleRow()">+ Séance</button>
       </fieldset>
 
-      <fieldset>
+      <fieldset *ngIf="programForm.programType === 'SWIMMER_TRAINING' && editingProgram?.id">
+        <legend>Séances programmées</legend>
+        <div class="loading-inline" *ngIf="loadingSessions">Chargement...</div>
+        <div class="schedule-rows" *ngIf="!loadingSessions">
+          <div class="schedule-row" *ngFor="let session of sessions">
+            <span>{{ session.sessionDate }}</span>
+            <span>{{ session.startTime }} - {{ session.endTime }}</span>
+            <span>{{ session.location }}</span>
+            <div class="admin-row-actions">
+              <button type="button" class="icon-btn" (click)="editSession(session)" title="Modifier">✎</button>
+              <button type="button" class="icon-btn danger" (click)="deleteSession(session)" title="Supprimer">×</button>
+            </div>
+          </div>
+          <p class="empty" *ngIf="sessions.length === 0">Aucune séance programmée.</p>
+        </div>
+
+        <div class="form-row session-form-row">
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" [(ngModel)]="sessionForm.sessionDate" name="sessionDate" [ngModelOptions]="{standalone: true}" />
+          </div>
+          <div class="form-group">
+            <label>Début</label>
+            <input type="time" [(ngModel)]="sessionForm.startTime" name="sessionStart" [ngModelOptions]="{standalone: true}" />
+          </div>
+          <div class="form-group">
+            <label>Fin</label>
+            <input type="time" [(ngModel)]="sessionForm.endTime" name="sessionEnd" [ngModelOptions]="{standalone: true}" />
+          </div>
+          <div class="form-group">
+            <label>Lieu</label>
+            <input type="text" [(ngModel)]="sessionForm.location" name="sessionLocation" [ngModelOptions]="{standalone: true}" />
+          </div>
+        </div>
+        <button type="button" class="btn-sm btn-secondary" (click)="saveSession()">
+          {{ editingSessionId ? 'Modifier la séance' : '+ Ajouter une séance' }}
+        </button>
+      </fieldset>
+
+      <fieldset *ngIf="programForm.programType !== 'SWIMMER_TRAINING'">
         <legend>Formation pratique et résultats</legend>
         <div class="form-group">
           <label>Description pratique</label>

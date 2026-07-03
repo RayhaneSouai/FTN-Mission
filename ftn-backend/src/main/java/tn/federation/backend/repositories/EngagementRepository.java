@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import tn.federation.backend.entities.Engagement;
 import tn.federation.backend.entities.EngagementStatus;
+import tn.federation.backend.entities.Competition;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +31,11 @@ public interface EngagementRepository extends JpaRepository<Engagement, Long> {
 
     /** All engagements for a club in a competition (for club validation) */
     List<Engagement> findByClubIdAndCompetitionId(Long clubId, Long competitionId);
+
+    long countByClubIdAndCompetitionId(Long clubId, Long competitionId);
+
+    @Query("SELECT DISTINCT e.competition FROM Engagement e WHERE e.club.id = :clubId ORDER BY e.competition.startDate DESC")
+    List<Competition> findDistinctCompetitionsByClubId(@Param("clubId") Long clubId);
 
     /** All engagements for a specific event */
     List<Engagement> findByEventId(Long eventId);

@@ -1,18 +1,21 @@
 import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RecordService } from '../../core/services/record.service';
+import { RecordService } from './services/record.service';
 import { RecordDTO, STROKE_LABELS, GENDER_LABELS } from '../../core/models/performance.model';
+import { PageHeroComponent } from '../../shared/components/page-hero/page-hero.component';
+import { PAGE_HERO_IMAGES } from '../../shared/components/page-hero/page-hero.constants';
 
 @Component({
   selector: 'app-records',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PageHeroComponent],
   templateUrl: './records.component.html',
   styleUrls: ['./records.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RecordsComponent implements OnInit {
+  readonly heroImage = PAGE_HERO_IMAGES.records;
   private readonly recordService = inject(RecordService);
 
   readonly strokeLabels = STROKE_LABELS;

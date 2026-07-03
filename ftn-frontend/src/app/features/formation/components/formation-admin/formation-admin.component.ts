@@ -3,12 +3,19 @@ import {
   BrevetType,
   FormationProgram,
   FormationProgramStatus,
+  FormationRegistration,
+  FormationRegistrationStatus,
   FormationScheduleItem,
-  Season
+  ProgramType,
+  Season,
+  TargetCategory,
+  TrainingSession
 } from '../../models/formation.model';
 import { SeasonService } from '../../services/season.service';
 import { FormationProgramService } from '../../services/formation-program.service';
 import { ToastService } from '../../../competitions/services/toast.service';
+
+type AdminTab = 'programs' | 'registrations';
 
 @Component({
   selector: 'app-formation-admin',
@@ -16,12 +23,20 @@ import { ToastService } from '../../../competitions/services/toast.service';
   styleUrl: './formation-admin.component.css'
 })
 export class FormationAdminComponent implements OnInit {
+  activeTab: AdminTab = 'programs';
+
   seasons: Season[] = [];
   programs: FormationProgram[] = [];
   selectedSeason: Season | null = null;
   loadingSeasons = true;
   loadingPrograms = false;
   saving = false;
+
+  registrations: FormationRegistration[] = [];
+  loadingRegistrations = false;
+  registrationStatusFilter: FormationRegistrationStatus | 'ALL' = 'PENDING';
+  processingRegistrationId: number | null = null;
+  readonly registrationStatuses: FormationRegistrationStatus[] = ['PENDING', 'APPROVED', 'REJECTED', 'WAITING_LIST'];
 
   showSeasonForm = false;
   seasonForm: Season = { label: '', active: true };
@@ -33,6 +48,13 @@ export class FormationAdminComponent implements OnInit {
 
   readonly brevetTypes: BrevetType[] = ['BF1', 'BF2'];
   readonly statuses: FormationProgramStatus[] = ['DRAFT', 'PUBLISHED'];
+  readonly programTypes: ProgramType[] = ['COACH_CERTIFICATION', 'SWIMMER_TRAINING'];
+  readonly targetCategories: TargetCategory[] = ['AVENIRS', 'BENJAMINS', 'MINIMES', 'CADETS', 'JUNIORS', 'SENIORS'];
+
+  sessions: TrainingSession[] = [];
+  loadingSessions = false;
+  sessionForm: TrainingSession = this.emptySession();
+  editingSessionId: number | null = null;
 
   constructor(
     private seasonService: SeasonService,
@@ -70,6 +92,110 @@ export class FormationAdminComponent implements OnInit {
   selectSeason(season: Season): void {
     this.selectedSeason = season;
     this.loadPrograms();
+    if (this.activeTab === 'registrations') {
+      this.loadRegistrations();
+    }
+  }
+
+  setActiveTab(tab: AdminTab): void {
+    this.activeTab = tab;
+    if (tab === 'registrations') {
+      this.loadRegistrations();
+    }
+  }
+
+  selectSeasonById(seasonId: number | null): void {
+    this.selectedSeason = seasonId ? (this.seasons.find((s) => s.id === seasonId) ?? null) : null;
+    this.loadRegistrations();
+  }
+
+  loadRegistrations(): void {
+    this.loadingRegistrations = true;
+    const status = this.registrationStatusFilter === 'ALL' ? undefined : this.registrationStatusFilter;
+    this.programService.getAdminRegistrations(this.selectedSeason?.id, status).subscribe({
+      next: (data) => {
+        this.registrations = data;
+        this.loadingRegistrations = false;
+      },
+      error: () => {
+        this.loadingRegistrations = false;
+        this.toast.showError('Impossible de charger les inscriptions.');
+      }
+    });
+  }
+
+  onRegistrationStatusFilterChange(): void {
+    this.loadRegistrations();
+  }
+
+  approveRegistration(registration: FormationRegistration): void {
+    this.processingRegistrationId = registration.id;
+    this.programService.approveRegistration(registration.id).subscribe({
+      next: () => {
+        this.processingRegistrationId = null;
+        this.toast.showSuccess('Inscription approuvée.');
+        this.loadRegistrations();
+      },
+      error: (err) => {
+        this.processingRegistrationId = null;
+        this.toast.showError(err?.error?.message ?? 'Erreur lors de l\'approbation.');
+      }
+    });
+  }
+
+  rejectRegistration(registration: FormationRegistration): void {
+    this.processingRegistrationId = registration.id;
+    this.programService.rejectRegistration(registration.id).subscribe({
+      next: () => {
+        this.processingRegistrationId = null;
+        this.toast.showSuccess('Inscription refusée.');
+        this.loadRegistrations();
+      },
+      error: (err) => {
+        this.processingRegistrationId = null;
+        this.toast.showError(err?.error?.message ?? 'Erreur lors du refus.');
+      }
+    });
+  }
+
+  waitlistRegistration(registration: FormationRegistration): void {
+    this.processingRegistrationId = registration.id;
+    this.programService.waitlistRegistration(registration.id).subscribe({
+      next: () => {
+        this.processingRegistrationId = null;
+        this.toast.showSuccess('Inscription placée en liste d\'attente.');
+        this.loadRegistrations();
+      },
+      error: (err) => {
+        this.processingRegistrationId = null;
+        this.toast.showError(err?.error?.message ?? 'Erreur.');
+      }
+    });
+  }
+
+  canGenerateCertificate(registration: FormationRegistration): boolean {
+    return registration.status === 'APPROVED' && registration.phase === 'COMPLETED';
+  }
+
+  generateCertificate(registration: FormationRegistration): void {
+    this.processingRegistrationId = registration.id;
+    this.programService.adminGenerateCertificate(registration.id).subscribe({
+      next: (blob) => {
+        this.processingRegistrationId = null;
+        const safeTitle = (registration.program.title || 'formation').replace(/[/\\:*?"<>|]+/g, '-').trim();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `certificat-formation-${safeTitle}.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.toast.showSuccess('Certificat généré.');
+      },
+      error: (err) => {
+        this.processingRegistrationId = null;
+        this.toast.showError(err?.error?.message ?? 'Erreur lors de la génération du certificat.');
+      }
+    });
   }
 
   loadPrograms(): void {
@@ -174,6 +300,9 @@ export class FormationAdminComponent implements OnInit {
             : [this.emptyScheduleRow()]
         };
         this.showProgramForm = true;
+        if (full.programType === 'SWIMMER_TRAINING' && full.id) {
+          this.loadSessions(full.id);
+        }
       },
       error: () => this.toast.showError('Impossible de charger le programme.')
     });
@@ -182,6 +311,71 @@ export class FormationAdminComponent implements OnInit {
   closeProgramForm(): void {
     this.showProgramForm = false;
     this.editingProgram = null;
+    this.sessions = [];
+    this.editingSessionId = null;
+    this.sessionForm = this.emptySession();
+  }
+
+  // ─── Training sessions (swimmer programs) ───────────────────────────────────
+
+  loadSessions(programId: number): void {
+    this.loadingSessions = true;
+    this.programService.getSessions(programId).subscribe({
+      next: (sessions) => {
+        this.sessions = sessions;
+        this.loadingSessions = false;
+      },
+      error: () => {
+        this.loadingSessions = false;
+        this.toast.showError('Impossible de charger les séances.');
+      }
+    });
+  }
+
+  openAddSession(): void {
+    this.editingSessionId = null;
+    this.sessionForm = this.emptySession();
+  }
+
+  editSession(session: TrainingSession): void {
+    this.editingSessionId = session.id ?? null;
+    this.sessionForm = { ...session };
+  }
+
+  saveSession(): void {
+    if (!this.editingProgram?.id) return;
+    if (!this.sessionForm.sessionDate || !this.sessionForm.startTime || !this.sessionForm.endTime) {
+      this.toast.showError('Date et horaires sont obligatoires.');
+      return;
+    }
+    const programId = this.editingProgram.id;
+    const req$ = this.editingSessionId
+      ? this.programService.updateSession(programId, this.editingSessionId, this.sessionForm)
+      : this.programService.createSession(programId, this.sessionForm);
+
+    req$.subscribe({
+      next: () => {
+        this.toast.showSuccess(this.editingSessionId ? 'Séance modifiée.' : 'Séance ajoutée.');
+        this.openAddSession();
+        this.loadSessions(programId);
+      },
+      error: (err) => this.toast.showError(err?.error?.message ?? 'Erreur lors de l\'enregistrement de la séance.')
+    });
+  }
+
+  deleteSession(session: TrainingSession): void {
+    if (!this.editingProgram?.id || !session.id || !confirm('Supprimer cette séance ?')) return;
+    this.programService.deleteSession(this.editingProgram.id, session.id).subscribe({
+      next: () => {
+        this.toast.showSuccess('Séance supprimée.');
+        this.loadSessions(this.editingProgram!.id!);
+      },
+      error: (err) => this.toast.showError(err?.error?.message ?? 'Erreur lors de la suppression.')
+    });
+  }
+
+  private emptySession(): TrainingSession {
+    return { sessionDate: '', startTime: '', endTime: '', location: '', notes: '', status: 'SCHEDULED' };
   }
 
   addScheduleRow(): void {
@@ -249,9 +443,20 @@ export class FormationAdminComponent implements OnInit {
     return status === 'PUBLISHED' ? 'Publié' : 'Brouillon';
   }
 
+  onProgramTypeChange(): void {
+    if (this.programForm.programType === 'SWIMMER_TRAINING') {
+      this.programForm.brevetType = undefined;
+    } else {
+      this.programForm.brevetType = this.programForm.brevetType ?? 'BF1';
+      this.programForm.targetCategory = undefined;
+      this.programForm.coach = undefined;
+    }
+  }
+
   private emptyProgram(): FormationProgram {
     return {
       title: '',
+      programType: 'COACH_CERTIFICATION',
       brevetType: 'BF1',
       season: { id: 0 },
       status: 'DRAFT',

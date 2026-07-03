@@ -1,12 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { CompetitionResult, RankingEntry } from '../models/performance.model';
+import { CompetitionResult, RankingEntry } from '../../../core/models/performance.model';
+import { apiUrl } from '../../../core/config/api.config';
 
 @Injectable({ providedIn: 'root' })
 export class RankingService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:8083/ftn/api/rankings';
+  private readonly baseUrl = apiUrl('rankings');
 
   getNationalRanking(
     distance: number,
@@ -23,13 +24,12 @@ export class RankingService {
 
     if (niveau) params = params.set('niveau', niveau);
 
-    return this.http.get<RankingEntry[]>(`${this.apiUrl}/national`, { params });
+    return this.http.get<RankingEntry[]>(`${this.baseUrl}/national`, { params });
   }
 
   getCompetitionResults(competitionId: number): Observable<CompetitionResult[]> {
     return this.http.get<CompetitionResult[]>(
-      `${this.apiUrl}/competition/${competitionId}`
+      `${this.baseUrl}/competition/${competitionId}`
     );
   }
 }
-

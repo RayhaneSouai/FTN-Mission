@@ -234,6 +234,13 @@
 .nav-dropdown {
   position: relative;
 }
+
+.nav-dropdown-trigger {
+  background: transparent;
+  border: 0;
+  font-family: inherit;
+}
+
 .dropdown-content {
   display: none;
   position: absolute;
@@ -259,7 +266,8 @@
   background-color: #f3f4f6;
   color: var(--ftn-primary, #004da3);
 }
-.nav-dropdown:hover .dropdown-content {
+.nav-dropdown:hover .dropdown-content,
+.nav-dropdown:focus-within .dropdown-content {
   display: block;
 }
 .chevron {

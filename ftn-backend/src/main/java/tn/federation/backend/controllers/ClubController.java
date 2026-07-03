@@ -8,7 +8,13 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import tn.federation.backend.dto.ClubAdminReportDTO;
+import tn.federation.backend.dto.ClubCompetitionSummaryDTO;
+import tn.federation.backend.dto.ClubDetailDTO;
+import tn.federation.backend.dto.ClubJoinPreviewDTO;
+import tn.federation.backend.dto.ClubJoinRequestBody;
 import tn.federation.backend.dto.ClubJoinRequestDTO;
+import tn.federation.backend.dto.ClubRankingDTO;
 import tn.federation.backend.dto.ImportResult;
 import tn.federation.backend.dto.RegionOptionDto;
 import tn.federation.backend.entities.Club;
@@ -27,10 +33,7 @@ import java.util.Arrays;
 import tn.federation.backend.repositories.*;
 import tn.federation.backend.services.Abstraction.IClubService;
 import tn.federation.backend.services.Abstraction.INotificationService;
-import tn.federation.backend.dto.ClubAdminReportDTO;
-
-import tn.federation.backend.services.Abstraction.INotificationService;
-import tn.federation.backend.dto.ClubAdminReportDTO;
+import tn.federation.backend.services.ServiceImpl.ClubJoinRequestService;
 import tn.federation.backend.repositories.ClubJoinRequestRepository;
 import tn.federation.backend.repositories.ClubRepository;
 import tn.federation.backend.repositories.UserRepository;
@@ -56,6 +59,9 @@ public class ClubController {
 
     @Autowired
     private ClubJoinRequestRepository clubJoinRequestRepository;
+
+    @Autowired
+    private ClubJoinRequestService clubJoinRequestService;
 
     @Autowired
     private ClubSeasonValidationRepository clubSeasonValidationRepository;
@@ -106,6 +112,7 @@ public class ClubController {
 
     // ─── CRUD ────────────────────────────────────────────────────────
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Club> createClub(@RequestBody Club club) {
         return ResponseEntity.ok(clubService.addClub(club));
     }
@@ -125,13 +132,34 @@ public class ClubController {
         return ResponseEntity.ok(clubService.getClubById(id));
     }
 
+    @DeleteMapping("/my-membership")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, String>> leaveClub(@AuthenticationPrincipal UserDetails currentUser) {
+        User swimmer = userRepository.findByEmail(currentUser.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
+        clubService.leaveClub(swimmer);
+        return ResponseEntity.ok(Map.of("message", "Vous avez quitté votre club avec succès."));
+    }
+
+    @GetMapping("/{id:\\d+}/competitions")
+    public ResponseEntity<List<ClubCompetitionSummaryDTO>> getClubCompetitions(@PathVariable long id) {
+        return ResponseEntity.ok(clubService.getClubCompetitions(id));
+    }
+
+    @GetMapping("/{id:\\d+}/details")
+    public ResponseEntity<ClubDetailDTO> getClubDetails(@PathVariable long id) {
+        return ResponseEntity.ok(clubService.getClubDetail(id));
+    }
+
     @PutMapping("/{id:\\d+}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Club> updateClub(@PathVariable long id, @RequestBody Club club) {
         club.setId(id);
         return ResponseEntity.ok(clubService.updateClub(club));
     }
 
     @DeleteMapping("/{id:\\d+}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteClub(@PathVariable long id) {
         clubService.deleteClub(id);
         return ResponseEntity.noContent().build();
@@ -213,37 +241,54 @@ public class ClubController {
         return ResponseEntity.ok(ClubJoinRequestDTO.fromEntity(clubJoinRequestRepository.save(request)));
     }
 
+    /**
+     * @deprecated Superseded by {@link #joinClub}, which runs the same
+     * auto-approval evaluation. Kept only so old clients don't 404;
+     * delegates to the same service so there is a single join pipeline.
+     */
+    @Deprecated
     @PostMapping("/{id:\\d+}/join-request")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, String>> requestToJoinClub(
             @PathVariable long id,
+            @AuthenticationPrincipal UserDetails currentUser,
+            @RequestBody(required = false) Map<String, String> body) {
+        User swimmer = userRepository.findByEmail(currentUser.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
+        Club club = clubRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Club introuvable"));
+
+        String message = body != null ? body.get("message") : null;
+        ClubJoinRequestBody requestBody = new ClubJoinRequestBody(message, null, null, null, null);
+        clubJoinRequestService.processJoinRequest(swimmer.getId(), id, requestBody);
+
+        return ResponseEntity.ok(Map.of("message", "Demande d'adhésion envoyée au club " + club.getName() + "."));
+    }
+
+    @PostMapping("/{clubId:\\d+}/join")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ClubJoinRequestDTO> joinClub(
+            @PathVariable Long clubId,
+            @AuthenticationPrincipal UserDetails currentUser,
+            @RequestBody(required = false) ClubJoinRequestBody body) {
+        User swimmer = userRepository.findByEmail(currentUser.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
+
+        ClubJoinRequestDTO result = clubJoinRequestService.processJoinRequest(
+                swimmer.getId(), clubId, body != null ? body : ClubJoinRequestBody.empty());
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/{clubId:\\d+}/join-preview")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ClubJoinPreviewDTO> previewJoin(
+            @PathVariable Long clubId,
+            @RequestParam(required = false) String currentLevel,
             @AuthenticationPrincipal UserDetails currentUser) {
         User swimmer = userRepository.findByEmail(currentUser.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
-        if (swimmer.getRole() != Role.SWIMMER) {
-            throw new IllegalArgumentException("Seuls les nageurs peuvent demander à rejoindre un club.");
-        }
-        if (swimmer.getClub() != null) {
-            throw new IllegalArgumentException("Vous êtes déjà affilié(e) à un club.");
-        }
-        Club club = clubRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Club introuvable"));
-        clubJoinRequestRepository
-                .findBySwimmer_IdAndClub_IdAndStatus(swimmer.getId(), id, ClubJoinRequestStatus.PENDING)
-                .ifPresent(existing -> {
-                    throw new IllegalArgumentException("Une demande est déjà en attente pour ce club.");
-                });
-        if (clubJoinRequestRepository.existsBySwimmer_IdAndStatus(swimmer.getId(), ClubJoinRequestStatus.PENDING)) {
-            throw new IllegalArgumentException("Vous avez déjà une demande d'adhésion en attente.");
-        }
-
-        ClubJoinRequest request = new ClubJoinRequest();
-        request.setSwimmer(swimmer);
-        request.setClub(club);
-        request.setStatus(ClubJoinRequestStatus.PENDING);
-        clubJoinRequestRepository.save(request);
-
-        return ResponseEntity.ok(Map.of("message", "Demande d'adhésion envoyée au club " + club.getName() + "."));
+        return ResponseEntity.ok(
+                clubJoinRequestService.previewJoinRequest(swimmer.getId(), clubId, currentLevel));
     }
 
     // ─── Advanced ───────────────────────────────────────────────────────
@@ -263,7 +308,7 @@ public class ClubController {
     }
 
     @GetMapping("/ranking")
-    public ResponseEntity<List<Club>> getTopClubsBySwimmers() {
+    public ResponseEntity<List<ClubRankingDTO>> getTopClubsBySwimmers() {
         return ResponseEntity.ok(clubService.getTopClubsBySwimmers());
     }
 

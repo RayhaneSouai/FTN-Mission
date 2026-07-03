@@ -24,6 +24,14 @@ public class SeasonController {
         return ResponseEntity.ok(seasonService.findAll());
     }
 
+    @GetMapping("/active")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<Season> getActive() {
+        return seasonService.findActive()
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("permitAll()")
     public ResponseEntity<Season> getById(@PathVariable Long id) {

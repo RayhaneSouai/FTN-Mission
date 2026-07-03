@@ -1,0 +1,95 @@
+<main class="formation-detail">
+  <a routerLink="/formations/programmes" class="back-link">← Retour aux programmes</a>
+
+  <div class="loading-state" *ngIf="loading">Chargement du programme...</div>
+
+  <section class="detail-card" *ngIf="!loading && program">
+    <div class="detail-header">
+      <div>
+        <span class="kicker">{{ program.targetCategory }} / {{ program.season.active ? 'Saison en cours' : 'Saison archivée' }}</span>
+        <h1>{{ program.title }}</h1>
+        <p>{{ program.registrationConditions || 'Conditions à confirmer par la fédération.' }}</p>
+      </div>
+      <span class="state-pill">{{ resolveProgramStateLabel() }}</span>
+    </div>
+
+    <div class="feedback" *ngIf="feedbackMessage" [class.feedback--success]="feedbackType === 'success'" [class.feedback--error]="feedbackType === 'error'">
+      {{ feedbackMessage }}
+    </div>
+
+    <div class="registration-status" *ngIf="existingRegistration">
+      <strong>{{ registrationStatusLabel }}</strong>
+      <p *ngIf="existingRegistration.status === 'PENDING'">
+        Votre demande sera examinée par l'administration avant la date de début du programme.
+      </p>
+    </div>
+
+    <div class="guest-panel" *ngIf="showGuestPrompt">
+      <button type="button" class="guest-register-panel__close" (click)="showGuestPrompt = false">×</button>
+      <h3>Pour vous inscrire à ce programme, veuillez vous connecter avec un compte nageur.</h3>
+      <div class="guest-panel__actions">
+        <a routerLink="/auth/login" class="btn-primary">Connexion</a>
+        <a routerLink="/auth/register" class="btn-outline">Créer un compte</a>
+      </div>
+    </div>
+
+    <div class="info-grid">
+      <article>
+        <span>Coach</span>
+        <strong>{{ coachName() }}</strong>
+      </article>
+      <article *ngIf="program.location">
+        <span>Lieu</span>
+        <strong>{{ program.location }}</strong>
+      </article>
+      <article>
+        <span>Période d'inscription</span>
+        <strong>{{ formatDateRange(program.registrationStartDate, program.registrationEndDate) }}</strong>
+      </article>
+      <article *ngIf="program.theoreticalStartDate || program.theoreticalEndDate">
+        <span>Formation théorique</span>
+        <strong>{{ formatDateRange(program.theoreticalStartDate, program.theoreticalEndDate) }}</strong>
+      </article>
+      <article *ngIf="program.practicalPeriodStart || program.practicalPeriodEnd">
+        <span>Formation pratique</span>
+        <strong>{{ formatDateRange(program.practicalPeriodStart, program.practicalPeriodEnd) }}</strong>
+      </article>
+      <article *ngIf="program.pricePerSession !== undefined && program.pricePerSession !== null">
+        <span>Prix par séance</span>
+        <strong>{{ program.pricePerSession }} DT</strong>
+      </article>
+      <article *ngIf="spotsRemaining() !== null">
+        <span>Places restantes</span>
+        <strong>{{ spotsRemaining() }} / {{ program.maxParticipants }}</strong>
+      </article>
+    </div>
+
+    <div class="detail-section">
+      <h2>Séances programmées</h2>
+      <div class="loading-inline" *ngIf="loadingSessions">Chargement...</div>
+      <div class="schedule-row" *ngFor="let session of sessions">
+        <span>{{ formatDate(session.sessionDate) }}</span>
+        <strong>{{ formatTime(session.startTime) }} - {{ formatTime(session.endTime) }}</strong>
+        <p *ngIf="session.location">{{ session.location }}</p>
+        <p *ngIf="session.notes">{{ session.notes }}</p>
+      </div>
+      <p class="empty-text" *ngIf="!loadingSessions && sessions.length === 0">Aucune séance programmée pour le moment.</p>
+    </div>
+
+    <div class="detail-actions">
+      <app-ai-eligibility-panel
+        [result]="eligibilityResult"
+        [isChecking]="isCheckingEligibility"
+        (check)="checkEligibility()">
+      </app-ai-eligibility-panel>
+      <button *ngIf="canRegister()" type="button" class="btn-primary"
+              [disabled]="isRegistering" (click)="register()">
+        {{ isRegistering ? 'Envoi...' : 'S\'inscrire' }}
+      </button>
+    </div>
+  </section>
+
+  <div class="empty-state" *ngIf="!loading && !program">
+    Programme introuvable.
+  </div>
+</main>

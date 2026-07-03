@@ -7,16 +7,19 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PerformanceService } from '../../core/services/performance.service';
 import { PerformanceResponse, STROKE_LABELS } from '../../core/models/performance.model';
+import { PageHeroComponent } from '../../shared/components/page-hero/page-hero.component';
+import { PAGE_HERO_IMAGES } from '../../shared/components/page-hero/page-hero.constants';
 
 @Component({
   selector: 'app-my-performances',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PageHeroComponent],
   templateUrl: 'my-performances.component.html',
   styleUrls: ['my-performances.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MyPerformancesComponent implements OnInit, AfterViewInit, OnDestroy {
+  readonly heroImage = PAGE_HERO_IMAGES.performances;
   private readonly performanceService = inject(PerformanceService);
   private readonly platformId = inject(PLATFORM_ID);
 
@@ -25,8 +28,7 @@ export class MyPerformancesComponent implements OnInit, AfterViewInit, OnDestroy
 
   readonly strokeLabels = STROKE_LABELS;
 
-  // TODO: remplacer par l'ID du nageur connecté via AuthService
-  swimmerId = 1;
+  swimmerId = this.getCurrentUserId();
 
   performances = signal<PerformanceResponse[]>([]);
   loading = signal(true);
@@ -72,6 +74,12 @@ export class MyPerformancesComponent implements OnInit, AfterViewInit, OnDestroy
   });
 
   ngOnInit(): void {
+    if (!this.swimmerId) {
+      this.error.set('Utilisateur connecté introuvable.');
+      this.loading.set(false);
+      return;
+    }
+
     this.performanceService.getBySwimmer(this.swimmerId).subscribe({
       next: (data) => {
         this.performances.set(data);
@@ -185,5 +193,17 @@ export class MyPerformancesComponent implements OnInit, AfterViewInit, OnDestroy
   getEventLabel(key: string): string {
     const [dist, stroke] = key.split('-');
     return `${dist}m ${this.strokeLabels[stroke] ?? stroke}`;
+  }
+
+  private getCurrentUserId(): number | null {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    try {
+      const stored = localStorage.getItem('user');
+      if (!stored) return null;
+      const user = JSON.parse(stored);
+      return user.id || user.idUser || user.id_user || null;
+    } catch {
+      return null;
+    }
   }
 }

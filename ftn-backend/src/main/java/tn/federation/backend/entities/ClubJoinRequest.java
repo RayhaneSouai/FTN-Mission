@@ -10,13 +10,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(
-        name = "club_join_request",
-        uniqueConstraints = @UniqueConstraint(
-                name = "uk_pending_club_join_request",
-                columnNames = {"swimmer_id", "club_id", "status"}
-        )
-)
+@Table(name = "club_join_request")
 public class ClubJoinRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,6 +32,23 @@ public class ClubJoinRequest {
     private LocalDateTime requestedAt;
 
     private LocalDateTime reviewedAt;
+
+    @Column(columnDefinition = "TEXT")
+    private String message;
+
+    @Column(columnDefinition = "TEXT")
+    private String motivationLetter;
+
+    private String currentLevel;
+    private String previousClub;
+    private String availability;
+
+    @Column(columnDefinition = "TEXT")
+    private String rejectionReason;
+
+    private Integer eligibilityScore;
+    private Integer criteriaMet;
+    private Integer criteriaTotal;
 
     @PrePersist
     void onCreate() {

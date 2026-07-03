@@ -1,8 +1,10 @@
-<!-- Hero Banner Public -->
-<section class="visitor-hero">
-  <h1>Espace Actualités FTN</h1>
-  <p>Découvrez toute l'actualité de la natation tunisienne, les résultats officiels, les sélections nationales et les événements de la fédération.</p>
-</section>
+<!-- Hero avec l'image de la dernière actualité -->
+<app-page-hero
+  title="Actualités"
+  [subtitle]="heroSubtitle"
+  [kicker]="heroArticle ? 'À la une' : ''"
+  [imageUrl]="heroImageUrl">
+</app-page-hero>
 
 <div class="section-container">
 
@@ -53,7 +55,7 @@
   </div>
 
   <!-- Empty State -->
-  <div *ngIf="!loading && getFilteredItems().length === 0" style="text-align: center; padding: 60px; background: white; border-radius: 24px; border: 1px solid #f1f5f9;">
+  <div *ngIf="!loading && listItemsExcludingHero.length === 0 && !heroArticle" style="text-align: center; padding: 60px; background: white; border-radius: 24px; border: 1px solid #f1f5f9;">
     <h3 style="font-weight: 800; color: #1e293b; margin-bottom: 8px;">Aucune actualité trouvée</h3>
     <p style="color: #94a3b8;">Revenez bientôt !</p>
   </div>

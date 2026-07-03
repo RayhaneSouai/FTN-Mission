@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit, PLATFORM_ID, ViewChild } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
-import { Router } from '@angular/router';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { RouterModule, Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { UserService } from '../../users/services/user.service';
@@ -9,9 +9,13 @@ import { ClubService } from '../../clubs/services/club.service';
 import { DashboardActivityComponent } from '../../../dashboard/dashboard-activity/dashboard-activity.component';
 import { AdminStatVariant } from '../../../shared/admin-ui/components/admin-stat-card/admin-stat-card.component';
 import { ToastService } from '../../competitions/services/toast.service';
+import { AdminUiModule } from '../../../shared/admin-ui/admin-ui.module';
+import { DashboardModule } from '../../../dashboard/dashboard.module';
 
 @Component({
   selector: 'app-dashboard',
+  standalone: true,
+  imports: [CommonModule, RouterModule, AdminUiModule, DashboardModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })

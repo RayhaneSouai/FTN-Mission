@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Competition, CompetitionDetailResponse, DistributionResponse, ParticipationResponseDTO } from '../models/competition.model';
+import { Competition, CompetitionDetailResponse, CompetitionRequest, DistributionResponse, ParticipationResponseDTO } from '../models/competition.model';
 
 /**
  * Public API service — read-only competition endpoints + participation.
@@ -56,6 +56,20 @@ export class CompetitionApiService {
     archiveCompetition(id: number): Observable<Competition> {
         return this.http.post<Competition>(
             `http://localhost:8083/ftn/api/admin/competitions/${id}/archive`, {}
+        );
+    }
+
+    /** Create a competition (admin only) */
+    create(dto: CompetitionRequest): Observable<Competition> {
+        return this.http.post<Competition>(
+            `http://localhost:8083/ftn/api/admin/competitions/add`, dto
+        );
+    }
+
+    /** Update a competition (admin only) */
+    update(id: number, dto: CompetitionRequest): Observable<Competition> {
+        return this.http.put<Competition>(
+            `http://localhost:8083/ftn/api/admin/competitions/update`, { ...dto, id }
         );
     }
 }

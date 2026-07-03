@@ -5,9 +5,11 @@ import { SwimmerDashboardComponent } from './components/dashboard/swimmer-dashbo
 import { SwimmerPerformancesComponent } from './components/performances/swimmer-performances.component';
 import { SwimmerCompetitionsComponent } from './components/competitions/swimmer-competitions.component';
 import { SwimmerClubComponent } from './components/club/swimmer-club.component';
+import { SwimmerFormationCertificatesComponent } from './components/formation-certificates/swimmer-formation-certificates.component';
+import { SwimmerFormationHistoryComponent } from './components/formation-history/swimmer-formation-history.component';
+import { SwimmerFormationsComponent } from './components/formations/swimmer-formations.component';
+import { SwimmerActualitesComponent } from './components/actualites/swimmer-actualites.component';
 import { NutritionComponent } from './components/nutrition/nutrition.component';
-import { PressVisitorComponent } from '../press/components/press-visitor/press-visitor.component';
-
 
 const routes: Routes = [
   {
@@ -18,13 +20,15 @@ const routes: Routes = [
       { path: 'dashboard', component: SwimmerDashboardComponent },
       { path: 'performances', component: SwimmerPerformancesComponent },
       { path: 'competitions', component: SwimmerCompetitionsComponent },
-      { path: 'actualites', component: PressVisitorComponent },
+      { path: 'formations', component: SwimmerFormationsComponent },
+      { path: 'formations/historique', component: SwimmerFormationHistoryComponent },
+      { path: 'formations/certificats', component: SwimmerFormationCertificatesComponent },
+      { path: 'actualites', component: SwimmerActualitesComponent },
       { path: 'mon-club', component: SwimmerClubComponent },
       { path: 'nutrition', component: NutritionComponent },
-
-      { 
-        path: 'mon-profil', 
-        loadChildren: () => import('../profile/profile.module').then(m => m.ProfileModule) 
+      {
+        path: 'mon-profil',
+        loadChildren: () => import('../profile/profile.module').then(m => m.ProfileModule)
       }
     ]
   }

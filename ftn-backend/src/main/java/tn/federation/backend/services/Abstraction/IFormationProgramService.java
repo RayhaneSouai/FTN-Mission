@@ -14,4 +14,10 @@ public interface IFormationProgramService {
     FormationProgram update(Long id, FormationProgram program);
 
     void delete(Long id);
+
+    List<FormationProgram> getCoachCertificationPrograms(Long seasonId);
+
+    List<FormationProgram> getSwimmerTrainingPrograms(Long seasonId);
+
+    List<FormationProgram> getEligiblePrograms(String niveau);
 }

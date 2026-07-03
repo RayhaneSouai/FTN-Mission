@@ -9,6 +9,10 @@ import { SwimmerDashboardComponent } from './components/dashboard/swimmer-dashbo
 import { SwimmerPerformancesComponent } from './components/performances/swimmer-performances.component';
 import { SwimmerCompetitionsComponent } from './components/competitions/swimmer-competitions.component';
 import { SwimmerClubComponent } from './components/club/swimmer-club.component';
+import { SwimmerFormationCertificatesComponent } from './components/formation-certificates/swimmer-formation-certificates.component';
+import { SwimmerFormationHistoryComponent } from './components/formation-history/swimmer-formation-history.component';
+import { SwimmerFormationsComponent } from './components/formations/swimmer-formations.component';
+import { SwimmerActualitesComponent } from './components/actualites/swimmer-actualites.component';
 import { NutritionComponent } from './components/nutrition/nutrition.component';
 import { SharedModule } from '../../shared/shared.module';
 import { PressVisitorModule } from '../press/press-visitor.module';
@@ -19,7 +23,10 @@ import { PressVisitorModule } from '../press/press-visitor.module';
     SwimmerDashboardComponent,
     SwimmerPerformancesComponent,
     SwimmerCompetitionsComponent,
+    SwimmerActualitesComponent,
     SwimmerClubComponent,
+    SwimmerFormationHistoryComponent,
+    SwimmerFormationCertificatesComponent,
     NutritionComponent
   ],
   imports: [
@@ -29,6 +36,7 @@ import { PressVisitorModule } from '../press/press-visitor.module';
     HttpClientModule,
     SwimmerRoutingModule,
     SharedModule,
+    SwimmerFormationsComponent,
     PressVisitorModule
   ]
 })

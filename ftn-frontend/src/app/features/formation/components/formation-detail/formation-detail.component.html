@@ -1,0 +1,106 @@
+<main class="formation-detail">
+  <a routerLink="/formations/devenir-coach" class="back-link">← Retour aux formations</a>
+
+  <div class="loading-state" *ngIf="loading">Chargement de la formation...</div>
+
+  <section class="detail-card" *ngIf="!loading && program">
+    <div class="detail-header">
+      <div>
+        <span class="kicker">{{ program.brevetType }} / {{ program.season.active ? 'Saison en cours' : 'Saison archivée' }}</span>
+        <h1>{{ program.title }}</h1>
+        <p>{{ program.registrationConditions || 'Les conditions détaillées seront confirmées par la fédération.' }}</p>
+      </div>
+      <span class="state-pill">{{ resolveProgramStateLabel() }}</span>
+    </div>
+
+    <div class="feedback" *ngIf="feedbackMessage" [class.feedback--success]="feedbackType === 'success'" [class.feedback--error]="feedbackType === 'error'">
+      {{ feedbackMessage }}
+    </div>
+
+    <div class="registration-status" *ngIf="existingRegistration">
+      <strong>{{ registrationStatusLabel }}</strong>
+      <p *ngIf="existingRegistration.status === 'PENDING'">
+        Votre demande sera examinée par l'administration avant la date de début de la formation.
+      </p>
+    </div>
+
+    <div class="guest-panel" *ngIf="showGuestPrompt">
+      <button type="button" class="guest-register-panel__close" (click)="showGuestPrompt = false">×</button>
+      <h3>Pour vous inscrire à cette formation, veuillez vous connecter avec un compte nageur.</h3>
+      <div class="guest-panel__actions">
+        <a routerLink="/auth/login" class="btn-primary">Connexion</a>
+        <a routerLink="/auth/register" class="btn-outline">Créer un compte</a>
+      </div>
+    </div>
+
+    <div class="info-grid">
+      <article>
+        <span>Période d'inscription</span>
+        <strong>{{ formatDateRange(program.registrationStartDate, program.registrationEndDate) }}</strong>
+      </article>
+      <article>
+        <span>Formation théorique</span>
+        <strong>{{ formatDateRange(program.theoreticalStartDate, program.theoreticalEndDate) }}</strong>
+      </article>
+      <article>
+        <span>Formation pratique</span>
+        <strong>{{ formatDateRange(program.practicalPeriodStart, program.practicalPeriodEnd) }}</strong>
+      </article>
+      <article *ngIf="program.registrationFee !== undefined && program.registrationFee !== null">
+        <span>Cotisation</span>
+        <strong>{{ program.registrationFee }} DT</strong>
+      </article>
+    </div>
+
+    <div class="detail-section">
+      <h2>Lieux et contact</h2>
+      <div class="info-list">
+        <p *ngIf="program.registrationLocation"><strong>Inscription :</strong> {{ program.registrationLocation }}</p>
+        <p *ngIf="program.theoreticalLocation"><strong>Théorie :</strong> {{ program.theoreticalLocation }}</p>
+        <p *ngIf="program.instituteAddress"><strong>Institut :</strong> {{ program.instituteAddress }}</p>
+        <p *ngIf="program.instituteEmail"><strong>Email :</strong> {{ program.instituteEmail }}</p>
+        <p *ngIf="program.institutePhone"><strong>Téléphone :</strong> {{ program.institutePhone }}</p>
+      </div>
+    </div>
+
+    <div class="detail-section" *ngIf="program.scheduleItems?.length">
+      <h2>Emploi du temps</h2>
+      <div class="schedule-row" *ngFor="let item of program.scheduleItems">
+        <span>{{ item.dayLabel }}</span>
+        <strong>{{ item.timeSlot }}</strong>
+        <p>{{ item.content }}</p>
+      </div>
+    </div>
+
+    <div class="detail-section" *ngIf="program.practicalDescription || program.resultAnnouncementNote">
+      <h2>Informations complémentaires</h2>
+      <p *ngIf="program.practicalDescription">{{ program.practicalDescription }}</p>
+      <p *ngIf="program.resultAnnouncementNote">{{ program.resultAnnouncementNote }}</p>
+    </div>
+
+    <div class="detail-section" *ngIf="program.documents?.length">
+      <h2>Documents publics</h2>
+      <div class="document-list">
+        <a *ngFor="let document of program.documents" [href]="document.url" target="_blank" rel="noopener">
+          {{ document.title }}
+        </a>
+      </div>
+    </div>
+
+    <div class="detail-actions">
+      <app-ai-eligibility-panel
+        [result]="eligibilityResult"
+        [isChecking]="isCheckingEligibility"
+        (check)="checkEligibility()">
+      </app-ai-eligibility-panel>
+      <button *ngIf="canRegister()" type="button" class="btn-primary"
+              [disabled]="isRegistering" (click)="register()">
+        {{ isRegistering ? 'Envoi...' : 'S\'inscrire' }}
+      </button>
+    </div>
+  </section>
+
+  <div class="empty-state" *ngIf="!loading && !program">
+    Formation introuvable.
+  </div>
+</main>

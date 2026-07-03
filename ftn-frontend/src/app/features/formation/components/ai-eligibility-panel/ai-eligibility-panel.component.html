@@ -1,0 +1,61 @@
+<div class="ai-eligibility">
+  <button type="button"
+          class="btn-ai-eligibility"
+          [disabled]="isChecking"
+          (click)="onCheck()">
+    <span class="btn-ai-eligibility__icon" aria-hidden="true">
+      <i class="bi bi-stars"></i>
+    </span>
+    <span class="btn-ai-eligibility__text">
+      <span class="btn-ai-eligibility__label">
+        {{ isChecking ? 'Analyse IA en cours…' : 'Suis-je éligible ?' }}
+      </span>
+      <span class="btn-ai-eligibility__hint" *ngIf="!isChecking">Vérification assistée par IA</span>
+    </span>
+    <span class="btn-ai-eligibility__spinner" *ngIf="isChecking"></span>
+  </button>
+
+  <article *ngIf="result"
+           class="eligibility-result"
+           [class.eligibility-result--ok]="!result.error && result.eligible"
+           [class.eligibility-result--ko]="!result.error && !result.eligible"
+           [class.eligibility-result--warn]="result.error">
+    <header class="eligibility-result__header">
+      <span class="eligibility-result__verdict" aria-hidden="true">
+        <i class="bi bi-exclamation-lg" *ngIf="result.error"></i>
+        <i class="bi bi-check-lg" *ngIf="!result.error && result.eligible"></i>
+        <i class="bi bi-x-lg" *ngIf="!result.error && !result.eligible"></i>
+      </span>
+      <div class="eligibility-result__titles">
+        <span class="eligibility-result__ai-badge">
+          <i class="bi bi-stars"></i>
+          Analyse IA
+        </span>
+        <strong>{{ resultTitle }}</strong>
+      </div>
+    </header>
+
+    <div class="eligibility-result__body" *ngIf="parsed as p">
+      <section class="eligibility-result__section" *ngIf="p.explanation">
+        <h4>Explication</h4>
+        <p>{{ p.explanation }}</p>
+      </section>
+
+      <section class="eligibility-result__section eligibility-result__section--tip" *ngIf="p.recommendation">
+        <h4><i class="bi bi-lightbulb"></i> Recommandation</h4>
+        <p>{{ p.recommendation }}</p>
+      </section>
+
+      <p class="eligibility-result__fallback" *ngIf="p.fallback">{{ p.fallback }}</p>
+
+      <button *ngIf="result.error"
+              type="button"
+              class="eligibility-result__retry"
+              [disabled]="isChecking"
+              (click)="onCheck()">
+        <i class="bi bi-arrow-clockwise"></i>
+        Réessayer
+      </button>
+    </div>
+  </article>
+</div>

@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { RankingService } from '../../../../../core/services/ranking.service';
+import { RankingService } from '../../../../ranking/services/ranking.service';
 import { CompetitionResult } from '../../../../../core/models/performance.model';
 
 @Component({

@@ -13,7 +13,7 @@
                 [style.color]="strokeFilter === s ? 'white' : '#64748b'"
                 (click)="strokeFilter = s" 
                 style="border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;">
-          {{ s === 'all' ? 'Tous' : s }}
+          {{ s === 'all' ? 'Tous' : strokeLabel(s) }}
         </button>
       </div>
     </div>
@@ -51,7 +51,7 @@
         <tr *ngFor="let p of filteredPerfs" style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;">
           <td style="padding: 16px 24px; font-size: 0.9rem; color: #1e293b;">{{ $any(p).date | date:'dd/MM/yyyy' }}</td>
           <td style="padding: 16px 24px;">
-            <span style="background: #eff6ff; color: #3b82f6; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">{{ $any(p).stroke }}</span>
+            <span style="background: #eff6ff; color: #3b82f6; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">{{ strokeLabel($any(p).stroke) }}</span>
           </td>
           <td style="padding: 16px 24px; font-size: 0.9rem; color: #1e293b;">{{ $any(p).distance }}m</td>
           <td style="padding: 16px 24px; font-size: 0.9rem; font-weight: 700; color: #003a80;">{{ formatTime($any(p).time) }}</td>

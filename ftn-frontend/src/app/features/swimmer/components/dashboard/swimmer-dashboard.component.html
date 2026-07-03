@@ -157,12 +157,17 @@
       </div>
       
       <div class="premium-grid">
-        <div *ngFor="let item of news | slice:0:3" class="premium-card animate__animated animate__fadeInUp">
+        <div *ngFor="let item of news | slice:0:3; let i = index"
+             class="premium-card animate__animated animate__fadeInUp"
+             role="button"
+             tabindex="0"
+             (click)="openArticle(item)"
+             (keydown.enter)="openArticle(item)"
+             (keydown.space)="$event.preventDefault(); openArticle(item)">
           <div class="premium-image-wrapper">
-            <img *ngIf="item.mediaUrl && item.type !== 'VIDEO'" [src]="item.mediaUrl" alt="News Image">
-            <img *ngIf="item.mediaUrl && item.type === 'VIDEO'" [src]="pressService.getVideoThumbnail(item.mediaUrl)" alt="News Image">
-            <div *ngIf="!item.mediaUrl" class="premium-placeholder" style="height: 100%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">
-              📰
+            <img *ngIf="getArticleImage(item)" [src]="getArticleImage(item)" alt="News Image" (error)="onNewsImageError($event, item, i)">
+            <div *ngIf="!getArticleImage(item)" class="premium-placeholder" style="height: 100%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">
+              <span class="material-symbols-outlined">newspaper</span>
             </div>
             <div class="premium-date-badge">
               {{ (item.createdAt || item.date || '2026') | date:'yyyy' }}
@@ -172,17 +177,69 @@
           <div class="premium-content">
             <span class="premium-category">{{ item.discipline || 'Natation' }}</span>
             <h4 class="premium-title">{{ item.title }}</h4>
-            <p class="premium-excerpt">{{ item.content || 'Consultez les dernières informations de la fédération.' }}</p>
+            <p class="premium-excerpt">{{ plainText(item.summary || item.content) || 'Consultez les dernières informations de la fédération.' }}</p>
             
             <div class="premium-footer">
-              <a href="javascript:void(0)" (click)="openLink(item.linkUrl || item.mediaUrl)" class="premium-read-more">
+              <button type="button" (click)="openArticle(item); $event.stopPropagation()" class="premium-read-more">
                 Lire la suite 
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-              </a>
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
   </section>
+
+  <div *ngIf="selectedItem" class="dashboard-news-modal" (click)="closeArticle()">
+    <article class="dashboard-news-modal__content" (click)="$event.stopPropagation()">
+      <button type="button" class="dashboard-news-modal__close" (click)="closeArticle()" aria-label="Fermer">×</button>
+
+      <h1>{{ selectedItem.title }}</h1>
+      <div class="dashboard-news-modal__meta">
+        <span>{{ selectedItem.publishedAt || selectedItem.createdAt | date:'dd MMMM yyyy' }}</span>
+        <span *ngIf="selectedItem.discipline">{{ selectedItem.discipline }}</span>
+      </div>
+
+      <div *ngIf="selectedItem.type !== 'COMMUNIQUE' && (selectedItem.type === 'VIDEO' || selectedItem.mediaUrl?.includes('yout') || selectedItem.linkUrl?.includes('yout'))"
+           class="dashboard-news-modal__video">
+        <iframe [src]="pressService.getEmbedUrl(selectedItem.mediaUrl || selectedItem.linkUrl || '') | safe"
+                frameborder="0"
+                allowfullscreen></iframe>
+      </div>
+
+      <div *ngIf="selectedItem.type !== 'COMMUNIQUE' && selectedItem.type !== 'VIDEO' && !selectedItem.mediaUrl?.includes('yout') && !selectedItem.linkUrl?.includes('yout') && getArticleImage(selectedItem)"
+           class="dashboard-news-modal__image">
+        <img [src]="getArticleImage(selectedItem)" alt="Illustration" (error)="onNewsImageError($event, selectedItem)">
+      </div>
+
+      <ng-container *ngIf="selectedItem.type === 'COMMUNIQUE'">
+        <p *ngIf="selectedItem.summary" class="dashboard-news-modal__summary">{{ plainText(selectedItem.summary) }}</p>
+        <div class="dashboard-news-modal__actions">
+          <a [href]="getPdfUrl(selectedItem)" target="_blank" rel="noopener">Lire la suite (Document)</a>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="selectedItem.type !== 'COMMUNIQUE' && selectedItem.type !== 'VIDEO' && !selectedItem.mediaUrl?.includes('yout') && !selectedItem.linkUrl?.includes('yout')">
+        <p *ngIf="!showFullContent" class="dashboard-news-modal__summary">
+          {{ plainText(selectedItem.summary || selectedItem.content) | slice:0:300 }}{{ plainText(selectedItem.summary || selectedItem.content).length > 300 ? '...' : '' }}
+        </p>
+        <article *ngIf="showFullContent" class="dashboard-news-modal__body" [innerHTML]="selectedItem.content"></article>
+        <div *ngIf="!showFullContent && selectedItem.content" class="dashboard-news-modal__actions">
+          <button type="button" (click)="showFullContent = true">Lire la suite</button>
+        </div>
+      </ng-container>
+
+      <div *ngIf="selectedItem.linkUrl && !selectedItem.linkUrl.includes('yout')" class="dashboard-news-modal__actions">
+        <a [href]="selectedItem.linkUrl" target="_blank" rel="noopener">Ouvrir la source</a>
+      </div>
+
+      <section *ngIf="getGalleryImages(selectedItem.gallery).length > 0" class="dashboard-news-modal__gallery">
+        <h3>Galerie Photos</h3>
+        <div>
+          <img *ngFor="let imgUrl of getGalleryImages(selectedItem.gallery)" [src]="imgUrl" alt="Photo">
+        </div>
+      </section>
+    </article>
+  </div>
 </div>

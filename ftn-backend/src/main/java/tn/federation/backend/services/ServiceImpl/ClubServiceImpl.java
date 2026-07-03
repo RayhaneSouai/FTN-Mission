@@ -3,13 +3,21 @@ package tn.federation.backend.services.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+import tn.federation.backend.dto.ClubCompetitionSummaryDTO;
+import tn.federation.backend.dto.ClubDetailDTO;
+import tn.federation.backend.dto.ClubRankingDTO;
 import tn.federation.backend.dto.ImportResult;
 import tn.federation.backend.entities.Club;
+import tn.federation.backend.entities.Competition;
 import tn.federation.backend.entities.Role;
 import tn.federation.backend.entities.User;
 import tn.federation.backend.repositories.ClubRepository;
+import tn.federation.backend.repositories.EngagementRepository;
 import tn.federation.backend.repositories.LicenseRepository;
+import tn.federation.backend.repositories.PerformanceRepository;
 import tn.federation.backend.repositories.UserRepository;
 import tn.federation.backend.services.Abstraction.IClubService;
 
@@ -35,6 +43,12 @@ public class ClubServiceImpl implements IClubService {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    PerformanceRepository performanceRepository;
+
+    @Autowired
+    EngagementRepository engagementRepository;
 
     @Override
     public Club addClub(Club club) {
@@ -94,6 +108,22 @@ public class ClubServiceImpl implements IClubService {
     @Override
     public Club getClubById(long id) {
         return clubRepository.findById(id).get();
+    }
+
+    @Override
+    public ClubDetailDTO getClubDetail(long id) {
+        Club club = clubRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Club introuvable"));
+
+        // Two targeted queries (one per role) rather than N+1 per-member lookups —
+        // reuses the same repository method already used for the swimmers list/stats.
+        List<User> athletes = clubRepository.findUsersByClubIdAndRole(id, Role.SWIMMER);
+        List<User> coaches = clubRepository.findUsersByClubIdAndRole(id, Role.COACH);
+
+        long totalPerformances = performanceRepository.countBySwimmer_Club_Id(id);
+        long personalRecords = performanceRepository.countBySwimmer_Club_IdAndIsPersonalRecordTrue(id);
+
+        return ClubDetailDTO.build(club, athletes, coaches, totalPerformances, personalRecords);
     }
 
     @Override
@@ -158,9 +188,43 @@ public class ClubServiceImpl implements IClubService {
     }
 
     @Override
-    public List<Club> getTopClubsBySwimmers() {
-        return clubRepository.findClubsRankedBySwimmerCount();
+    public List<ClubRankingDTO> getTopClubsBySwimmers() {
+        return clubRepository.findClubsRankedBySwimmerCount().stream()
+                .limit(3)
+                .map(club -> new ClubRankingDTO(
+                        club.getId(),
+                        club.getName(),
+                        club.getRegion(),
+                        userRepository.countByClub_Id(club.getId())))
+                .toList();
     }
+
+    @Override
+    public List<ClubCompetitionSummaryDTO> getClubCompetitions(long clubId) {
+        if (!clubRepository.existsById(clubId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Club introuvable");
+        }
+        List<Competition> competitions = engagementRepository.findDistinctCompetitionsByClubId(clubId);
+        return competitions.stream()
+                .map(competition -> ClubCompetitionSummaryDTO.from(
+                        competition,
+                        engagementRepository.countByClubIdAndCompetitionId(clubId, competition.getId())))
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public void leaveClub(User swimmer) {
+        if (swimmer.getRole() != Role.SWIMMER) {
+            throw new IllegalArgumentException("Seuls les nageurs peuvent quitter un club.");
+        }
+        if (swimmer.getClub() == null) {
+            throw new IllegalArgumentException("Vous n'êtes affilié(e) à aucun club.");
+        }
+        swimmer.setClub(null);
+        userRepository.save(swimmer);
+    }
+    @Override
     public ImportResult importClubsFromCSV(MultipartFile file) {
         ImportResult result = new ImportResult();
 

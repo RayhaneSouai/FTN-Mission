@@ -1,0 +1,242 @@
+.club-detail {
+  background: #f8fafc;
+  min-height: 75vh;
+  padding: 48px;
+}
+
+.back-link {
+  color: var(--ftn-primary, #004da3);
+  display: inline-flex;
+  font-weight: 900;
+  margin: 0 auto 18px;
+  max-width: 1180px;
+  text-decoration: none;
+}
+
+.detail-card,
+.loading-state,
+.empty-state {
+  margin: 0 auto;
+  max-width: 1180px;
+}
+
+.detail-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 28px;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.08);
+  padding: 32px;
+}
+
+.loading-state,
+.empty-state {
+  background: #fff;
+  border: 1px dashed #d8e2ef;
+  border-radius: 18px;
+  color: #475569;
+  padding: 32px;
+  text-align: center;
+}
+
+.detail-header {
+  align-items: center;
+  display: flex;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.club-icon {
+  align-items: center;
+  background: #eff6ff;
+  border-radius: 16px;
+  color: var(--ftn-primary, #004da3);
+  display: flex;
+  height: 56px;
+  justify-content: center;
+  width: 56px;
+  flex-shrink: 0;
+}
+
+.header-info h1 {
+  color: #0f172a;
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 900;
+  margin: 0 0 6px;
+}
+
+.status-pill {
+  background: #dcfce7;
+  border-radius: 999px;
+  color: #166534;
+  font-size: 0.78rem;
+  font-weight: 900;
+  padding: 4px 12px;
+  text-transform: uppercase;
+}
+
+.status-pill.inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.info-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  margin-bottom: 28px;
+}
+
+.info-grid article {
+  background: #f8fafc;
+  border: 1px solid #eef2f7;
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.info-grid span {
+  color: #64748b;
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.info-grid strong {
+  color: #0f172a;
+}
+
+.stats-summary {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  margin-bottom: 28px;
+}
+
+.stat-tile {
+  background: linear-gradient(135deg, #eff6ff, #f8fafc);
+  border: 1px solid #dbeafe;
+  border-radius: 16px;
+  padding: 18px;
+  text-align: center;
+}
+
+.stat-value {
+  color: var(--ftn-primary, #004da3);
+  display: block;
+  font-size: 1.8rem;
+  font-weight: 900;
+}
+
+.stat-label {
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.detail-section {
+  border-top: 1px solid #eef2f7;
+  padding-top: 24px;
+}
+
+.roster-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.roster-tabs button {
+  background: #f1f5f9;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: #475569;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 8px 18px;
+}
+
+.roster-tabs button.active {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: var(--ftn-primary, #004da3);
+}
+
+.count-badge {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  margin-left: 6px;
+  padding: 1px 8px;
+}
+
+.roster-search {
+  margin-bottom: 14px;
+}
+
+.roster-search input {
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  padding: 9px 14px;
+  width: 100%;
+  max-width: 340px;
+}
+
+.roster-search input:focus {
+  border-color: var(--ftn-primary, #004da3);
+  outline: none;
+}
+
+.roster-table {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow-x: auto;
+}
+
+.roster-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1.6fr 0.7fr 1fr 1fr;
+  gap: 12px;
+  align-items: center;
+  min-width: 700px;
+  padding: 12px 18px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.88rem;
+  color: #334155;
+}
+
+.roster-row:last-child {
+  border-bottom: none;
+}
+
+.roster-row--head {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.member-name {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.empty-text {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  padding: 16px 0;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .club-detail {
+    padding: 28px 22px;
+  }
+
+  .detail-card {
+    padding: 22px;
+  }
+}

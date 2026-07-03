@@ -8,7 +8,9 @@ import tn.federation.backend.repositories.SeasonRepository;
 import tn.federation.backend.services.Abstraction.INotificationService;
 import tn.federation.backend.services.Abstraction.ISeasonService;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SeasonServiceImpl implements ISeasonService {
@@ -32,12 +34,19 @@ public class SeasonServiceImpl implements ISeasonService {
     }
 
     @Override
+    public Optional<Season> findActive() {
+        normalizeMultipleActiveSeasonsIfNeeded();
+        return seasonRepository.findFirstByActiveTrueOrderByCreatedAtAsc();
+    }
+
+    @Override
     public Season findById(Long id) {
         return seasonRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Saison introuvable"));
     }
 
     @Override
+    @Transactional
     public Season create(Season season) {
         if (season.getLabel() == null || season.getLabel().isBlank()) {
             throw new IllegalArgumentException("Le libellé de la saison est obligatoire");
@@ -46,6 +55,9 @@ public class SeasonServiceImpl implements ISeasonService {
             throw new IllegalArgumentException("Cette saison existe déjà");
         }
         season.setLabel(season.getLabel().trim());
+        if (season.isActive()) {
+            deactivateAllSeasons();
+        }
         Season saved = seasonRepository.save(season);
         if (saved.isActive()) {
             notificationService.requestSeasonValidationForAllCoaches(saved.getLabel());
@@ -54,6 +66,7 @@ public class SeasonServiceImpl implements ISeasonService {
     }
 
     @Override
+    @Transactional
     public Season update(Long id, Season season) {
         Season existing = findById(id);
         boolean wasActive = existing.isActive();
@@ -63,6 +76,9 @@ public class SeasonServiceImpl implements ISeasonService {
                 throw new IllegalArgumentException("Cette saison existe déjà");
             }
             existing.setLabel(label);
+        }
+        if (season.isActive() && !existing.isActive()) {
+            deactivateAllSeasons();
         }
         existing.setActive(season.isActive());
         Season saved = seasonRepository.save(existing);
@@ -77,10 +93,37 @@ public class SeasonServiceImpl implements ISeasonService {
     @Override
     @Transactional
     public void delete(Long id) {
-        if (!programRepository.findBySeason_IdOrderByCreatedAtDesc(id).isEmpty()) {
-            throw new IllegalArgumentException(
-                    "Impossible de supprimer : des programmes de formation sont liés à cette saison");
+        int programCount = programRepository.findBySeason_IdOrderByCreatedAtDesc(id).size();
+        if (programCount > 0) {
+            throw new tn.federation.backend.exceptions.ResourceConflictException(
+                    "Impossible de supprimer : " + programCount + " programme(s) de formation sont liés à cette saison");
         }
         seasonRepository.deleteById(id);
+    }
+
+    /** When several seasons are marked active, keep the one with the most programmes. */
+    private void normalizeMultipleActiveSeasonsIfNeeded() {
+        List<Season> actives = seasonRepository.findByActiveTrue();
+        if (actives.size() <= 1) {
+            return;
+        }
+        Season keep = actives.stream()
+                .max(Comparator.<Season>comparingInt(
+                        s -> programRepository.findBySeason_IdOrderByCreatedAtDesc(s.getId()).size())
+                        .thenComparing(Season::getCreatedAt))
+                .orElse(actives.get(0));
+        for (Season season : actives) {
+            if (!season.getId().equals(keep.getId())) {
+                season.setActive(false);
+                seasonRepository.save(season);
+            }
+        }
+    }
+
+    private void deactivateAllSeasons() {
+        for (Season season : seasonRepository.findByActiveTrue()) {
+            season.setActive(false);
+            seasonRepository.save(season);
+        }
     }
 }

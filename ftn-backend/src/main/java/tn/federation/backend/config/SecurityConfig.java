@@ -62,6 +62,7 @@ public class SecurityConfig {
                                 "/api/clubs/**",
                                 "/api/formation/seasons/**",
                                 "/api/formation/programs/**",
+                                "/api/formation/certificates/verify/**",
                                 "/api/performances/**",
                                 "/api/rankings/**",
                                 "/api/records/**",
