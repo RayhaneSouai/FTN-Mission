@@ -1,41 +1,48 @@
 <div class="auth-wrapper">
   <div class="auth-card">
     <h2>Demande de partenariat</h2>
-    <p class="muted">Remplissez le formulaire pour devenir partenaire officiel.</p>
+    <p class="muted">Remplissez le formulaire pour devenir partenaire officiel de la Fédération Tunisienne de Natation.</p>
 
     <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
 
+      <!-- Company Information -->
       <label>
-        Nom Entreprise
-        <input type="text" formControlName="nomEntreprise" />
-      </label>
-      <label>
-        Nom Representant
-        <input type="text" formControlName="nomRepresentant" />
+        Nom de l'Entreprise *
+        <input type="text" formControlName="nomEntreprise" placeholder="Ex: Société ABC" />
       </label>
 
       <label>
-        Email
-        <input type="text" formControlName="email" />
+        Nom du Représentant *
+        <input type="text" formControlName="nomRepresentant" placeholder="Nom et Prénom" />
       </label>
 
       <label>
-        Telephone
-        <input type="text" formControlName="telephone" />
+        Email *
+        <input type="email" formControlName="email" placeholder="contact@entreprise.tn" />
       </label>
 
       <label>
-        Adresse
-        <input type="text" formControlName="adresse" />
+        Téléphone *
+        <input type="tel" formControlName="telephone" placeholder="+216 XX XXX XXX" />
       </label>
 
       <label>
-        Matricule fiscale
-        <input type="text" formControlName="matriculeFiscale" />
+        Adresse *
+        <input type="text" formControlName="adresse" placeholder="Adresse complète" />
       </label>
 
       <label>
-        Type de partenariat
+        Site Web
+        <input type="url" formControlName="siteWeb" placeholder="https://www.entreprise.tn" />
+      </label>
+
+      <label>
+        Matricule Fiscale *
+        <input type="text" formControlName="matriculeFiscale" placeholder="Matricule fiscal" />
+      </label>
+
+      <label>
+        Type de Partenariat *
         <select formControlName="typePartenariat">
           <option value="FINANCIER">Financier</option>
           <option value="STRATEGIQUE">Stratégique</option>
@@ -43,11 +50,51 @@
         </select>
       </label>
 
-      <button class="btn-primary" type="submit" [disabled]="loading">
-        {{ loading ? 'Envoi...' : 'Envoyer la demande' }}
+      <!-- === NEW Advanced Fields === -->
+      <label class="full-width">
+        Proposition de collaboration *
+        <textarea formControlName="proposition" rows="4"
+                  placeholder="Décrivez votre proposition de partenariat en détail..."></textarea>
+      </label>
+
+      <label class="full-width">
+        Valeur Ajoutée *
+        <textarea formControlName="addedValue" rows="4"
+                  placeholder="Quelle valeur apportez-vous à la FTN ? (visibilité, expertise, réseau, etc.)"></textarea>
+      </label>
+
+      <label>
+        Budget Proposé (DT)
+        <input type="number" formControlName="proposedBudget" placeholder="Ex: 50000" min="0" />
+      </label>
+
+      <label>
+        Club Cible (Optionnel)
+        <select formControlName="targetCompetitionId">
+          <option value="">-- Aucun club spécifique --</option>
+          <option *ngFor="let club of clubs" [value]="club.id">
+            {{ club.name }} ({{ club.region }})
+          </option>
+        </select>
+      </label>
+      <label>
+        Compétition Cible (ID optionnel)
+        <select formControlName="targetCompetitionId">
+          <option value="">-- Aucune competition spécifique --</option>
+          <option *ngFor="let comp of competions" [value]="comp.id">
+            {{ comp.name }}
+          </option>
+        </select>
+      </label>
+
+
+      <button class="btn-primary full-width" type="submit" [disabled]="loading || form.invalid">
+        {{ loading ? 'Envoi en cours...' : 'Envoyer la Demande de Partenariat' }}
       </button>
 
-      <p class="message" *ngIf="message">{{ message }}</p>
+      <p class="message" [ngClass]="{'success': success, 'error': !success}" *ngIf="message">
+        {{ message }}
+      </p>
 
     </form>
   </div>

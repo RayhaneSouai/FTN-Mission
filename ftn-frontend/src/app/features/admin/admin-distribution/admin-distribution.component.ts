@@ -30,12 +30,12 @@ import {
 
       <!-- Actions -->
       <div class="actions-bar">
-        @if (!isApproved()) {
+        @if (!isApproved() && !distribution()) {
           <button class="btn-generate" (click)="generate()" [disabled]="loading()">
             @if (loading()) {
               <span class="btn-spinner"></span>
             }
-            {{ distribution() ? 'Régénérer la répartition' : 'Générer la répartition' }}
+            Générer la répartition
           </button>
         }
         @if (isGenerated()) {

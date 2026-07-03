@@ -14,4 +14,38 @@ public interface IEmailService {
     void sendFormationRegistrationPendingAdmin(String swimmerName, String swimmerEmail, String programTitle, String brevetType);
 
     void sendFormationCertificateReady(String to, String programTitle);
+
+    void sendClubAdminErrorReportToAdmin(
+            String adminEmail,
+            String coachName,
+            String coachEmail,
+            String clubName,
+            String season,
+            String fieldLabels,
+            String description);
+
+    void sendSeasonValidationRequestToCoach(
+            String coachEmail,
+            String coachFirstName,
+            String clubName,
+            String season);
+
+    void sendLicensePendingValidationToCoach(
+            String coachEmail,
+            String coachFirstName,
+            String clubName,
+            String season,
+            String licenseNumber);
+
+    void sendSeasonValidationDecisionToAdmin(
+            String adminEmail,
+            String coachName,
+            String clubName,
+            String season,
+            boolean approved);
+
+    void sendSwimmerSeasonValidationRequest(
+            String email,
+            String swimmerName,
+            String season);
 }

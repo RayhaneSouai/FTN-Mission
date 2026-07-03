@@ -18,10 +18,12 @@ public interface ClubRepository extends CrudRepository<Club, Long> {
     // ─── Existing methods ──────────────────────────────────────────────────────────
 
     List<Club> findByRegion(String region);
+    List<Club> findByCoachId(Long coachId);
 
     List<Club> findByNameContainingIgnoreCaseOrRegionContainingIgnoreCase(String name, String region);
 
     Optional<Club> findFirstByNameIgnoreCase(String name);
+    Optional<Club> findByNameIgnoreCase(String name);
 
     List<Club> findByLatitudeIsNotNullAndLongitudeIsNotNull();
 

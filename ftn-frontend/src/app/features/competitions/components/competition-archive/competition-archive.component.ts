@@ -70,12 +70,12 @@ export class CompetitionArchiveComponent implements OnInit {
       if (!groups.has(year)) groups.set(year, []);
       groups.get(year)!.push(c);
     }
-    // Sort each year's competitions by date ascending (earliest first)
+    // Sort each year's competitions by date descending (most recent first)
     for (const list of groups.values()) {
       list.sort((a, b) => {
         const da = a.startDate ? new Date(a.startDate).getTime() : 0;
         const db = b.startDate ? new Date(b.startDate).getTime() : 0;
-        return da - db;
+        return db - da;
       });
     }
     // Sort years descending

@@ -206,6 +206,9 @@ export class UserFormComponent implements OnInit {
       if (this.userData.anciennete === null || this.userData.anciennete === undefined || this.userData.anciennete < 0) {
         return "L'ancienneté est obligatoire pour un coach.";
       }
+      if (!this.userData.clubId) {
+        return "L'affectation à un club est obligatoire pour un coach.";
+      }
     }
     return null;
   }

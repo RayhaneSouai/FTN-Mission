@@ -1,8 +1,10 @@
 package tn.federation.backend.services.Abstraction;
 
+import org.springframework.web.multipart.MultipartFile;
 import tn.federation.backend.dto.ClubCompetitionSummaryDTO;
 import tn.federation.backend.dto.ClubDetailDTO;
 import tn.federation.backend.dto.ClubRankingDTO;
+import tn.federation.backend.dto.ImportResult;
 import tn.federation.backend.entities.Club;
 import tn.federation.backend.entities.User;
 
@@ -32,4 +34,5 @@ public interface IClubService {
     List<ClubRankingDTO> getTopClubsBySwimmers();
     List<ClubCompetitionSummaryDTO> getClubCompetitions(long clubId);
     void leaveClub(User swimmer);
+    ImportResult importClubsFromCSV(MultipartFile file);
 }

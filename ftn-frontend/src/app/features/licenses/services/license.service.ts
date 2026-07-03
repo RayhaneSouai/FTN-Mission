@@ -11,7 +11,7 @@ export class LicenseService {
   constructor(private http: HttpClient) { }
 
   private getHeaders(): HttpHeaders {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     return new HttpHeaders().set('Authorization', `Bearer ${token}`);
   }
 
@@ -37,5 +37,25 @@ export class LicenseService {
 
   generateLicenses(season: string): Observable<any[]> {
     return this.http.post<any[]>(`${this.apiUrl}/generate?season=${season}`, {}, { headers: this.getHeaders() });
+  }
+
+  verifyLicense(licenseNumber: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/verify/${licenseNumber}`);
+  }
+
+  getMyLicenses(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/my-licenses`, { headers: this.getHeaders() });
+  }
+
+  getMyLicense(season: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/my-license?season=${season}`, { headers: this.getHeaders() });
+  }
+
+  validateMyLicense(season: string, isValidated: boolean): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/my-license/validate?season=${season}&isValidated=${isValidated}`, {}, { headers: this.getHeaders() });
+  }
+
+  makeDecision(id: number, approved: boolean): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/${id}/decision?approved=${approved}`, {}, { headers: this.getHeaders() });
   }
 }

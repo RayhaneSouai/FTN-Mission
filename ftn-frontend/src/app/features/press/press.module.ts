@@ -3,17 +3,15 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PressRoutingModule } from './press-routing.module';
 import { PressListComponent } from './components/press-list/press-list.component';
-import { PressFormComponent } from './components/press-form/press-form.component';
-import { PressVisitorComponent } from './components/press-visitor/press-visitor.component';
+
+import { PressVisitorModule } from './press-visitor.module';
 import { SharedModule } from '../../shared/shared.module';
 import { AdminUiModule } from '../../shared/admin-ui/admin-ui.module';
 import { PageHeroComponent } from '../../shared/components/page-hero/page-hero.component';
 
 @NgModule({
   declarations: [
-    PressListComponent,
-    PressFormComponent,
-    PressVisitorComponent
+    PressListComponent
   ],
   imports: [
     CommonModule,
@@ -21,7 +19,8 @@ import { PageHeroComponent } from '../../shared/components/page-hero/page-hero.c
     PressRoutingModule,
     SharedModule,
     AdminUiModule,
-    PageHeroComponent
+    PageHeroComponent,
+    PressVisitorModule
   ]
 })
 export class PressModule { }

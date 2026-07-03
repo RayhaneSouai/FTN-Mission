@@ -11,7 +11,12 @@ addEventListener('message', ({ data }) => {
       return;
     }
 
-    const headers = parseLine(lines[0]).map(h => h.trim()).filter(Boolean);
+    let headerLine = lines[0];
+// Remove UTF-8 BOM if present
+if (headerLine.charCodeAt(0) === 0xFEFF) {
+  headerLine = headerLine.slice(1);
+}
+const headers = parseLine(headerLine).map(h => h.trim()).filter(Boolean);
     if (headers.length === 0) {
       postMessage({ error: 'Le fichier CSV ne contient pas d\'en-têtes.' });
       return;

@@ -1,10 +1,12 @@
 import { Routes } from '@angular/router';
 import { competitionAccessGuard } from './guards/competition.guard';
 import { CompetitionListComponent } from './components/competition-list/competition-list.component';
+import { CompetitionLayoutComponent } from './components/competition-layout/competition-layout.component';
 
 export const COMPETITION_ROUTES: Routes = [
     {
         path: '',
+        component: CompetitionLayoutComponent,
         canActivate: [competitionAccessGuard],
         children: [
             { path: '', component: CompetitionListComponent },
@@ -42,6 +44,13 @@ export const COMPETITION_ROUTES: Routes = [
                         loadComponent: () =>
                             import('./components/competition-details/resultat/resultat.component').then(
                                 (m) => m.ResultatComponent
+                            ),
+                    },
+                    {
+                        path: 'assistant',
+                        loadComponent: () =>
+                            import('./components/competition-details/assistant/assistant.component').then(
+                                (m) => m.AssistantComponent
                             ),
                     },
 

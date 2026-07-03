@@ -163,7 +163,6 @@ export class UserImportWizardComponent {
 
   get previewRows(): MappedUserRow[] {
     return this.facade.mappedRows
-      .filter((r) => r.payload !== null)
       .slice(0, this.previewLimit);
   }
 

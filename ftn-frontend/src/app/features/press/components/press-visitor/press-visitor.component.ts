@@ -1,14 +1,27 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { PressItem, PressType } from '../../models/press-item.model';
 import { PressService } from '../../services/press.service';
 import { PAGE_HERO_IMAGES } from '../../../../shared/components/page-hero/page-hero.constants';
+
+interface CommentResponse {
+  id: number;
+  text: string;
+  createdAt: string;
+  userId: number;
+  userFirstName: string;
+  userLastName: string;
+  pressItemId: number;
+  parentCommentId?: number | null;
+  replies?: CommentResponse[] | null;
+}
 
 @Component({
   selector: 'app-press-visitor',
   templateUrl: './press-visitor.component.html',
   styleUrls: ['./press-visitor.component.css']
 })
-export class PressVisitorComponent implements OnInit {
+export class PressVisitorComponent implements OnInit, OnDestroy {
   items: PressItem[] = [];
   loading = false;
 
@@ -93,6 +106,9 @@ export class PressVisitorComponent implements OnInit {
   interactions: any = null;
   newCommentText = '';
   isSubmittingComment = false;
+  comments: CommentResponse[] = [];
+  replyingTo: CommentResponse | null = null;
+  private pollingInterval: ReturnType<typeof setInterval> | null = null;
 
   aiRecap: string | null = null;
   generatingAiRecap = false;
@@ -106,10 +122,18 @@ export class PressVisitorComponent implements OnInit {
   ];
 
 
-  constructor(public pressService: PressService) {}
+  constructor(
+    public pressService: PressService,
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.loadPublishedItems();
+  }
+
+  ngOnDestroy(): void {
+    this.stopCommentPolling();
   }
 
   loadPublishedItems(): void {
@@ -191,7 +215,9 @@ export class PressVisitorComponent implements OnInit {
     this.selectedItem = item;
     this.showFullContent = false;
     this.interactions = null;
+    this.comments = [];
     this.newCommentText = '';
+    this.replyingTo = null;
     this.aiRecap = null;
     document.body.style.overflow = 'hidden';
 
@@ -202,15 +228,82 @@ export class PressVisitorComponent implements OnInit {
         next: () => {}
       });
       this.loadInteractions();
+      this.fetchComments();
+      this.startCommentPolling();
     }
   }
 
   closeArticle(): void {
+    this.stopCommentPolling();
     this.selectedItem = null;
     this.interactions = null;
+    this.comments = [];
+    this.replyingTo = null;
     this.showFullContent = false;
     this.aiRecap = null;
     document.body.style.overflow = 'auto';
+  }
+
+  private startCommentPolling(): void {
+    this.stopCommentPolling();
+    this.pollingInterval = setInterval(() => this.fetchComments(), 2000);
+  }
+
+  private stopCommentPolling(): void {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+    }
+  }
+
+  fetchComments(): void {
+    const articleId = this.getItemId();
+    if (!articleId) return;
+    this.http.get<CommentResponse[]>(`http://localhost:8083/ftn/api/press-comments/${articleId}`).subscribe({
+      next: (data) => {
+        this.comments = data;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Erreur fetch comments:', err)
+    });
+  }
+
+  postComment(): void {
+    const itemId = this.getItemId();
+    if (!this.newCommentText.trim() || !itemId) return;
+    const userId = this.getCurrentUserId();
+    if (!userId) { alert('Vous devez être connecté pour commenter.'); return; }
+
+    const payload = {
+      pressItemId: itemId,
+      text: this.newCommentText,
+      userId,
+      parentCommentId: this.replyingTo ? this.replyingTo.id : null
+    };
+
+    this.isSubmittingComment = true;
+    this.http.post<CommentResponse>('http://localhost:8083/ftn/api/press-comments', payload).subscribe({
+      next: (saved) => {
+        this.newCommentText = '';
+        this.replyingTo = null;
+        this.isSubmittingComment = false;
+        if (saved.parentCommentId) {
+          this.fetchComments();
+        } else {
+          this.comments = [...this.comments, saved];
+        }
+        this.cdr.detectChanges();
+      },
+      error: () => { this.isSubmittingComment = false; }
+    });
+  }
+
+  replyTo(comment: CommentResponse): void {
+    this.replyingTo = comment;
+  }
+
+  cancelReply(): void {
+    this.replyingTo = null;
   }
 
   getGalleryImages(galleryStr?: string): string[] {
@@ -230,9 +323,9 @@ export class PressVisitorComponent implements OnInit {
   }
 
   private getCurrentUserId(): number | null {
-    if (typeof localStorage !== 'undefined') {
+    if (typeof sessionStorage !== 'undefined') {
       try {
-        const u = localStorage.getItem('user');
+        const u = sessionStorage.getItem('user');
         if (u) {
           const user = JSON.parse(u);
           const userId = user.id || user.idUser || user.id_user;
@@ -259,19 +352,7 @@ export class PressVisitorComponent implements OnInit {
   }
 
   addComment(): void {
-    const itemId = this.getItemId();
-    if (!this.newCommentText.trim() || this.isSubmittingComment || !itemId) return;
-    const userId = this.getCurrentUserId();
-    if (!userId) { alert('Vous devez être connecté pour commenter.'); return; }
-    this.isSubmittingComment = true;
-    this.pressService.addComment(itemId, userId, this.newCommentText).subscribe({
-      next: () => {
-        this.newCommentText = '';
-        this.isSubmittingComment = false;
-        this.loadInteractions();
-      },
-      error: () => { this.isSubmittingComment = false; }
-    });
+    this.postComment();
   }
 
   toggleReaction(type: string): void {
@@ -420,21 +501,21 @@ export class PressVisitorComponent implements OnInit {
     const url = this.selectedItem.documents?.split(',')[0]?.trim()
       || this.selectedItem.linkUrl
       || this.selectedItem.mediaUrl || '';
-    return url.startsWith('http') ? url : `http://localhost:8083/ftn${url}`;
+    return this.pressService.resolveMediaUrl(url);
   }
 
   downloadCommunique(): void {
     if (!this.selectedItem) return;
-    const url = this.getPdfUrl();
-    if (url) {
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = this.selectedItem.title || 'communique';
-      link.target = '_blank';
-      link.click();
-      if (this.selectedItem.idPressItem) {
-        this.pressService.incrementDownloads(this.selectedItem.idPressItem).subscribe();
-      }
+    const rawUrl = this.selectedItem.documents?.split(',')[0]?.trim()
+      || this.selectedItem.linkUrl
+      || this.selectedItem.mediaUrl || '';
+    if (!rawUrl) return;
+
+    const filename = `${this.selectedItem.title || 'communique'}.pdf`;
+    this.pressService.downloadFile(rawUrl, filename);
+
+    if (this.selectedItem.idPressItem) {
+      this.pressService.incrementDownloads(this.selectedItem.idPressItem).subscribe();
     }
   }
 

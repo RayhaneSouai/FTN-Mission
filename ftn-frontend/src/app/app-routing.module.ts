@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { PublicLayoutComponent } from './layout/public/public-layout.component';
 import { AdminLayoutComponent } from './layout/admin/admin-layout.component';
 import { adminGuard } from './core/guards/admin.guard';
+import { authGuard } from './core/guards/auth.guard';
 import { publicGuard } from './core/guards/public.guard';
 import { swimmerOrCoachGuard } from './core/guards/swimmer-or-coach.guard';
 import { coachGuard } from './core/guards/coach.guard';
@@ -116,7 +117,8 @@ const routes: Routes = [
       },
       {
         path: 'mon-profil',
-        loadChildren: () => import('./features/profile/profile.module').then(m => m.ProfileModule)
+        loadChildren: () => import('./features/profile/profile.module').then(m => m.ProfileModule),
+        canActivate: [authGuard]
       },
       {
         path: 'classement',
@@ -193,6 +195,10 @@ const routes: Routes = [
       {
         path: 'contact',
         loadComponent: () => import('./features/contact/contact.component').then(m => m.ContactComponent)
+      },
+      {
+        path: 'licences',
+        loadComponent: () => import('./features/licenses/license-info/license-info.component').then(m => m.LicenseInfoComponent)
       }
     ],
   },
@@ -201,7 +207,6 @@ const routes: Routes = [
     loadChildren: () => import('./features/auth/auth.module').then(m => m.AuthModule)
   },
   { path: 'utilisateurs', redirectTo: 'admin/utilisateurs', pathMatch: 'full' },
-  { path: 'licences', redirectTo: 'admin/licences', pathMatch: 'full' },
   { path: '**', redirectTo: '' }
 ];
 

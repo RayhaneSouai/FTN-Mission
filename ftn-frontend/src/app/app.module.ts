@@ -1,8 +1,9 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule, provideClientHydration } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { provideHttpClient, withFetch, withInterceptors, HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 
 import { AppComponent } from './app.component';
@@ -12,7 +13,7 @@ import { PublicLayoutComponent } from './layout/public/public-layout.component';
 import { AdminLayoutComponent } from './layout/admin/admin-layout.component';
 import { SharedModule } from './shared/shared.module';
 import { AdminUiModule } from './shared/admin-ui/admin-ui.module';
-
+import { DashboardModule } from './dashboard/dashboard.module';
 import { AppRoutingModule } from './app-routing.module';
 
 import { HeaderComponent } from './shared/components/header/header.component';
@@ -31,23 +32,27 @@ import { PageHeroComponent } from './shared/components/page-hero/page-hero.compo
   ],
   imports: [
     BrowserModule,
-    HttpClientModule,
+    BrowserAnimationsModule,
     FormsModule,
     AppRoutingModule,
-    BrowserAnimationsModule,
 
+    // Modules & Standalone Components
+    SharedModule,
+    AdminUiModule,
+    DashboardModule,
     HeaderComponent,
     MyPerformancesComponent,
     RankingComponent,
     ToastContainerComponent,
     PageHeroComponent,
-    SharedModule,
-    AdminUiModule,
   ],
   providers: [
     provideClientHydration(),
-    provideHttpClient(withFetch(), withInterceptors([authInterceptor]))
+    provideHttpClient(
+      withFetch(),
+      withInterceptors([authInterceptor])   // ← Interceptor bien enregistré
+    )
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule {}
+export class AppModule { }

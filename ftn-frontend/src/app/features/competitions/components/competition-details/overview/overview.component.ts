@@ -57,7 +57,7 @@ export class OverviewComponent implements OnInit {
 
   ngOnInit(): void {
     try {
-      const userStr = localStorage.getItem('user');
+      const userStr = sessionStorage.getItem('user');
       if (userStr) {
         const user = JSON.parse(userStr);
         this.isLoggedIn.set(true);

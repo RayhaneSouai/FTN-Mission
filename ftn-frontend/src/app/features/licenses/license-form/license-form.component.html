@@ -31,9 +31,25 @@
         <label class="form-label fw-bold">Club</label>
         <div class="input-group">
           <span class="input-group-text bg-light"><i class="bi bi-building"></i></span>
-          <select name="clubId" class="form-select" [(ngModel)]="licenseData.clubId" required [disabled]="viewOnly">
-            <option [ngValue]="null" disabled>Sélectionner un club</option>
+          <select name="clubId" class="form-select" [(ngModel)]="licenseData.club.id" (change)="filterSwimmersByClub()" [disabled]="viewOnly">
+            <option [ngValue]="null">Nageur indépendant (Sans Club)</option>
             <option *ngFor="let club of clubs" [ngValue]="club.id">{{ club.name }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label class="form-label fw-bold">
+          Nageur
+          <span *ngIf="licenseData.club?.id" class="text-muted fw-normal">(optionnel si un club est sélectionné)</span>
+        </label>
+        <div class="input-group">
+          <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+          <select name="swimmerId" class="form-select" [(ngModel)]="licenseData.swimmer.id" [disabled]="viewOnly">
+            <option [ngValue]="null">
+              {{ licenseData.club?.id ? 'Tous les nageurs du club' : 'Sélectionner un nageur' }}
+            </option>
+            <option *ngFor="let swimmer of filteredSwimmers" [ngValue]="swimmer.id">{{ swimmer.firstName }} {{ swimmer.lastName }}</option>
           </select>
         </div>
       </div>

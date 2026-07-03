@@ -12,10 +12,13 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString(exclude = {"club", "clubs", "participations", "performances"})
+@ToString(exclude = {"club", "clubs", "participations", "performances", "license"})
 @Entity
 @Table(name = "user")
 public class User {
+    @JsonIgnore
+    @OneToOne(mappedBy = "swimmer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private License license;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

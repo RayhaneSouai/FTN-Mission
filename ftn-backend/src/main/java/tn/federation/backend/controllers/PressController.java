@@ -20,16 +20,21 @@ import org.springframework.web.multipart.MultipartFile;
 
 import tn.federation.backend.dto.PressInteractionDTO;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/press")
 @Tag(name = "Press", description = "Gestion des articles de presse (CRUD + publication/archivage)")
 public class PressController {
 
-    @Autowired
-    IPressService pressService;
+    private final IPressService pressService;
+    private final GeminiService geminiService;
 
-    @Autowired
-    GeminiService geminiService;
+    public PressController(IPressService pressService, GeminiService geminiService) {
+        this.pressService = pressService;
+        this.geminiService = geminiService;
+    }
 
     private final Path root = Paths.get("uploads");
 
@@ -40,19 +45,23 @@ public class PressController {
     @Operation(summary = "Télécharger une image")
     @PostMapping(value = "/upload", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
     public Map<String, String> uploadFile(@RequestParam("file") MultipartFile file) {
-        System.out.println("DEBUG: Tentative d'upload de fichier: " + file.getOriginalFilename());
+        log.info("Tentative d'upload de fichier: {}", file.getOriginalFilename());
         Map<String, String> response = new HashMap<>();
         try {
             if (!Files.exists(root)) {
                 Files.createDirectories(root);
-                System.out.println("DEBUG: Dossier 'uploads' créé.");
+                log.info("Dossier 'uploads' créé.");
             }
-            String filename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+            // Nettoyer le nom de fichier pour éviter les virgules et espaces problématiques
+            String cleanName = file.getOriginalFilename() != null ? 
+                file.getOriginalFilename().replaceAll("[,; ]+", "_") : "file";
+            
+            String filename = UUID.randomUUID().toString() + "_" + cleanName;
             Files.copy(file.getInputStream(), this.root.resolve(filename));
-            System.out.println("DEBUG: Fichier enregistré sous: " + filename);
+            log.info("Fichier enregistré sous: {}", filename);
             response.put("url", "/api/press/images/" + filename);
         } catch (Exception e) {
-            System.err.println("DEBUG: Erreur upload: " + e.getMessage());
+            log.error("Erreur upload: {}", e.getMessage());
             response.put("error", "Erreur upload: " + e.getMessage());
         }
         return response;
@@ -60,14 +69,31 @@ public class PressController {
 
     @GetMapping("/images/{filename:.+}")
     public org.springframework.http.ResponseEntity<org.springframework.core.io.Resource> getImage(@PathVariable String filename) {
+        return serveFile(filename, false);
+    }
+
+    @Operation(summary = "Télécharger un fichier (PDF, document)")
+    @GetMapping("/download/{filename:.+}")
+    public org.springframework.http.ResponseEntity<org.springframework.core.io.Resource> downloadFile(@PathVariable String filename) {
+        return serveFile(filename, true);
+    }
+
+    private org.springframework.http.ResponseEntity<org.springframework.core.io.Resource> serveFile(String filename, boolean asAttachment) {
         try {
             org.springframework.core.io.Resource file = new org.springframework.core.io.UrlResource(root.resolve(filename).toUri());
             if (file.exists() || file.isReadable()) {
                 String mimeType = Files.probeContentType(root.resolve(filename));
                 if (mimeType == null) mimeType = "application/octet-stream";
-                return org.springframework.http.ResponseEntity.ok()
-                        .header(org.springframework.http.HttpHeaders.CONTENT_TYPE, mimeType)
-                        .body(file);
+                var builder = org.springframework.http.ResponseEntity.ok()
+                        .header(org.springframework.http.HttpHeaders.CONTENT_TYPE, mimeType);
+                if (asAttachment) {
+                    String displayName = filename.contains("_")
+                            ? filename.substring(filename.indexOf('_') + 1)
+                            : filename;
+                    builder.header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + displayName + "\"");
+                }
+                return builder.body(file);
             } else {
                 return org.springframework.http.ResponseEntity.notFound().build();
             }
@@ -83,7 +109,7 @@ public class PressController {
     @Operation(summary = "Extraire titre et image depuis un lien externe")
     @GetMapping("/fetch-metadata")
     public Map<String, String> fetchMetadata(@RequestParam String url) {
-        System.out.println("DEBUG: Extraction pour URL: " + url);
+        log.info("Extraction pour URL: {}", url);
         Map<String, String> metadata = new HashMap<>();
         try {
             // 1. Initialiser avec l'URL originale
@@ -91,7 +117,7 @@ public class PressController {
 
             // 2. Traitement spécial YouTube
             if (url.contains("youtube.com") || url.contains("youtu.be")) {
-                System.out.println("DEBUG: Détection YouTube");
+                log.info("Détection YouTube");
                 String videoId = "";
                 if (url.contains("v=")) {
                     videoId = url.split("v=")[1].split("&")[0];
@@ -135,9 +161,9 @@ public class PressController {
                 }
             }
 
-            System.out.println("DEBUG: Extraction réussie - Titre: " + metadata.get("title"));
+            log.info("Extraction réussie - Titre: {}", metadata.get("title"));
         } catch (Exception e) {
-            System.err.println("DEBUG: Erreur d'extraction pour " + url + " : " + e.getMessage());
+            log.error("Erreur d'extraction pour {} : {}", url, e.getMessage());
             metadata.put("error", "Erreur extraction: " + e.getMessage());
         }
         return metadata;
@@ -310,7 +336,7 @@ public class PressController {
         if (pdfUrl != null) {
             String filename = pdfUrl.substring(pdfUrl.lastIndexOf('/') + 1);
             String localPath = "uploads/" + filename;
-            System.out.println("DEBUG PDF path: " + localPath);
+            log.info("PDF path: {}", localPath);
             pdfText = geminiService.extractPdfText(localPath);
         }
         // Fallback to article text content if PDF not readable

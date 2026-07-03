@@ -124,9 +124,9 @@ export class ClubListComponent implements OnInit {
 
   private refreshAuthState(): void {
     if (isPlatformBrowser(this.platformId)) {
-      const userStr = localStorage.getItem('user');
+      const userStr = sessionStorage.getItem('user');
       this.currentUser = userStr ? JSON.parse(userStr) : null;
-      this.canManage = this.isAdminMode && !!localStorage.getItem('token');
+      this.canManage = this.isAdminMode && !!sessionStorage.getItem('token');
     }
   }
 
@@ -309,7 +309,7 @@ export class ClubListComponent implements OnInit {
       clubName: club.name,
       clubRegion: club.region
     };
-    localStorage.setItem('user', JSON.stringify(this.currentUser));
+    sessionStorage.setItem('user', JSON.stringify(this.currentUser));
   }
 
   approveJoinRequest(request: ClubJoinRequest): void {

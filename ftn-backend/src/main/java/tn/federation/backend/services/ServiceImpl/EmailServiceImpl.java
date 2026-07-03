@@ -24,6 +24,7 @@ public class EmailServiceImpl implements IEmailService {
     }
 
     @Override
+    @org.springframework.scheduling.annotation.Async
     public void sendPasswordReset(String to, String token) {
         String link = buildResetLink(token, false);
         String body = "<p style=\"margin:0 0 12px;\">Bonjour,</p>"
@@ -36,6 +37,7 @@ public class EmailServiceImpl implements IEmailService {
     }
 
     @Override
+    @org.springframework.scheduling.annotation.Async
     public void sendAdminCreatedUserWelcome(String to, String firstName, String temporaryPassword, String setupToken) {
         String setupLink = buildResetLink(setupToken, true);
         String body = "<p style=\"margin:0 0 12px;\">Bonjour <strong>" + escape(firstName) + "</strong>,</p>"
@@ -52,6 +54,7 @@ public class EmailServiceImpl implements IEmailService {
     }
 
     @Override
+    @org.springframework.scheduling.annotation.Async
     public void sendRegistrationPendingAdmin(User user) {
         String adminEmail = "admin@ftn.tn";
         String body = "<p>Un nouvel utilisateur s'est inscrit et attend votre approbation.</p>"
@@ -63,21 +66,28 @@ public class EmailServiceImpl implements IEmailService {
     }
 
     @Override
+    @org.springframework.scheduling.annotation.Async
     public void sendRegistrationDecision(String to, boolean approved) {
         String status = approved ? "approuvée" : "refusée";
         String body = "<p>Votre demande d'inscription a été <strong>" + status + "</strong>.</p>";
         if (approved) {
-            body += "<p>Vous pouvez maintenant vous connecter avec vos identifiants.</p>";
+            String forgotPasswordLink = appProperties.getFrontend().getBaseUrl().replaceAll("/$", "") + "/auth/forgot-password";
+            body += "<p>Si votre compte a été créé via un import de fichier CSV, vous devez d'abord définir votre mot de passe.</p>"
+                    + "<p>Veuillez vous rendre sur la page de connexion, puis cliquer sur <strong>\"Mot de passe oublié\"</strong> "
+                    + "pour configurer votre mot de passe, ou utilisez directement le lien suivant :</p>"
+                    + EmailHtmlTemplates.primaryButton("Définir mon mot de passe", forgotPasswordLink);
         }
         sendHtml(to, "Décision d'inscription — FTN", EmailHtmlTemplates.layout("Inscription " + status, body));
     }
 
     @Override
+    @org.springframework.scheduling.annotation.Async
     public void sendPasswordResetLink(String to, String token) {
         sendPasswordReset(to, token);
     }
 
     @Override
+    @org.springframework.scheduling.annotation.Async
     public void sendPasswordChangedNotification(String to) {
         String body = "<p style=\"margin:0 0 12px;\">Bonjour,</p>"
                 + "<p style=\"margin:0 0 12px;\">Le mot de passe de votre compte FTN a été modifié avec succès.</p>"
@@ -111,6 +121,117 @@ public class EmailServiceImpl implements IEmailService {
                 EmailHtmlTemplates.layout("Certificat disponible", body));
     }
 
+    @Override
+    @org.springframework.scheduling.annotation.Async
+    public void sendClubAdminErrorReportToAdmin(
+            String adminEmail,
+            String coachName,
+            String coachEmail,
+            String clubName,
+            String season,
+            String fieldLabels,
+            String description) {
+        String profileLink = appProperties.getFrontend().getBaseUrl().replaceAll("/$", "") + "/admin/clubs";
+        String body = "<p style=\"margin:0 0 12px;\">Bonjour,</p>"
+                + "<p style=\"margin:0 0 12px;\">Un coach a signalé des erreurs sur une fiche administrative de club.</p>"
+                + EmailHtmlTemplates.infoBox("Coach", coachName)
+                + EmailHtmlTemplates.infoBox("Email du coach", coachEmail)
+                + EmailHtmlTemplates.infoBox("Club", clubName)
+                + EmailHtmlTemplates.infoBox("Saison", season)
+                + EmailHtmlTemplates.infoBox("Champs signalés", fieldLabels);
+        if (description != null && !description.isBlank()) {
+            body += EmailHtmlTemplates.infoBox("Description", description);
+        }
+        body += EmailHtmlTemplates.primaryButton("Consulter les clubs", profileLink)
+                + EmailHtmlTemplates.warningBox("Ce signalement est également visible dans vos notifications FTN.");
+        sendHtml(adminEmail, "Signalement fiche club — FTN",
+                EmailHtmlTemplates.layout("Signalement administratif", body));
+    }
+
+    @Override
+    @org.springframework.scheduling.annotation.Async
+    public void sendSeasonValidationRequestToCoach(
+            String coachEmail,
+            String coachFirstName,
+            String clubName,
+            String season) {
+        String validationLink = appProperties.getFrontend().getBaseUrl().replaceAll("/$", "")
+                + "/mon-profil?tab=club";
+        String body = "<p style=\"margin:0 0 12px;\">Bonjour <strong>" + escape(coachFirstName) + "</strong>,</p>"
+                + "<p style=\"margin:0 0 12px;\">La Fédération Tunisienne de Natation vous invite à valider la saison sportive "
+                + "<strong>" + escape(season) + "</strong> pour votre club <strong>" + escape(clubName) + "</strong>.</p>"
+                + EmailHtmlTemplates.warningBox(
+                "Cette validation est nécessaire pour confirmer l'effectif et activer les licences de vos nageurs.")
+                + EmailHtmlTemplates.infoBox("Club concerné", clubName)
+                + EmailHtmlTemplates.infoBox("Saison", season)
+                + EmailHtmlTemplates.primaryButton("Valider la saison sportive", validationLink)
+                + "<p style=\"margin:16px 0 0;font-size:13px;color:#64748b;\">Vous pouvez aussi accéder à cette action depuis "
+                + "Mon profil → Mon Club &amp; Affiliation.</p>";
+        sendHtml(coachEmail, "Validation de saison requise — FTN",
+                EmailHtmlTemplates.layout("Validation de saison", body));
+    }
+
+    @Override
+    @org.springframework.scheduling.annotation.Async
+    public void sendLicensePendingValidationToCoach(
+            String coachEmail,
+            String coachFirstName,
+            String clubName,
+            String season,
+            String licenseNumber) {
+        String validationLink = appProperties.getFrontend().getBaseUrl().replaceAll("/$", "")
+                + "/mon-profil?tab=club";
+        String body = "<p style=\"margin:0 0 12px;\">Bonjour <strong>" + escape(coachFirstName) + "</strong>,</p>"
+                + "<p style=\"margin:0 0 12px;\">Une nouvelle licence est en attente de validation pour votre club <strong>" + escape(clubName) + "</strong>.</p>"
+                + EmailHtmlTemplates.infoBox("Numéro de Licence", licenseNumber)
+                + EmailHtmlTemplates.infoBox("Club concerné", clubName)
+                + EmailHtmlTemplates.infoBox("Saison", season)
+                + EmailHtmlTemplates.warningBox(
+                "Veuillez valider la saison sportive correspondante afin d'activer cette licence et celles de vos autres nageurs.")
+                + EmailHtmlTemplates.primaryButton("Accéder à la validation", validationLink);
+        sendHtml(coachEmail, "Licence en attente de validation — FTN",
+                EmailHtmlTemplates.layout("Licence en attente de validation", body));
+    }
+
+    @Override
+    @org.springframework.scheduling.annotation.Async
+    public void sendSeasonValidationDecisionToAdmin(
+            String adminEmail,
+            String coachName,
+            String clubName,
+            String season,
+            boolean approved) {
+        String status = approved ? "VALIDATED" : "REFUSED";
+        String statusLabel = approved ? "VALIDÉE" : "REFUSÉE";
+        String body = "<p style=\"margin:0 0 12px;\">Bonjour,</p>"
+                + "<p style=\"margin:0 0 12px;\">Le coach <strong>" + escape(coachName) + "</strong> a pris une décision concernant la validation de saison pour son club <strong>" + escape(clubName) + "</strong>.</p>"
+                + EmailHtmlTemplates.infoBox("Club", clubName)
+                + EmailHtmlTemplates.infoBox("Saison", season)
+                + EmailHtmlTemplates.infoBox("Décision", approved ? "Acceptée" : "Refusée")
+                + EmailHtmlTemplates.infoBox("Statut final des licences", status);
+        sendHtml(adminEmail, "Décision de validation de saison : " + statusLabel + " — FTN",
+                EmailHtmlTemplates.layout("Décision de validation de saison", body));
+    }
+
+    @Override
+    @org.springframework.scheduling.annotation.Async
+    public void sendSwimmerSeasonValidationRequest(
+            String email,
+            String swimmerName,
+            String season) {
+        String validationLink = appProperties.getFrontend().getBaseUrl().replaceAll("/$", "")
+                + "/mon-profil";
+        String body = "<p style=\"margin:0 0 12px;\">Bonjour <strong>" + escape(swimmerName) + "</strong>,</p>"
+                + "<p style=\"margin:0 0 12px;\">La Fédération Tunisienne de Natation vous invite à valider la saison sportive "
+                + "<strong>" + escape(season) + "</strong> afin de renouveler votre licence individuelle.</p>"
+                + EmailHtmlTemplates.warningBox(
+                "Cette validation est nécessaire pour confirmer vos informations et activer votre licence individuelle de nageur indépendant.")
+                + EmailHtmlTemplates.infoBox("Saison", season)
+                + EmailHtmlTemplates.primaryButton("Valider ma saison sportive", validationLink);
+        sendHtml(email, "Validation de saison requise (Indépendant) — FTN",
+                EmailHtmlTemplates.layout("Validation de saison", body));
+    }
+
     private String buildResetLink(String token, boolean accountSetup) {
         String base = appProperties.getFrontend().getBaseUrl().replaceAll("/$", "");
         String path = accountSetup ? "/auth/reset-password?setup=1&token=" : "/auth/reset-password?token=";
@@ -128,8 +249,7 @@ public class EmailServiceImpl implements IEmailService {
             mailSender.send(message);
             LOGGER.info("Email '{}' envoyé à {}", subject, to);
         } catch (Exception e) {
-            LOGGER.warn("Impossible d'envoyer l'email '{}' à {}", subject, to, e);
-            throw new IllegalStateException("Envoi d'email impossible. Vérifiez la configuration SMTP.");
+            LOGGER.error("Impossible d'envoyer l'email '{}' à {} (Erreur SMTP/Réseau ignorée pour éviter de bloquer la transaction) : {}", subject, to, e.getMessage());
         }
     }
 
